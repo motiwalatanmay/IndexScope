@@ -2567,7 +2567,8 @@ function fetchLive() {
           }
         });
         if (added) { HISTORY.sort(function(a,b){return a[0]<b[0]?-1:1;}); }
-        setStatus('ok', '\u2713 Live \u00b7 '+HISTORY[HISTORY.length-1][0]+(added?' (+'+added+' rows)':''));
+        var fetchedTime = resp.fetchedAt ? new Date(resp.fetchedAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short',hour12:true}) : '';
+        setStatus('ok', '\u2713 Data: '+HISTORY[HISTORY.length-1][0]+(fetchedTime?' \u00b7 Fetched: '+fetchedTime+' IST':'')+(added?' (+'+added+' rows)':''));
       } else {
         setStatus('stale', 'Embedded data \u00b7 '+HISTORY[HISTORY.length-1][0]);
       }
