@@ -594,6 +594,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <span style="color:var(--ve-fg);font-weight:600">red</span> = expensive.
       Click any card for full details, historical medians, and backtests.
     </div>
+    <div id="dashUpdated" class="dash-updated" style="font-size:12px;color:var(--muted,#6b7280);margin:4px 0 10px;">Last updated: &mdash;</div>
     <div class="dash-grid" id="dashGrid"></div>
   </div>
 </div>
@@ -2153,7 +2154,6 @@ function renderCards() {
         + '<div class="idx-card band-'+s.peBand+'" onclick="openDetails(\''+key+'\')">'
         +   '<div class="idx-name"><span>'+name+'</span><svg class="ico idx-chevron"><use href="#i-chevron-right"/></svg></div>'
         +   '<div class="idx-price">'+price+'</div>'
-        +   '<div class="idx-date">As of '+s.curDate+'</div>'
         +   pePill
         +   '<div class="idx-metrics">'
         +     '<div><div class="idx-metric-lbl">Current PE</div><div class="idx-metric-val">'+fmt(s.curPE)+'</div><div class="idx-metric-sub">'+pePctStr+' of ref</div></div>'
@@ -3292,19 +3292,25 @@ function renderSimpleChart(rows, signals, threshold) {
 // ============================================================
 // LIVE DATA (per-index)
 // ============================================================
+function fetchLiveForAttempt(key, timeoutMs) {
+  var cfg = INDICES[key];
+  var abortCtrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = setTimeout(function() { if (abortCtrl) abortCtrl.abort(); }, timeoutMs);
+  var fetchOpts = { headers: { 'X-API-Key': cfg.apiKey } };
+  if (abortCtrl) fetchOpts.signal = abortCtrl.signal;
+  return fetch(cfg.scriptUrl+'?t='+Date.now(), fetchOpts)
+    .then(function(r){ clearTimeout(timer); return r.json(); }, function(e){ clearTimeout(timer); throw e; });
+}
+
 function fetchLiveFor(key) {
   var cfg = INDICES[key];
   if (!cfg || !cfg.scriptUrl) return Promise.resolve({key: key, ok: false, embedded: true});
 
-  var timeoutMs = 12000;
-  var abortCtrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  var timer = setTimeout(function() { if (abortCtrl) abortCtrl.abort(); }, timeoutMs);
-
-  var fetchOpts = { headers: { 'X-API-Key': cfg.apiKey } };
-  if (abortCtrl) fetchOpts.signal = abortCtrl.signal;
-
-  return fetch(cfg.scriptUrl+'?t='+Date.now(), fetchOpts)
-    .then(function(r){ clearTimeout(timer); return r.json(); })
+  return fetchLiveForAttempt(key, 20000)
+    .catch(function(e){
+      if (e && e.name === 'AbortError') return fetchLiveForAttempt(key, 25000);
+      throw e;
+    })
     .then(function(resp){
       if (resp.status==='ok' && resp.data && resp.data.length) {
         var hist = HISTORIES[key];
@@ -3319,7 +3325,6 @@ function fetchLiveFor(key) {
       return {key: key, ok: false, embedded: true, lastDate: HISTORIES[key][HISTORIES[key].length-1][0]};
     })
     .catch(function(e){
-      clearTimeout(timer);
       return {key: key, ok: false, error: (e && e.name === 'AbortError') ? 'timeout' : 'fetch_failed', lastDate: HISTORIES[key][HISTORIES[key].length-1][0]};
     });
 }
@@ -3330,6 +3335,24 @@ function fetchAllLive() {
     var okCount = results.filter(function(r){return r.ok;}).length;
     var errCount = results.filter(function(r){return r.error;}).length;
     var totalAdded = results.reduce(function(a,r){return a+(r.added||0);},0);
+    try {
+      var upd = document.getElementById('dashUpdated');
+      if (upd) {
+        var maxFetched = results.reduce(function(m,r){
+          if (r && r.fetchedAt) { var t = new Date(r.fetchedAt).getTime(); if (!isNaN(t) && t>m) return t; }
+          return m;
+        }, 0);
+        var maxLastDate = results.reduce(function(m,r){
+          return (r && r.lastDate && r.lastDate > m) ? r.lastDate : m;
+        }, '');
+        if (maxFetched) {
+          var ts = new Date(maxFetched).toLocaleString('en-IN', {timeZone:'Asia/Kolkata', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+          upd.textContent = 'Last updated: ' + ts + ' IST' + (maxLastDate ? ' \u00b7 data through ' + maxLastDate : '');
+        } else if (maxLastDate) {
+          upd.textContent = 'Last updated: data through ' + maxLastDate + ' (embedded)';
+        }
+      }
+    } catch(e) {}
     if (errCount > 0) {
       setStatus('err', okCount + '/4 indices live, ' + errCount + ' failed \u00b7 using embedded fallback');
     } else if (okCount === 4) {
