@@ -5,560 +5,1146 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>IndexScope — Indian Indices Valuation Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg:#0c1221;--bg2:#111827;--bg3:#1a2236;--bg4:#232f45;
-  --brd:#2a3a55;--brd2:#334466;
-  --txt:#e2e8f0;--txt2:#94a3b8;--txt3:#64748b;
-  --acc:#3b82f6;--acc2:#60a5fa;
-  --vc-bg:#052e16;--vc-fg:#4ade80;--vc-brd:#16a34a;
-  --c-bg:#0f2818;--c-fg:#86efac;--c-brd:#22c55e;
-  --n-bg:#1c1f10;--n-fg:#fde68a;--n-brd:#ca8a04;
-  --e-bg:#2d1510;--e-fg:#fca5a5;--e-brd:#dc2626;
-  --ve-bg:#3d0f0f;--ve-fg:#fca5a5;--ve-brd:#991b1b;
+  --bg:#080b12;--bg2:#0d1120;--bg3:#131929;--sur:#1a2035;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.04);
+  --txt:#dce5f5;--sub:#7a8fb0;--ghost:#364460;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --cond:'Barlow Condensed',sans-serif;
+  --body:'Barlow',-apple-system,system-ui,sans-serif;
+  --ttl:'Bebas Neue',cursive;
+  --ease:cubic-bezier(.4,.2,.2,1);
+  --brand:#6366f1;--brand2:#8b5cf6;
+  /* Valuation band tokens (each: -c color, -bg deep tint, -bd border, -tl translucent) */
+  --vc-c:#00c853;--vc-bg:#001a08;--vc-bd:rgba(0,200,83,.35);--vc-tl:rgba(0,200,83,.10);
+  --c-c:#69f0ae; --c-bg:#001510; --c-bd:rgba(105,240,174,.30);--c-tl:rgba(105,240,174,.08);
+  --n-c:#ffd740; --n-bg:#1a1500; --n-bd:rgba(255,215,64,.30); --n-tl:rgba(255,215,64,.08);
+  --e-c:#ff7043; --e-bg:#1a0800; --e-bd:rgba(255,112,67,.32); --e-tl:rgba(255,112,67,.08);
+  --ve-c:#ff1744;--ve-bg:#1f0000;--ve-bd:rgba(255,23,68,.35);--ve-tl:rgba(255,23,68,.09);
+  /* legacy aliases so old class names still resolve */
+  --vc-fg:var(--vc-c);--vc-brd:var(--vc-c);
+  --c-fg:var(--c-c);--c-brd:var(--c-c);
+  --n-fg:var(--n-c);--n-brd:var(--n-c);
+  --e-fg:var(--e-c);--e-brd:var(--e-c);
+  --ve-fg:var(--ve-c);--ve-brd:var(--ve-c);
+  --txt2:var(--sub);--txt3:var(--ghost);
+  --brd:var(--bdr);--brd2:var(--bdr);
+  --bg4:var(--sur);
+  --acc:var(--brand);--acc2:#a5b4fc;
 }
 body.light{
-  --bg:#f0f4f8;--bg2:#ffffff;--bg3:#e8edf5;--bg4:#d9e2ee;
-  --brd:#c8d5e8;--brd2:#a8bdd6;
-  --txt:#1e293b;--txt2:#475569;--txt3:#64748b;
-  --acc:#2563eb;--acc2:#3b82f6;
-  --vc-bg:#dcfce7;--vc-fg:#15803d;--vc-brd:#22c55e;
-  --c-bg:#f0fdf4;--c-fg:#166534;--c-brd:#4ade80;
-  --n-bg:#fefce8;--n-fg:#92400e;--n-brd:#ca8a04;
-  --e-bg:#fff7ed;--e-fg:#c2410c;--e-brd:#f97316;
-  --ve-bg:#fef2f2;--ve-fg:#991b1b;--ve-brd:#ef4444;
+  --bg:#eef1f8;--bg2:#fff;--bg3:#f4f7fc;--sur:#e8edf7;
+  --bdr:rgba(0,0,0,.08);--bdr2:rgba(0,0,0,.04);
+  --txt:#0f172a;--sub:#475a7a;--ghost:#7a8fb0;
+  --vc-c:#047857;--c-c:#059669;--n-c:#b45309;--e-c:#c2410c;--ve-c:#b91c1c;
+  --vc-bg:#f0fff5;--vc-bd:rgba(0,150,60,.35);--vc-tl:rgba(0,150,60,.10);
+  --c-bg:#f0fdf8;--c-bd:rgba(5,150,105,.32);--c-tl:rgba(5,150,105,.09);
+  --n-bg:#fffbeb;--n-bd:rgba(180,83,9,.32);--n-tl:rgba(180,83,9,.09);
+  --e-bg:#fff4f0;--e-bd:rgba(194,65,12,.32);--e-tl:rgba(194,65,12,.08);
+  --ve-bg:#fff0f2;--ve-bd:rgba(185,28,28,.32);--ve-tl:rgba(185,28,28,.08);
+  --acc2:#4f46e5;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--body);font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;transition:background .3s,color .3s}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 50% at 15% -5%,rgba(99,102,241,.06) 0%,transparent 55%),radial-gradient(ellipse 60% 45% at 88% 105%,rgba(16,185,129,.04) 0%,transparent 50%)}
+body.light::before{background:radial-gradient(ellipse 80% 50% at 15% -5%,rgba(99,102,241,.05) 0%,transparent 55%),radial-gradient(ellipse 60% 45% at 88% 105%,rgba(16,185,129,.04) 0%,transparent 50%)}
 
-/* HEADER */
-.hdr{display:flex;align-items:center;gap:12px;padding:12px 24px;background:var(--bg2);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:100}
-.hdr-title{font-size:17px;font-weight:700;color:var(--txt);margin-right:auto}
-.hdr-title span{color:var(--acc2);font-size:12px;font-weight:500;display:block;line-height:1.2}
-.status-chip{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--brd);color:var(--txt2)}
-.status-chip.ok{border-color:var(--vc-brd);color:var(--vc-fg)}
-.status-chip.err{border-color:var(--e-brd);color:var(--e-fg)}
-.btn{padding:5px 14px;border-radius:6px;border:1px solid var(--brd2);background:var(--bg3);color:var(--txt2);cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
-.btn:hover{background:var(--bg4);color:var(--txt)}
+/* Tabular numbers everywhere numbers matter */
+.hero-value,.mc-val,.mc-pct,.idx-price,.idx-metric-val,.eps-tile-val,.bt-stat-val,
+.percentile-val,.slider-val,.median-table td,.data-table td,.bt-table td,
+.trend-badge,.delta-pos,.delta-neg,.delta-neu,.mc-subtext,.bpill,.band-pill{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 
-/* NAV */
-.nav{display:flex;gap:0;padding:0 24px;background:var(--bg2);border-bottom:1px solid var(--brd);overflow-x:auto}
-.nav-tab{padding:11px 20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--txt3);border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
-.nav-tab:hover{color:var(--txt2)}
-.nav-tab.active{color:var(--acc2);border-bottom-color:var(--acc2)}
+/* Icon utility */
+.ico{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;display:inline-block;vertical-align:-2px}
+.ico-lg{width:18px;height:18px;vertical-align:-3px}
+.ico-sm{width:11px;height:11px;vertical-align:-1px}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.ico-spin{animation:spin 1s linear infinite}
 
-/* PAGE */
-.page{display:none;padding:24px;max-width:1400px;margin:0 auto}
+/* ── HEADER ── */
+.hdr{position:sticky;top:0;z-index:200;padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(8,11,18,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);transition:background .3s}
+body.light .hdr{background:rgba(238,241,248,.94)}
+.hdr-title{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0;flex:0 1 auto}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;min-width:0;max-width:100%}
+.hdr-logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-family:var(--ttl);font-size:14px;letter-spacing:1.5px;box-shadow:0 2px 10px rgba(99,102,241,.35);flex-shrink:0}
+.hdr-wordmark-wrap{display:flex;flex-direction:column;line-height:1;gap:3px;min-width:0}
+.hdr-wordmark{font-family:var(--ttl);font-size:1.55rem;letter-spacing:2.5px;line-height:1;background:linear-gradient(100deg,var(--txt) 40%,var(--sub) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap}
+.hdr-tagline{font-family:var(--mono);font-size:.52rem;color:var(--ghost);letter-spacing:1.3px;text-transform:uppercase;white-space:nowrap}
+.status-chip{font-family:var(--mono);font-size:.62rem;padding:4px 10px;border-radius:18px;border:1px solid var(--bdr);color:var(--ghost);background:var(--bg3);white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:all .3s;letter-spacing:.3px}
+.status-chip.ok{color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)}
+.status-chip.err{color:#f87171;border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.08)}
+body.light .status-chip.ok{color:#15803d;border-color:rgba(21,128,61,.3);background:rgba(21,128,61,.06)}
+body.light .status-chip.err{color:#b91c1c;border-color:rgba(185,28,28,.3);background:rgba(185,28,28,.06)}
+.btn{padding:7px 13px;border-radius:9px;border:1px solid var(--bdr);background:var(--bg3);color:var(--sub);cursor:pointer;font-family:var(--body);font-size:.78rem;font-weight:600;transition:all .18s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.2px}
+.btn:hover{background:var(--sur);color:var(--txt);border-color:var(--bdr)}
+
+/* ── VIEW CONTAINER ── */
+.view{display:none;position:relative;z-index:1}
+.view.active{display:block}
+.page{display:none;padding:22px 32px 48px;max-width:1400px;margin:0 auto}
 .page.active{display:block}
+@media(max-width:680px){.page{padding:14px 12px 36px}}
 
-/* DASHBOARD */
-.hero{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.hero-index{font-size:13px;color:var(--txt2);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
-.hero-value{font-size:36px;font-weight:700;color:var(--txt);line-height:1}
-.hero-date{font-size:12px;color:var(--txt3);margin-top:4px}
-.hero-right{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+/* ═══════════════════════ DASHBOARD (4 index cards) ═══════════════════════ */
+.dash-wrap{position:relative;z-index:1;padding:22px 32px 48px;max-width:1700px;margin:0 auto}
+@media(max-width:680px){.dash-wrap{padding:14px 12px 36px}}
+.dash-intro{font-family:var(--body);font-size:.86rem;color:var(--sub);margin-bottom:22px;line-height:1.6;max-width:900px}
+.dash-intro strong{color:var(--txt);font-weight:600}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+@media(max-width:680px){.dash-grid{gap:10px}}
 
-.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px}
-.metric-card{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:20px}
-.mc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.mc-title{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px}
-.mc-info-badge{font-size:10px;background:var(--bg3);color:var(--txt3);padding:2px 8px;border-radius:10px;border:1px solid var(--brd)}
-.mc-current{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
-.mc-val{font-size:32px;font-weight:700;color:var(--txt);line-height:1}
-.mc-pct{font-size:13px;font-weight:600;padding:2px 10px;border-radius:20px;white-space:nowrap}
-.mc-subtext{font-size:11px;color:var(--txt3);margin-bottom:14px}
+/* Index cards — SectorScope card look (3px top strip, band tint, lift on hover) */
+.idx-card{position:relative;border-radius:15px;border:1px solid var(--bdr);background:var(--bg2);cursor:pointer;user-select:none;padding:16px 18px 14px;transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;animation:cIn .46s var(--ease) both;overflow:hidden}
+@keyframes cIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.idx-card:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(0,0,0,.38)}
+body.light .idx-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.10)}
+.idx-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ghost);opacity:.85}
+.idx-card.band-vcheap{background:var(--vc-bg);border-color:var(--vc-bd)}
+.idx-card.band-vcheap::after{background:var(--vc-c)}
+.idx-card.band-cheap{background:var(--c-bg);border-color:var(--c-bd)}
+.idx-card.band-cheap::after{background:var(--c-c)}
+.idx-card.band-neutral{background:var(--n-bg);border-color:var(--n-bd)}
+.idx-card.band-neutral::after{background:var(--n-c)}
+.idx-card.band-expensive{background:var(--e-bg);border-color:var(--e-bd)}
+.idx-card.band-expensive::after{background:var(--e-c)}
+.idx-card.band-vexpensive{background:var(--ve-bg);border-color:var(--ve-bd)}
+.idx-card.band-vexpensive::after{background:var(--ve-c)}
+.idx-name{display:flex;align-items:center;justify-content:space-between;font-family:var(--cond);font-size:1.18rem;font-weight:800;letter-spacing:-.2px;color:var(--txt);margin-bottom:6px;text-transform:uppercase}
+.idx-chevron{color:var(--ghost);transition:color .18s,transform .18s;width:16px;height:16px}
+.idx-card:hover .idx-chevron{color:var(--sub);transform:translateX(3px)}
+.idx-price{font-family:var(--mono);font-size:1.72rem;font-weight:700;color:var(--txt);line-height:1.05;margin-bottom:4px;letter-spacing:-.02em}
+.idx-date{font-family:var(--mono);font-size:.5rem;color:var(--ghost);letter-spacing:.6px;margin-bottom:12px;text-transform:uppercase}
+.idx-band-pill{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.56rem;font-weight:700;padding:3px 9px;border-radius:16px;border:1px solid;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px}
+.idx-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid var(--bdr2)}
+.idx-metric-lbl{font-family:var(--mono);font-size:.5rem;color:var(--sub);text-transform:uppercase;letter-spacing:.85px;margin-bottom:3px}
+.idx-metric-val{font-family:var(--mono);font-size:1.05rem;font-weight:700;color:var(--txt);letter-spacing:-.01em;line-height:1}
+.idx-metric-sub{font-family:var(--mono);font-size:.5rem;color:var(--ghost);margin-top:3px;letter-spacing:.2px}
+.idx-card.error{opacity:.65}
+.idx-card.error .idx-price{font-size:14px;font-weight:500;color:var(--sub)}
 
-/* TREND BADGE */
-.trend-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle}
-.trend-up{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
-.trend-dn{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.3)}
-.trend-flat{background:var(--bg3);color:var(--txt3);border:1px solid var(--brd)}
+/* ═══════════════════════ DETAILS VIEW ═══════════════════════ */
+.det-hdr{position:sticky;top:0;z-index:10;padding:10px 24px;display:flex;align-items:center;gap:14px;background:rgba(8,11,18,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);flex-shrink:0;transition:background .3s}
+body.light .det-hdr{background:rgba(238,241,248,.96)}
+.back-btn{padding:7px 12px 7px 10px;border-radius:9px;border:1px solid var(--bdr);background:var(--bg3);color:var(--sub);cursor:pointer;font-family:var(--body);font-size:.78rem;font-weight:600;transition:all .18s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.2px}
+.back-btn:hover{background:var(--sur);color:var(--txt)}
+.det-title{font-family:var(--cond);font-size:1.3rem;font-weight:800;letter-spacing:-.2px;color:var(--txt);text-transform:uppercase}
+.det-title-sub{font-family:var(--mono);font-size:.56rem;color:var(--ghost);margin-left:10px;letter-spacing:.6px;text-transform:uppercase}
 
-.band-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid;letter-spacing:.3px;text-transform:uppercase}
-.band-vcheap{background:var(--vc-bg);color:var(--vc-fg);border-color:var(--vc-brd)}
-.band-cheap{background:var(--c-bg);color:var(--c-fg);border-color:var(--c-brd)}
-.band-neutral{background:var(--n-bg);color:var(--n-fg);border-color:var(--n-brd)}
-.band-expensive{background:var(--e-bg);color:var(--e-fg);border-color:var(--e-brd)}
-.band-vexpensive{background:var(--ve-bg);color:var(--ve-fg);border-color:var(--ve-brd)}
+/* Top-level page tabs (Dashboard / Help) */
+.page-tabs{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px;flex-shrink:0}
+.ptab{padding:7px 16px;border-radius:7px;font-family:var(--body);font-size:.76rem;font-weight:600;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .18s;white-space:nowrap;letter-spacing:.2px}
+.ptab:hover{color:var(--txt)}
+.ptab.active{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+body.light .ptab.active{box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
-.median-table{width:100%;border-collapse:collapse;margin:10px 0}
-.median-table th{font-size:11px;color:var(--txt3);font-weight:600;text-align:right;padding:4px 6px;border-bottom:1px solid var(--brd)}
+/* Sub-nav — SectorScope page-tabs pattern (pill container, sliding active) */
+.subnav{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px;margin:14px 24px 0;overflow-x:auto;max-width:max-content}
+.subnav-tab{padding:7px 16px;border-radius:7px;font-family:var(--body);font-size:.78rem;font-weight:600;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .18s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;letter-spacing:.2px}
+.subnav-tab:hover{color:var(--txt)}
+.subnav-tab.active{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+body.light .subnav-tab.active{box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.subnav-tab.active .ico{color:var(--brand)}
+
+/* ═══════════════════════ HERO (Details overview page) ═══════════════════════ */
+.hero{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:20px 22px;margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hero-index{font-family:var(--mono);font-size:.58rem;color:var(--ghost);font-weight:600;letter-spacing:1.1px;text-transform:uppercase;margin-bottom:5px}
+.hero-value{font-family:var(--mono);font-size:2.3rem;font-weight:700;color:var(--txt);line-height:1;letter-spacing:-.02em}
+.hero-date{font-family:var(--mono);font-size:.58rem;color:var(--ghost);margin-top:6px;letter-spacing:.4px}
+.hero-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ═══════════════════════ METRIC CARDS ═══════════════════════ */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:18px}
+.metric-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+.mc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mc-title{font-family:var(--mono);font-size:.6rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1px;display:inline-flex;align-items:center;gap:7px}
+.mc-title .ico{color:var(--ghost)}
+.mc-info-badge{font-family:var(--mono);font-size:.5rem;background:var(--bg3);color:var(--ghost);padding:3px 8px;border-radius:10px;border:1px solid var(--bdr);display:inline-flex;align-items:center;gap:4px;letter-spacing:.4px;text-transform:uppercase}
+.mc-current{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.mc-val{font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--txt);line-height:1;letter-spacing:-.02em}
+.mc-pct{font-family:var(--mono);font-size:.58rem;font-weight:700;padding:4px 10px;border-radius:16px;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;border:1px solid}
+.mc-subtext{font-family:var(--mono);font-size:.56rem;color:var(--ghost);margin-bottom:12px;letter-spacing:.3px}
+
+/* Trend badges */
+.trend-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.54rem;font-weight:700;padding:3px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;letter-spacing:.3px}
+.trend-badge .ico{width:11px;height:11px}
+.trend-up{background:var(--vc-tl);color:var(--vc-c);border:1px solid var(--vc-bd)}
+.trend-dn{background:var(--e-tl);color:var(--e-c);border:1px solid var(--e-bd)}
+.trend-flat{background:var(--bg3);color:var(--ghost);border:1px solid var(--bdr)}
+
+/* Band pills */
+.band-pill{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.54rem;font-weight:700;padding:4px 10px;border-radius:16px;border:1px solid;letter-spacing:.5px;text-transform:uppercase}
+.band-vcheap{background:var(--vc-tl);color:var(--vc-c);border-color:var(--vc-bd)}
+.band-cheap{background:var(--c-tl);color:var(--c-c);border-color:var(--c-bd)}
+.band-neutral{background:var(--n-tl);color:var(--n-c);border-color:var(--n-bd)}
+.band-expensive{background:var(--e-tl);color:var(--e-c);border-color:var(--e-bd)}
+.band-vexpensive{background:var(--ve-tl);color:var(--ve-c);border-color:var(--ve-bd)}
+
+/* Median table inside metric cards */
+.median-table{width:100%;border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+.median-table th{font-size:.5rem;color:var(--ghost);font-weight:600;text-align:right;padding:5px 6px;border-bottom:1px solid var(--bdr);letter-spacing:.6px;text-transform:uppercase}
 .median-table th:first-child{text-align:left}
-.median-table td{font-size:12px;color:var(--txt);padding:5px 6px;text-align:right;border-bottom:1px solid var(--brd)}
-.median-table td:first-child{text-align:left;color:var(--txt2)}
-.median-table tr.ref-row td{color:var(--acc2);font-weight:600}
+.median-table td{font-size:.68rem;color:var(--txt);padding:6px 6px;text-align:right;border-bottom:1px solid var(--bdr2)}
+.median-table td:first-child{text-align:left;color:var(--sub);font-family:var(--body);font-size:.74rem;font-weight:500}
+.median-table tr.ref-row td{color:var(--brand);font-weight:700}
+body.light .median-table tr.ref-row td{color:#4f46e5}
 .median-table tr:last-child td{border-bottom:none}
-.delta-pos{color:#4ade80;font-size:11px}
-.delta-neg{color:#f87171;font-size:11px}
-.delta-neu{color:var(--txt3);font-size:11px}
+.delta-pos{color:var(--vc-c);font-size:.62rem;font-weight:600}
+.delta-neg{color:var(--e-c);font-size:.62rem;font-weight:600}
+.delta-neu{color:var(--ghost);font-size:.62rem}
 
-.percentile-row{margin-top:12px;padding-top:12px;border-top:1px solid var(--brd)}
-.percentile-label{font-size:11px;color:var(--txt3);margin-bottom:4px}
+/* Percentile bar */
+.percentile-row{margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr)}
+.percentile-label{font-family:var(--mono);font-size:.5rem;color:var(--ghost);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
 .percentile-bar-wrap{background:var(--bg3);border-radius:4px;height:6px;position:relative;overflow:hidden}
-.percentile-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--vc-fg),var(--c-fg),var(--n-fg),var(--e-fg),var(--ve-fg))}
-.percentile-marker{position:absolute;top:-3px;width:2px;height:12px;background:var(--txt);border-radius:2px}
-.percentile-val{font-size:11px;color:var(--txt2);margin-top:4px;font-weight:600}
+.percentile-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--vc-c),var(--c-c),var(--n-c),var(--e-c),var(--ve-c));opacity:.75}
+.percentile-marker{position:absolute;top:-3px;width:2px;height:12px;background:var(--txt);border-radius:2px;box-shadow:0 0 4px rgba(0,0,0,.5)}
+.percentile-val{font-family:var(--mono);font-size:.56rem;color:var(--sub);margin-top:5px;font-weight:600;letter-spacing:.3px}
 
-.divergence-flag{margin-top:8px;font-size:11px;color:var(--n-fg);background:var(--n-bg);border:1px solid var(--n-brd);padding:4px 10px;border-radius:6px;display:none}
+.divergence-flag{margin-top:10px;font-family:var(--mono);font-size:.58rem;color:var(--n-c);background:var(--n-tl);border:1px solid var(--n-bd);padding:5px 10px;border-radius:7px;display:none;letter-spacing:.3px}
 
-/* EPS SECTION */
-.eps-section{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:18px 24px;margin-bottom:20px}
-.eps-title{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+/* ═══════════════════════ EPS SECTION ═══════════════════════ */
+.eps-section{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:16px 22px;margin-bottom:18px}
+.eps-title{font-family:var(--mono);font-size:.6rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.eps-title .ico{color:var(--ghost)}
 .eps-grid{display:flex;gap:24px;flex-wrap:wrap}
 .eps-tile{flex:1;min-width:120px}
-.eps-tile-label{font-size:11px;color:var(--txt3);margin-bottom:3px}
-.eps-tile-val{font-size:18px;font-weight:700;color:var(--txt)}
-.eps-tile-sub{font-size:11px;color:var(--txt3)}
-.turning-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--n-bg);color:var(--n-fg);border:1px solid var(--n-brd);margin-top:3px}
+.eps-tile-label{font-family:var(--mono);font-size:.5rem;color:var(--ghost);margin-bottom:5px;letter-spacing:.8px;text-transform:uppercase;font-weight:600}
+.eps-tile-val{font-family:var(--mono);font-size:1.24rem;font-weight:700;color:var(--txt);line-height:1}
+.eps-tile-sub{font-family:var(--mono);font-size:.5rem;color:var(--ghost);margin-top:4px;letter-spacing:.3px}
+.turning-badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:.5rem;font-weight:700;padding:3px 7px;border-radius:6px;background:var(--n-tl);color:var(--n-c);border:1px solid var(--n-bd);margin-top:4px;letter-spacing:.5px;text-transform:uppercase}
 
-/* CHART SECTION */
-.chart-section{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:18px 24px;margin-bottom:20px}
-.chart-title{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+/* ═══════════════════════ CHART SECTIONS ═══════════════════════ */
+.chart-section,.chart-container{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:16px 22px;margin-bottom:16px}
+.chart-title{font-family:var(--mono);font-size:.6rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.chart-title .ico{color:var(--ghost)}
 .chart-legend{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
-.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3)}
+.legend-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.5rem;color:var(--ghost);text-transform:none;letter-spacing:.3px;font-weight:500}
 .legend-dot{width:10px;height:3px;border-radius:2px}
 .sparkline-svg{width:100%;height:140px;overflow:visible}
 
-/* MEDIANS PAGE */
-.medians-controls{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.medians-controls label{font-size:12px;color:var(--txt2);font-weight:600}
-.medians-controls select,.medians-controls input{background:var(--bg3);border:1px solid var(--brd2);color:var(--txt);border-radius:6px;padding:5px 10px;font-size:12px}
-.chart-container{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:18px 24px;margin-bottom:16px}
+/* ═══════════════════════ MEDIANS PAGE ═══════════════════════ */
+.medians-controls{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.medians-controls label{font-family:var(--mono);font-size:.58rem;color:var(--sub);font-weight:600;letter-spacing:.6px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.medians-controls select,.medians-controls input{background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:6px 10px;font-family:var(--body);font-size:.78rem;font-weight:500;outline:none;transition:border-color .18s;-webkit-appearance:none;appearance:none;cursor:pointer}
+.medians-controls select:focus,.medians-controls input:focus{border-color:rgba(99,102,241,.5)}
 .hist-chart-svg{width:100%;height:220px;overflow:visible}
-.table-container{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;overflow:hidden}
-.data-table{width:100%;border-collapse:collapse}
-.data-table th{font-size:11px;color:var(--txt3);font-weight:700;padding:10px 14px;border-bottom:1px solid var(--brd);text-align:right;background:var(--bg3);text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0}
+.table-container{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;overflow:hidden}
+
+.data-table{width:100%;border-collapse:collapse;font-family:var(--mono)}
+.data-table th{font-size:.54rem;color:var(--ghost);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--bdr);text-align:right;background:var(--bg3);text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;white-space:nowrap}
 .data-table th:first-child{text-align:left}
-.data-table td{font-size:12px;color:var(--txt);padding:9px 14px;border-bottom:1px solid var(--brd);text-align:right}
-.data-table td:first-child{text-align:left;font-weight:600}
+.data-table td{font-size:.68rem;color:var(--sub);padding:8px 14px;border-bottom:1px solid var(--bdr2);text-align:right}
+.data-table td:first-child{text-align:left;color:var(--txt);font-weight:600;font-family:var(--body);font-size:.76rem}
 .data-table tr:last-child td{border-bottom:none}
-.data-table tr:hover td{background:var(--bg3)}
-.data-table .cur-row td{color:var(--acc2);font-weight:600;background:rgba(59,130,246,.06)}
-.vs-hi{color:#4ade80}
-.vs-lo{color:#f87171}
-.vs-mid{color:var(--txt2)}
+.data-table tr:hover td{background:rgba(255,255,255,.022)}
+body.light .data-table tr:hover td{background:rgba(0,0,0,.022)}
+.data-table .cur-row td{color:var(--brand);font-weight:700;background:rgba(99,102,241,.06)}
+body.light .data-table .cur-row td{color:#4f46e5;background:rgba(99,102,241,.05)}
+.vs-hi{color:var(--vc-c);font-weight:600}
+.vs-lo{color:var(--e-c);font-weight:600}
+.vs-mid{color:var(--sub)}
 
-/* BACKTEST PAGE */
-.bt-controls{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:16px}
-.bt-controls-title{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
+/* ═══════════════════════ BACKTEST PAGE ═══════════════════════ */
+.bt-controls{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:16px 20px;margin-bottom:16px}
+.bt-controls-title{font-family:var(--mono);font-size:.6rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:inline-flex;align-items:center;gap:7px}
+.bt-controls-title .ico{color:var(--ghost)}
+
+/* Mode toggle — same pill pattern as sub-nav */
+.bt-mode-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.bt-mode-toggle{display:inline-flex;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px;gap:2px}
+.bt-mode-opt{padding:7px 18px;border-radius:7px;font-family:var(--body);font-size:.76rem;font-weight:600;color:var(--sub);cursor:pointer;border:none;background:transparent;transition:all .18s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.2px}
+.bt-mode-opt:hover{color:var(--txt)}
+.bt-mode-opt.active{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+body.light .bt-mode-opt.active{box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.bt-mode-opt.active .ico{color:var(--brand)}
+.bt-mode-desc{font-family:var(--body);font-size:.8rem;color:var(--sub);flex:1;min-width:200px;line-height:1.5}
+.bt-mode-desc strong{color:var(--txt);font-weight:700}
+
 .bt-form{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
-.bt-field{display:flex;flex-direction:column;gap:5px}
-.bt-field label{font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.bt-field input,.bt-field select{background:var(--bg3);border:1px solid var(--brd2);color:var(--txt);border-radius:6px;padding:6px 10px;font-size:13px;width:140px}
-.bt-metric-group{display:flex;gap:8px}
-.bt-metric-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--brd2);background:var(--bg3);color:var(--txt2);cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
-.bt-metric-btn.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.bt-field{display:flex;flex-direction:column;gap:6px}
+.bt-field label{font-family:var(--mono);font-size:.55rem;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.9px}
+.bt-field input,.bt-field select{background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:7px 10px;font-family:var(--body);font-size:.82rem;font-weight:500;width:140px;outline:none;transition:border-color .18s;-webkit-appearance:none;appearance:none}
+.bt-field input:focus,.bt-field select:focus{border-color:rgba(99,102,241,.5)}
+
+/* Metric PE/PB/Both toggle */
+.bt-metric-group{display:flex;gap:6px}
+.bt-metric-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg3);color:var(--sub);cursor:pointer;font-family:var(--body);font-size:.75rem;font-weight:600;transition:all .18s;letter-spacing:.2px}
+.bt-metric-btn:hover{background:var(--sur);color:var(--txt)}
+.bt-metric-btn.active{background:linear-gradient(135deg,var(--brand),var(--brand2));border-color:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.3)}
+
+/* Slider */
 .slider-wrap{display:flex;align-items:center;gap:10px}
-.slider-wrap input[type=range]{width:140px;accent-color:var(--acc)}
-.slider-val{font-size:14px;font-weight:700;color:var(--acc2);min-width:40px}
-.btn-run{padding:8px 20px;border-radius:8px;border:none;background:var(--acc);color:#fff;cursor:pointer;font-size:13px;font-weight:700;transition:all .15s}
-.btn-run:hover{opacity:.85}
+.slider-wrap input[type=range]{width:140px;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--sur);outline:none;cursor:pointer;accent-color:var(--brand)}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--brand);cursor:pointer;box-shadow:0 0 6px rgba(99,102,241,.4)}
+.slider-val{font-family:var(--mono);font-size:.82rem;font-weight:700;color:#a5b4fc;min-width:40px}
 
-.bt-summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
-.bt-stat{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:14px 18px;flex:1;min-width:130px}
-.bt-stat-label{font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
-.bt-stat-val{font-size:22px;font-weight:700;color:var(--txt)}
-.bt-stat-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+/* Run button — gradient primary */
+.btn-run{padding:9px 22px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;cursor:pointer;font-family:var(--body);font-size:.82rem;font-weight:700;transition:opacity .18s,transform .18s;display:inline-flex;align-items:center;gap:7px;box-shadow:0 2px 10px rgba(99,102,241,.3);letter-spacing:.3px}
+.btn-run:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,.4)}
 
-.bt-table-wrap{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;overflow:auto;max-height:520px}
-.bt-table{width:100%;border-collapse:collapse;min-width:700px}
-.bt-table th{font-size:10px;color:var(--txt3);font-weight:700;padding:9px 12px;border-bottom:1px solid var(--brd);background:var(--bg3);text-align:right;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0}
+/* Backtest summary stats */
+.bt-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.bt-stat{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:12px 16px;flex:1;min-width:130px;display:flex;flex-direction:column;gap:3px}
+.bt-stat-label{font-family:var(--mono);font-size:.52rem;color:var(--ghost);font-weight:600;text-transform:uppercase;letter-spacing:.9px}
+.bt-stat-val{font-family:var(--mono);font-size:1.3rem;font-weight:700;color:var(--txt);letter-spacing:-.01em;line-height:1}
+.bt-stat-sub{font-family:var(--mono);font-size:.5rem;color:var(--ghost);margin-top:3px;letter-spacing:.3px}
+
+.bt-table-wrap{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;overflow:auto;max-height:520px}
+.bt-table{width:100%;border-collapse:collapse;min-width:700px;font-family:var(--mono)}
+.bt-table th{font-size:.52rem;color:var(--ghost);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--bdr);background:var(--bg3);text-align:right;text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;white-space:nowrap}
 .bt-table th:first-child,.bt-table th:nth-child(2){text-align:left}
-.bt-table td{font-size:12px;padding:8px 12px;border-bottom:1px solid var(--brd);text-align:right}
-.bt-table td:first-child,.bt-table td:nth-child(2){text-align:left}
-.bt-table tr.hit td{background:rgba(74,222,128,.06)}
-.bt-table tr.miss td{background:rgba(248,113,113,.06)}
-.bt-table tr.open td{background:rgba(251,191,36,.04)}
-.bt-table .trig-pe{color:var(--acc2)}
-.bt-table .trig-pb{color:#a78bfa}
-.bt-table .trig-both{color:#34d399}
-.cagr-pos{color:#4ade80;font-weight:600}
-.cagr-neg{color:#f87171;font-weight:600}
-.cagr-open{color:var(--n-fg);font-style:italic}
-.no-data{text-align:center;padding:40px;color:var(--txt3);font-size:13px}
+.bt-table td{font-size:.66rem;padding:8px 12px;border-bottom:1px solid var(--bdr2);text-align:right;color:var(--sub);vertical-align:middle}
+.bt-table td:first-child,.bt-table td:nth-child(2){text-align:left;color:var(--txt)}
+.bt-table tr.hit td{background:rgba(0,200,83,.06)}
+.bt-table tr.miss td{background:rgba(255,23,68,.06)}
+.bt-table tr.open td{background:rgba(255,215,64,.04)}
+body.light .bt-table tr.hit td{background:rgba(5,150,105,.08)}
+body.light .bt-table tr.miss td{background:rgba(194,65,12,.08)}
+body.light .bt-table tr.open td{background:rgba(180,83,9,.08)}
+.bt-table tr:hover td{background:rgba(255,255,255,.022)}
+body.light .bt-table tr:hover td{background:rgba(0,0,0,.022)}
+.bt-table .trig-pe{color:#a78bfa;font-weight:700}
+.bt-table .trig-pb{color:#60a5fa;font-weight:700}
+.bt-table .trig-both{color:#34d399;font-weight:700}
+.cagr-pos{color:var(--vc-c);font-weight:700}
+.cagr-neg{color:var(--e-c);font-weight:700}
+.cagr-open{color:var(--sub);font-style:italic}
+.no-data{padding:40px;text-align:center;font-family:var(--mono);font-size:.74rem;color:var(--ghost);letter-spacing:.3px}
 
-/* SIMPLE STRATEGY PAGE */
-.sbt-warning{background:var(--ve-bg);border:1px solid var(--ve-brd);color:var(--ve-fg);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;margin-bottom:14px}
-.sbt-note{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:16px 20px;margin-top:16px;font-size:12px;color:var(--txt2);line-height:1.7}
-.sbt-note strong{color:var(--txt)}
-.sbt-note ul li{color:var(--txt2)}
+/* Absolute-mode extras */
+.sbt-warning{background:var(--n-tl);border:1px solid var(--n-bd);color:var(--n-c);border-radius:10px;padding:10px 16px;font-family:var(--mono);font-size:.68rem;font-weight:600;margin-bottom:14px;letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+.sbt-note{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;margin-top:16px;font-family:var(--body);font-size:.78rem;color:var(--sub);line-height:1.65}
+.sbt-note strong{color:var(--txt);font-weight:700}
+.sbt-note ul li{color:var(--sub)}
 
-/* HELP PAGE */
-.help-section{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:24px;margin-bottom:16px}
-.help-section h2{font-size:14px;font-weight:700;color:var(--acc2);margin-bottom:12px}
-.help-section h3{font-size:12px;font-weight:700;color:var(--txt2);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px}
-.help-section p{font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:8px}
-.help-section ul{font-size:13px;color:var(--txt2);line-height:1.8;padding-left:20px}
-.band-demo{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.formula-box{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:12px 16px;font-size:12px;color:var(--txt2);font-family:monospace;margin:10px 0;line-height:1.8}
+/* ══════════════ HELP PAGE ══════════════ */
+#view-help .page,#page-help{position:relative;z-index:1;padding:24px 32px 60px;max-width:900px;margin:0 auto;font-family:var(--body)}
+@media(max-width:680px){#view-help .page,#page-help{padding:16px 14px 40px}}
+.hp-hero{margin-bottom:22px;padding:22px 24px;border-radius:14px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(16,185,129,.04));border:1px solid var(--bdr)}
+.hp-hero-ttl{font-family:var(--ttl);font-size:2.1rem;letter-spacing:2px;line-height:1;color:var(--txt);margin-bottom:6px}
+.hp-hero-sub{font-family:var(--body);font-size:.86rem;color:var(--sub);line-height:1.55}
+.hp-toc{margin-bottom:24px;padding:14px 18px;border-radius:10px;background:var(--bg2);border:1px solid var(--bdr)}
+.hp-toc-ttl{font-family:var(--mono);font-size:.58rem;color:var(--ghost);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}
+.hp-toc-list{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--body);font-size:.82rem}
+.hp-toc-list a{color:var(--txt);text-decoration:none;padding:3px 0;border-bottom:1px solid transparent;transition:border-color .15s,color .15s;cursor:pointer}
+.hp-toc-list a:hover{border-bottom-color:var(--sub);color:var(--txt)}
+.hp-sec{margin-bottom:28px;scroll-margin-top:70px}
+.hp-sec-h{font-family:var(--ttl);font-size:1.35rem;letter-spacing:1.4px;color:var(--txt);padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-bottom:12px}
+.hp-sub-h{font-family:var(--cond);font-size:1rem;font-weight:700;color:var(--txt);margin-top:16px;margin-bottom:6px;letter-spacing:.2px;text-transform:uppercase}
+.hp-p{font-family:var(--body);font-size:.86rem;color:var(--txt);line-height:1.65;margin-bottom:10px}
+.hp-p .muted{color:var(--sub)}
+.hp-card{padding:14px 16px;border-radius:10px;background:var(--bg2);border:1px solid var(--bdr);margin:10px 0}
+.hp-card.tip{border-left:3px solid var(--c-c);background:var(--c-tl)}
+.hp-card.warn{border-left:3px solid var(--n-c);background:var(--n-tl)}
+.hp-card.info{border-left:3px solid var(--brand);background:rgba(99,102,241,.04)}
+.hp-card-ttl{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:5px}
+.hp-list{list-style:none;padding:0;margin:8px 0}
+.hp-list li{position:relative;padding:5px 0 5px 18px;font-family:var(--body);font-size:.84rem;color:var(--txt);line-height:1.55}
+.hp-list li::before{content:'•';position:absolute;left:4px;color:var(--sub);font-weight:700}
+.hp-list li strong{color:var(--txt);font-weight:700}
+.hp-kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-family:var(--mono);font-size:.76rem;margin:8px 0}
+.hp-kv dt{color:var(--sub);font-weight:600;white-space:nowrap}
+.hp-kv dd{color:var(--txt)}
+.hp-band-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0}
+.hp-band-cell{padding:10px 12px;border-radius:8px;border:1px solid;font-family:var(--mono);font-size:.72rem}
+.hp-band-cell .bn{font-weight:700;font-size:.85rem;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.hp-band-cell .bd{font-size:.62rem;color:var(--sub);line-height:1.4;font-weight:500;text-transform:none;letter-spacing:.2px}
+.hp-band-cell.vchp{background:var(--vc-tl);border-color:var(--vc-bd)}.hp-band-cell.vchp .bn{color:var(--vc-c)}
+.hp-band-cell.chp{background:var(--c-tl);border-color:var(--c-bd)}.hp-band-cell.chp .bn{color:var(--c-c)}
+.hp-band-cell.neu{background:var(--n-tl);border-color:var(--n-bd)}.hp-band-cell.neu .bn{color:var(--n-c)}
+.hp-band-cell.exp{background:var(--e-tl);border-color:var(--e-bd)}.hp-band-cell.exp .bn{color:var(--e-c)}
+.hp-band-cell.vexp{background:var(--ve-tl);border-color:var(--ve-bd)}.hp-band-cell.vexp .bn{color:var(--ve-c)}
+.hp-inline-pill{display:inline-flex;font-family:var(--mono);font-size:.64rem;font-weight:700;padding:2px 8px;border-radius:12px;border:1px solid;letter-spacing:.3px;vertical-align:middle;text-transform:uppercase}
+.hp-inline-pill.green{color:var(--c-c);border-color:var(--c-bd);background:var(--c-tl)}
+.hp-inline-pill.amber{color:var(--n-c);border-color:var(--n-bd);background:var(--n-tl)}
+.hp-inline-pill.red{color:var(--e-c);border-color:var(--e-bd);background:var(--e-tl)}
+.hp-inline-pill.blue{color:#a5b4fc;border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.08)}
+.hp-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--bdr2)}
+.hp-step:last-child{border-bottom:none}
+.hp-step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;font-family:var(--mono);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(99,102,241,.3)}
+.hp-step-body{flex:1;font-family:var(--body);font-size:.84rem;color:var(--txt);line-height:1.55}
+.hp-step-body strong{display:block;margin-bottom:2px;color:var(--txt)}
+.hp-note{font-family:var(--mono);font-size:.68rem;color:var(--ghost);font-style:italic;padding:8px 0;letter-spacing:.2px}
 
-/* RESPONSIVE */
-@media(max-width:680px){
-  .hdr{padding:10px 14px}.page{padding:14px}
-  .bt-form{flex-direction:column}.metric-grid{grid-template-columns:1fr}
-  .bt-stat{min-width:100px}
+/* Mockups (annotated diagrams) */
+.hp-mock-outer{display:grid;grid-template-columns:1fr;gap:18px;margin:14px 0}
+@media(min-width:820px){.hp-mock-outer.two-col{grid-template-columns:1fr 1fr}}
+.hp-mock-lbl{font-family:var(--mono);font-size:.52rem;text-transform:uppercase;letter-spacing:1px;color:var(--ghost);margin-bottom:8px;font-weight:600}
+
+/* Fake index card (mockup) */
+.hp-mock-card{position:relative;border-radius:14px;border:1px solid var(--c-bd);background:var(--c-bg);padding:16px 18px 14px;overflow:hidden;max-width:340px}
+.hp-mock-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c-c);opacity:.85}
+.hp-mock-card.neu{background:var(--n-bg);border-color:var(--n-bd)}
+.hp-mock-card.neu::after{background:var(--n-c)}
+.hp-mock-card.vexp{background:var(--ve-bg);border-color:var(--ve-bd)}
+.hp-mock-card.vexp::after{background:var(--ve-c)}
+.hp-mock-card .m-name{display:flex;align-items:center;justify-content:space-between;font-family:var(--cond);font-size:1.15rem;font-weight:800;color:var(--txt);margin-bottom:6px;text-transform:uppercase;letter-spacing:-.2px}
+.hp-mock-card .m-price{font-family:var(--mono);font-size:1.55rem;font-weight:700;color:var(--txt);line-height:1.05;letter-spacing:-.02em}
+.hp-mock-card .m-date{font-family:var(--mono);font-size:.5rem;color:var(--ghost);margin-top:4px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px}
+.hp-mock-card .m-pill{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.54rem;font-weight:700;padding:3px 9px;border-radius:16px;border:1px solid;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px}
+.hp-mock-card .m-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid var(--bdr2)}
+.hp-mock-card .m-metrics .m-lbl{font-family:var(--mono);font-size:.48rem;color:var(--sub);text-transform:uppercase;letter-spacing:.85px;margin-bottom:3px;font-weight:600}
+.hp-mock-card .m-metrics .m-val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--txt);line-height:1}
+.hp-mock-card .m-metrics .m-sub{font-family:var(--mono);font-size:.48rem;color:var(--ghost);margin-top:3px}
+
+/* Annotation callout list next to mockups */
+.hp-anno{margin:10px 0}
+.hp-anno-row{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--bdr2);align-items:flex-start}
+.hp-anno-row:last-child{border-bottom:none}
+.hp-anno-num{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--bg3);border:1px solid var(--bdr);color:var(--brand);font-family:var(--mono);font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+body.light .hp-anno-num{color:#4f46e5}
+.hp-anno-body{flex:1;font-family:var(--body);font-size:.8rem;color:var(--txt);line-height:1.5}
+.hp-anno-body strong{color:var(--txt);font-weight:700}
+.hp-anno-body .muted{color:var(--sub)}
+
+/* Code / formula block */
+.hp-formula{background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:12px 16px;font-family:var(--mono);font-size:.72rem;color:var(--txt);line-height:1.9;margin:10px 0;white-space:pre-wrap;letter-spacing:.2px}
+.hp-formula .c{color:var(--sub)}
+.hp-formula .k{color:var(--brand);font-weight:700}
+body.light .hp-formula .k{color:#4f46e5}
+
+/* Weight grid (the 3yr/5yr/10yr weighting visual) */
+.hp-weight-grid{display:grid;grid-template-columns:1fr 80px 1fr;gap:6px 12px;margin:10px 0;font-family:var(--mono);font-size:.74rem}
+.hp-weight-lbl{color:var(--sub);font-weight:600;align-self:center}
+.hp-weight-bar-wrap{background:var(--bg3);border-radius:3px;height:8px;overflow:hidden;align-self:center;border:1px solid var(--bdr2)}
+.hp-weight-bar{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2));border-radius:3px}
+.hp-weight-val{color:var(--txt);font-weight:700;text-align:right;align-self:center}
+
+/* Mini signal-row mockup (for backtest explainer) */
+.hp-sig-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:8px 12px;border-radius:8px;border:1px solid var(--bdr2);font-family:var(--mono);font-size:.72rem;margin:4px 0}
+.hp-sig-row.hit{background:rgba(0,200,83,.08);border-color:var(--c-bd)}
+.hp-sig-row.miss{background:rgba(255,23,68,.06);border-color:var(--e-bd)}
+.hp-sig-row.open{background:rgba(255,215,64,.05);border-color:var(--n-bd)}
+.hp-sig-date{color:var(--sub)}
+.hp-sig-val{color:var(--txt);font-weight:700;text-align:right}
+.hp-sig-res{font-weight:700;font-size:.62rem;text-transform:uppercase;letter-spacing:.6px;padding:2px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px}
+.hp-sig-res.pos{color:var(--vc-c);background:var(--vc-tl);border:1px solid var(--vc-bd)}
+.hp-sig-res.neg{color:var(--e-c);background:var(--e-tl);border:1px solid var(--e-bd)}
+.hp-sig-res.opn{color:var(--n-c);background:var(--n-tl);border:1px solid var(--n-bd)}
+
+/* Mode toggle mockup (relative/absolute) */
+.hp-mode-mock{display:inline-flex;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px;gap:2px;margin:4px 0}
+.hp-mode-mock span{padding:6px 14px;border-radius:7px;font-family:var(--body);font-size:.72rem;font-weight:600;color:var(--sub)}
+.hp-mode-mock span.act{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* ── RESPONSIVE ── */
+
+/* Tablet / narrow laptop */
+@media(max-width:900px){
+  .hdr{padding:10px 16px}
+  .page{padding:18px 16px 36px}
+  .dash-wrap{padding:18px 16px 36px}
 }
+
+/* Mobile */
+@media(max-width:680px){
+  .hdr{padding:10px 14px;gap:8px;row-gap:10px}
+  .hdr-wordmark{font-size:1.3rem;letter-spacing:1.8px}
+  .hdr-tagline{display:none}
+  .hdr-right{gap:6px}
+  /* Page-tabs wrap to their own row and span full width */
+  .page-tabs{order:3;flex:1 1 100%;justify-content:stretch}
+  .ptab{flex:1;text-align:center;padding:6px 10px;font-size:.72rem}
+  .btn{padding:6px 10px;font-size:.72rem}
+  /* Hide text label on buttons — icon only */
+  .btn-icon-only .btn-lbl{display:none}
+  .btn-icon-only{padding:6px 8px}
+  /* Status chip shrinks; long text truncates */
+  .status-chip{font-size:.55rem;padding:3px 8px;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+  .status-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:120px}
+
+  /* Details header */
+  .det-hdr{padding:10px 14px;gap:10px;flex-wrap:wrap}
+  .det-title{font-size:1.1rem}
+  .det-title-sub{font-size:.5rem;margin-left:6px}
+  .subnav{margin:12px 14px 0}
+
+  /* Dashboard grid */
+  .dash-wrap{padding:14px 12px 36px}
+  .dash-grid{gap:10px}
+  .idx-card{padding:14px 16px 12px}
+  .idx-price{font-size:1.5rem}
+  .idx-name{font-size:1.05rem}
+
+  /* Details sub-pages */
+  .page{padding:14px 12px 36px}
+  .metric-grid{grid-template-columns:1fr;gap:12px}
+  .metric-card{padding:14px 16px}
+  .hero{padding:16px 18px;gap:12px}
+  .hero-value{font-size:1.8rem}
+  .mc-val{font-size:1.65rem}
+  .eps-section,.chart-section,.chart-container{padding:14px 16px}
+  .eps-grid{gap:14px}
+  .eps-tile{min-width:100px}
+  .chart-legend{gap:8px}
+  .sparkline-svg{height:120px}
+  .hist-chart-svg{height:180px}
+
+  /* Backtest form — fields stack and go full-width */
+  .bt-controls{padding:14px 16px}
+  .bt-form{flex-direction:column;gap:12px;align-items:stretch}
+  .bt-field{width:100%}
+  .bt-field input,.bt-field select{width:100%}
+  /* Slider takes full width of its field container on mobile */
+  .slider-wrap{width:100%}
+  .slider-wrap input[type=range]{flex:1;width:auto;min-width:0}
+  .bt-metric-group{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr}
+  .bt-metric-btn{text-align:center}
+  .bt-mode-row{flex-direction:column;align-items:stretch;gap:10px}
+  .bt-mode-toggle{align-self:flex-start}
+  .bt-mode-desc{min-width:auto;font-size:.76rem}
+  .btn-run{width:100%;justify-content:center;padding:11px 22px}
+
+  /* Summary stat cards */
+  .bt-summary{gap:8px}
+  .bt-stat{min-width:calc(50% - 4px);padding:10px 12px}
+  .bt-stat-val{font-size:1.15rem}
+
+  /* Medians controls */
+  .medians-controls{padding:12px 14px;gap:10px;flex-direction:column;align-items:stretch}
+  .medians-controls label{justify-content:space-between}
+  .medians-controls select{flex:1;max-width:200px}
+
+  /* Tables scroll on mobile, not squished */
+  .data-table th,.data-table td{padding:7px 10px;font-size:.62rem}
+  .data-table td:first-child{font-size:.7rem}
+  .bt-table th,.bt-table td{padding:7px 8px}
+}
+
+/* Very narrow phones */
+@media(max-width:400px){
+  .hdr{padding:8px 10px}
+  .hdr-wordmark{font-size:1.15rem;letter-spacing:1.5px}
+  .status-chip{display:none}
+  .det-hdr{padding:8px 10px}
+  .idx-card{padding:12px 14px 10px}
+  .idx-price{font-size:1.35rem}
+  .hero-value{font-size:1.6rem}
+  .mc-val{font-size:1.5rem}
+  .bt-metric-group{grid-template-columns:1fr 1fr 1fr;gap:4px}
+  .bt-metric-btn{padding:7px 8px;font-size:.7rem}
+}
+
 </style>
 </head>
 <body>
 
+<!-- Icon library (Lucide-style inline SVG symbols) -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true">
+  <defs>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.4L3 16"/><path d="M8 16H3v5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+    <symbol id="i-trending-up" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+    <symbol id="i-trending-down" viewBox="0 0 24 24"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></symbol>
+    <symbol id="i-arrow-down-right" viewBox="0 0 24 24"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-loader" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></symbol>
+    <symbol id="i-bar-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  </defs>
+</svg>
+
 <div class="hdr">
   <div class="hdr-title">
-    IndexScope
-    <span>Valuation Tracker</span>
+    <div class="hdr-wordmark-wrap">
+      <span class="hdr-wordmark">IndexScope</span>
+      <span class="hdr-tagline">Valuation Tracker</span>
+    </div>
   </div>
-  <select id="indexPicker" class="btn" onchange="switchIndex(this.value)" style="padding:6px 10px;border-radius:6px;cursor:pointer;">
-    <option value="n50">Nifty 50</option>
-    <option value="nn50">Nifty Next 50</option>
-    <option value="nmid150">Nifty Midcap 150</option>
-    <option value="sc250">Nifty Smallcap 250</option>
-  </select>
-  <div id="statusChip" class="status-chip">&#9203; Loading&hellip;</div>
-  <button class="btn" onclick="refreshData()">&circlearrowleft; Refresh</button>
-  <button class="btn" onclick="toggleTheme()" id="themeBtn">&#9728; Light</button>
+  <div class="page-tabs">
+    <button class="ptab active" onclick="showMainView('dashboard',this)">Dashboard</button>
+    <button class="ptab" onclick="showMainView('help',this)">Help</button>
+  </div>
+  <div class="hdr-right">
+    <div id="statusChip" class="status-chip"><svg class="ico ico-sm ico-spin"><use href="#i-loader"/></svg><span id="statusText">Loading&hellip;</span></div>
+    <button class="btn btn-icon-only" onclick="refreshCurrent()" aria-label="Refresh"><svg class="ico"><use href="#i-refresh"/></svg><span class="btn-lbl">Refresh</span></button>
+    <button class="btn btn-icon-only" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme"><svg class="ico"><use href="#i-sun"/></svg><span class="btn-lbl" id="themeBtnLbl">Light</span></button>
+  </div>
 </div>
 
-<div class="nav">
-  <div class="nav-tab active" onclick="showPage('dashboard',this)">Dashboard</div>
-  <div class="nav-tab" onclick="showPage('medians',this)">Historical Medians</div>
-  <div class="nav-tab" onclick="showPage('backtest',this)">Backtest</div>
-  <div class="nav-tab" onclick="showPage('simple',this)">Simple Strategy</div>
-  <div class="nav-tab" onclick="showPage('help',this)">Help</div>
+<!-- ================================================================ -->
+<!-- VIEW: DASHBOARD (4 index cards)                                   -->
+<!-- ================================================================ -->
+<div id="view-dashboard" class="view active">
+  <div class="dash-wrap">
+    <div class="dash-intro">
+      Valuation snapshot across 4 Indian indices. Each card shows current <strong>price</strong> and <strong>P/E vs weighted historical reference</strong>. Card color indicates the valuation band &mdash;
+      <span style="color:var(--vc-fg);font-weight:600">green</span> = cheap,
+      <span style="color:var(--n-fg);font-weight:600">yellow</span> = neutral,
+      <span style="color:var(--ve-fg);font-weight:600">red</span> = expensive.
+      Click any card for full details, historical medians, and backtests.
+    </div>
+    <div class="dash-grid" id="dashGrid"></div>
+  </div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="page-dashboard" class="page active">
-  <div class="hero">
+<!-- ================================================================ -->
+<!-- VIEW: DETAILS (opens when a card is clicked)                      -->
+<!-- ================================================================ -->
+<div id="view-details" class="view">
+  <div class="det-hdr">
+    <button class="back-btn" onclick="closeDetails()"><svg class="ico"><use href="#i-arrow-left"/></svg>Dashboard</button>
     <div>
-      <div class="hero-index" id="heroIndexLabel">Nifty 50 Index</div>
-      <div class="hero-value" id="heroValue">&mdash;</div>
-      <div class="hero-date" id="heroDate">&mdash;</div>
+      <span class="det-title" id="detTitle">&mdash;</span>
+      <span class="det-title-sub" id="detTitleSub">&mdash;</span>
     </div>
-    <div class="hero-right" id="heroBands"></div>
+  </div>
+  <div class="subnav">
+    <div class="subnav-tab active" onclick="showSub('overview',this)"><svg class="ico"><use href="#i-layers"/></svg>Details</div>
+    <div class="subnav-tab" onclick="showSub('medians',this)"><svg class="ico"><use href="#i-activity"/></svg>Historical Medians</div>
+    <div class="subnav-tab" onclick="showSub('backtest',this)"><svg class="ico"><use href="#i-target"/></svg>Backtest</div>
   </div>
 
-  <div class="metric-grid">
-    <div class="metric-card" id="peCard">
-      <div class="mc-header">
-        <div class="mc-title">Price / Earnings</div>
+  <!-- ============== SUB: DETAILS (overview) ============== -->
+  <div id="sub-overview" class="page active">
+    <div class="hero">
+      <div>
+        <div class="hero-index" id="heroIndexLabel">&mdash;</div>
+        <div class="hero-value" id="heroValue">&mdash;</div>
+        <div class="hero-date" id="heroDate">&mdash;</div>
       </div>
-      <div class="mc-current">
-        <div class="mc-val" id="peVal">&mdash;</div>
-        <div class="mc-pct" id="pePill">&mdash;</div>
-        <span class="trend-badge" id="peTrend"></span>
-      </div>
-      <div class="mc-subtext" id="pePctText">&mdash;</div>
-      <table class="median-table" id="peTable"></table>
-      <div class="percentile-row">
-        <div class="percentile-label">5-year percentile rank (winsorised)</div>
-        <div class="percentile-bar-wrap">
-          <div class="percentile-bar" style="width:100%"></div>
-          <div class="percentile-marker" id="pePctMarker" style="left:50%"></div>
+      <div class="hero-right" id="heroBands"></div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-card" id="peCard">
+        <div class="mc-header">
+          <div class="mc-title"><svg class="ico"><use href="#i-trending-up"/></svg>Price / Earnings</div>
         </div>
-        <div class="percentile-val" id="pePctVal">&mdash;</div>
-      </div>
-      <div class="divergence-flag" id="peDivFlag">&mdash;</div>
-    </div>
-
-    <div class="metric-card" id="pbCard">
-      <div class="mc-header">
-        <div class="mc-title">Price / Book</div>
-      </div>
-      <div class="mc-current">
-        <div class="mc-val" id="pbVal">&mdash;</div>
-        <div class="mc-pct" id="pbPill">&mdash;</div>
-        <span class="trend-badge" id="pbTrend"></span>
-      </div>
-      <div class="mc-subtext" id="pbPctText">&mdash;</div>
-      <table class="median-table" id="pbTable"></table>
-      <div class="percentile-row">
-        <div class="percentile-label">5-year percentile rank</div>
-        <div class="percentile-bar-wrap">
-          <div class="percentile-bar" style="width:100%"></div>
-          <div class="percentile-marker" id="pbPctMarker" style="left:50%"></div>
+        <div class="mc-current">
+          <div class="mc-val" id="peVal">&mdash;</div>
+          <div class="mc-pct" id="pePill">&mdash;</div>
+          <span class="trend-badge" id="peTrend"></span>
         </div>
-        <div class="percentile-val" id="pbPctVal">&mdash;</div>
+        <div class="mc-subtext" id="pePctText">&mdash;</div>
+        <table class="median-table" id="peTable"></table>
+        <div class="percentile-row">
+          <div class="percentile-label">5-year percentile rank (winsorised)</div>
+          <div class="percentile-bar-wrap">
+            <div class="percentile-bar" style="width:100%"></div>
+            <div class="percentile-marker" id="pePctMarker" style="left:50%"></div>
+          </div>
+          <div class="percentile-val" id="pePctVal">&mdash;</div>
+        </div>
+        <div class="divergence-flag" id="peDivFlag">&mdash;</div>
       </div>
-      <div class="divergence-flag" id="pbDivFlag">&mdash;</div>
+
+      <div class="metric-card" id="pbCard">
+        <div class="mc-header">
+          <div class="mc-title"><svg class="ico"><use href="#i-layers"/></svg>Price / Book</div>
+        </div>
+        <div class="mc-current">
+          <div class="mc-val" id="pbVal">&mdash;</div>
+          <div class="mc-pct" id="pbPill">&mdash;</div>
+          <span class="trend-badge" id="pbTrend"></span>
+        </div>
+        <div class="mc-subtext" id="pbPctText">&mdash;</div>
+        <table class="median-table" id="pbTable"></table>
+        <div class="percentile-row">
+          <div class="percentile-label">5-year percentile rank</div>
+          <div class="percentile-bar-wrap">
+            <div class="percentile-bar" style="width:100%"></div>
+            <div class="percentile-marker" id="pbPctMarker" style="left:50%"></div>
+          </div>
+          <div class="percentile-val" id="pbPctVal">&mdash;</div>
+        </div>
+        <div class="divergence-flag" id="pbDivFlag">&mdash;</div>
+      </div>
+
+      <div class="metric-card" id="dyCard">
+        <div class="mc-header">
+          <div class="mc-title"><svg class="ico"><use href="#i-zap"/></svg>Dividend Yield</div>
+          <div class="mc-info-badge"><svg class="ico ico-sm"><use href="#i-info"/></svg>Informational</div>
+        </div>
+        <div class="mc-current">
+          <div class="mc-val" id="dyVal">&mdash;</div>
+        </div>
+        <div class="mc-subtext" id="dySubtext">&mdash;</div>
+        <table class="median-table" id="dyTable"></table>
+      </div>
     </div>
 
-    <div class="metric-card" id="dyCard">
-      <div class="mc-header">
-        <div class="mc-title">Dividend Yield</div>
-        <div class="mc-info-badge">Informational</div>
-      </div>
-      <div class="mc-current">
-        <div class="mc-val" id="dyVal">&mdash;</div>
-      </div>
-      <div class="mc-subtext" id="dySubtext">&mdash;</div>
-      <table class="median-table" id="dyTable"></table>
+    <div class="eps-section">
+      <div class="eps-title"><svg class="ico"><use href="#i-trophy"/></svg>Derived EPS  <span style="font-size:10px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0">(Index Value &divide; PE)</span></div>
+      <div class="eps-grid" id="epsGrid"></div>
     </div>
-  </div>
 
-  <div class="eps-section">
-    <div class="eps-title">Derived EPS  <span style="font-size:10px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0">(Index Value &divide; PE)</span></div>
-    <div class="eps-grid" id="epsGrid"></div>
-  </div>
-
-  <div class="chart-section">
-    <div class="chart-title">
-      PE Ratio &mdash; 3-Year History
-      <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>PE</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div>3yr Median</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;border-top:2px dashed #f59e0b;height:0"></div>Weighted Ref</div>
-      </div>
-    </div>
-    <svg id="sparklineSvg" class="sparkline-svg"></svg>
-  </div>
-</div>
-
-<!-- MEDIANS -->
-<div id="page-medians" class="page">
-  <div class="medians-controls">
-    <label>Metric:
-      <select id="mediansMetric" onchange="renderMedians()">
-        <option value="pe">P/E Ratio</option>
-        <option value="pb">P/B Ratio</option>
-      </select>
-    </label>
-    <label>Frequency:
-      <select id="mediansFreq" onchange="renderMedians()">
-        <option value="annual">Annual (Year-End)</option>
-        <option value="quarterly">Quarterly</option>
-      </select>
-    </label>
-  </div>
-  <div class="chart-container">
-    <div class="chart-title">
-      Rolling Median Evolution
-      <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>Actual</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>3yr Median</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>5yr Median</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>10yr Median</div>
-      </div>
-    </div>
-    <svg id="histChartSvg" class="hist-chart-svg"></svg>
-  </div>
-  <div class="table-container">
-    <div style="overflow:auto;max-height:500px">
-      <table class="data-table" id="mediansTable">
-        <thead><tr id="mediansHeader"></tr></thead>
-        <tbody id="mediansBody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- BACKTEST -->
-<div id="page-backtest" class="page">
-  <div class="bt-controls">
-    <div class="bt-controls-title">Backtest Settings</div>
-    <div class="bt-form">
-      <div class="bt-field">
-        <label>From Date</label>
-        <input type="date" id="btFrom" value="2016-01-01"/>
-      </div>
-      <div class="bt-field">
-        <label>To Date</label>
-        <input type="date" id="btTo"/>
-      </div>
-      <div class="bt-field">
-        <label>Signal Metric</label>
-        <div class="bt-metric-group">
-          <button class="bt-metric-btn active" onclick="selectMetric('pe',this)">P/E</button>
-          <button class="bt-metric-btn" onclick="selectMetric('pb',this)">P/B</button>
-          <button class="bt-metric-btn" onclick="selectMetric('both',this)">Both</button>
+    <div class="chart-section">
+      <div class="chart-title">
+        <svg class="ico"><use href="#i-activity"/></svg>PE Ratio &mdash; 3-Year History
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>PE</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div>3yr Median</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;border-top:2px dashed #f59e0b;height:0"></div>Weighted Ref</div>
         </div>
       </div>
-      <div class="bt-field" id="peThreshField">
-        <label>P/E Threshold <span style="color:var(--acc2)" id="peThreshLbl">90%</span> of ref</label>
-        <div class="slider-wrap">
-          <input type="range" id="peThresh" min="50" max="150" value="90" oninput="document.getElementById('peThreshLbl').textContent=this.value+'%'"/>
-        </div>
-      </div>
-      <div class="bt-field" id="pbThreshField" style="display:none">
-        <label>P/B Threshold <span style="color:var(--a78bfa);color:#a78bfa" id="pbThreshLbl">90%</span> of ref</label>
-        <div class="slider-wrap">
-          <input type="range" id="pbThresh" min="50" max="150" value="90" oninput="document.getElementById('pbThreshLbl').textContent=this.value+'%'"/>
-        </div>
-      </div>
-      <div class="bt-field" id="cooldownField">
-        <label>Cooldown <span style="color:var(--acc2)" id="cooldownLbl">90</span> days</label>
-        <div class="slider-wrap">
-          <input type="range" id="btCooldownInput" min="0" max="730" value="90" oninput="document.getElementById('cooldownLbl').textContent=this.value"/>
-        </div>
-      </div>
-      <div class="bt-field">
-        <label>&nbsp;</label>
-        <button class="btn-run" onclick="runBacktest()">&#9654; Run Backtest</button>
-      </div>
+      <svg id="sparklineSvg" class="sparkline-svg"></svg>
     </div>
   </div>
 
-  <div class="bt-summary" id="btSummary" style="display:none"></div>
-  <div class="bt-table-wrap" id="btTableWrap" style="display:none">
-    <table class="bt-table">
-      <thead id="btHead"></thead>
-      <tbody id="btBody"></tbody>
-    </table>
-  </div>
-  <div id="btEmpty" class="no-data">Configure settings above and click Run Backtest.</div>
-</div>
-
-<!-- SIMPLE STRATEGY -->
-<div id="page-simple" class="page">
-  <div class="bt-controls">
-    <div class="bt-controls-title">Simple PE Threshold Strategy</div>
-    <div class="bt-form">
-      <div class="bt-field">
-        <label>Buy when PE &lt; </label>
-        <input type="number" id="sPeThresh" value="25" min="5" max="80" step="0.5" style="width:90px"/>
-      </div>
-      <div class="bt-field">
-        <label>Hold Period</label>
-        <select id="sHoldPeriod" style="width:120px">
-          <option value="91">3 Months</option>
-          <option value="182">6 Months</option>
-          <option value="365" selected>1 Year</option>
-          <option value="730">2 Years</option>
+  <!-- ============== SUB: HISTORICAL MEDIANS ============== -->
+  <div id="sub-medians" class="page">
+    <div class="medians-controls">
+      <label>Metric:
+        <select id="mediansMetric" onchange="renderMedians()">
+          <option value="pe">P/E Ratio</option>
+          <option value="pb">P/B Ratio</option>
         </select>
+      </label>
+      <label>Frequency:
+        <select id="mediansFreq" onchange="renderMedians()">
+          <option value="annual">Annual (Year-End)</option>
+          <option value="quarterly">Quarterly</option>
+        </select>
+      </label>
+    </div>
+    <div class="chart-container">
+      <div class="chart-title">
+        <svg class="ico"><use href="#i-activity"/></svg>Rolling Median Evolution
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>Actual</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>3yr Median</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>5yr Median</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>10yr Median</div>
+        </div>
       </div>
-      <div class="bt-field">
-        <label>Cooldown (days)</label>
-        <input type="number" id="sCooldown" value="90" min="30" max="365" step="30" style="width:90px"/>
-      </div>
-      <div class="bt-field">
-        <label>From Date</label>
-        <input type="date" id="sFrom" value="2016-01-01"/>
-      </div>
-      <div class="bt-field">
-        <label>To Date</label>
-        <input type="date" id="sTo"/>
-      </div>
-      <div class="bt-field">
-        <label>&nbsp;</label>
-        <button class="btn-run" onclick="runSimpleBT()">&#9654; Run Strategy</button>
+      <svg id="histChartSvg" class="hist-chart-svg"></svg>
+    </div>
+    <div class="table-container">
+      <div style="overflow:auto;max-height:500px">
+        <table class="data-table" id="mediansTable">
+          <thead><tr id="mediansHeader"></tr></thead>
+          <tbody id="mediansBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <div class="sbt-warning" id="sbtWarning" style="display:none"></div>
-  <div class="bt-summary" id="sbtSummary" style="display:none"></div>
+  <!-- ============== SUB: BACKTEST (merged) ============== -->
+  <div id="sub-backtest" class="page">
+    <div class="bt-controls">
+      <div class="bt-controls-title"><svg class="ico"><use href="#i-sliders"/></svg>Backtest Settings</div>
 
-  <div class="chart-container" id="sbtChartWrap" style="display:none;margin-bottom:16px">
-    <div class="chart-title">
-      PE Ratio History &amp; Buy Signals
-      <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>PE</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;width:24px;border-top:2px dashed #f59e0b;height:0"></div>Threshold</div>
-        <div class="legend-item"><div style="width:8px;height:8px;border-radius:50%;background:#4ade80;margin-right:2px"></div>Signal (Win)</div>
-        <div class="legend-item"><div style="width:8px;height:8px;border-radius:50%;background:#f87171;margin-right:2px"></div>Signal (Loss)</div>
+      <div class="bt-mode-row">
+        <div class="bt-mode-toggle">
+          <button class="bt-mode-opt active" onclick="setBtMode('relative',this)"><svg class="ico ico-sm"><use href="#i-activity"/></svg>Relative</button>
+          <button class="bt-mode-opt" onclick="setBtMode('absolute',this)"><svg class="ico ico-sm"><use href="#i-target"/></svg>Absolute</button>
+        </div>
+        <div class="bt-mode-desc" id="btModeDesc">
+          <strong>Relative:</strong> fire signals when current P/E or P/B is within a % band of the rolling weighted reference. Adapts to regime shifts.
+        </div>
+      </div>
+
+      <div class="bt-form">
+        <!-- Common: date range -->
+        <div class="bt-field">
+          <label>From Date</label>
+          <input type="date" id="btFrom" value="2016-01-01"/>
+        </div>
+        <div class="bt-field">
+          <label>To Date</label>
+          <input type="date" id="btTo"/>
+        </div>
+
+        <!-- Relative-only: signal metric + threshold sliders -->
+        <div class="bt-field bt-rel-only" id="metricField">
+          <label>Signal Metric</label>
+          <div class="bt-metric-group">
+            <button class="bt-metric-btn active" onclick="selectMetric('pe',this)">P/E</button>
+            <button class="bt-metric-btn" onclick="selectMetric('pb',this)">P/B</button>
+            <button class="bt-metric-btn" onclick="selectMetric('both',this)">Both</button>
+          </div>
+        </div>
+        <div class="bt-field bt-rel-only" id="peThreshField">
+          <label>P/E Threshold <span style="color:var(--acc2)" id="peThreshLbl">90%</span> of ref</label>
+          <div class="slider-wrap">
+            <input type="range" id="peThresh" min="50" max="150" value="90" oninput="document.getElementById('peThreshLbl').textContent=this.value+'%'"/>
+          </div>
+        </div>
+        <div class="bt-field bt-rel-only" id="pbThreshField" style="display:none">
+          <label>P/B Threshold <span style="color:#a78bfa" id="pbThreshLbl">90%</span> of ref</label>
+          <div class="slider-wrap">
+            <input type="range" id="pbThresh" min="50" max="150" value="90" oninput="document.getElementById('pbThreshLbl').textContent=this.value+'%'"/>
+          </div>
+        </div>
+
+        <!-- Absolute-only: absolute PE threshold + hold period -->
+        <div class="bt-field bt-abs-only" id="absPeField" style="display:none">
+          <label>Buy when PE &lt;</label>
+          <input type="number" id="sPeThresh" value="25" min="5" max="80" step="0.5" style="width:100px"/>
+        </div>
+        <div class="bt-field bt-abs-only" id="holdField" style="display:none">
+          <label>Hold Period</label>
+          <select id="sHoldPeriod" style="width:130px">
+            <option value="91">3 Months</option>
+            <option value="182">6 Months</option>
+            <option value="365" selected>1 Year</option>
+            <option value="730">2 Years</option>
+          </select>
+        </div>
+
+        <!-- Common: cooldown + run -->
+        <div class="bt-field" id="cooldownField">
+          <label>Cooldown <span style="color:var(--acc2)" id="cooldownLbl">90</span> days</label>
+          <div class="slider-wrap">
+            <input type="range" id="btCooldownInput" min="0" max="730" value="90" oninput="document.getElementById('cooldownLbl').textContent=this.value"/>
+          </div>
+        </div>
+        <div class="bt-field">
+          <label>&nbsp;</label>
+          <button class="btn-run" onclick="runBt()"><svg class="ico"><use href="#i-play"/></svg>Run Backtest</button>
+        </div>
       </div>
     </div>
-    <svg id="sbtChartSvg" style="width:100%;height:200px;overflow:visible"></svg>
-  </div>
 
-  <div class="bt-table-wrap" id="sbtTableWrap" style="display:none">
-    <table class="bt-table">
-      <thead><tr>
-        <th style="text-align:left">Signal Date</th>
-        <th>PE at Entry</th>
-        <th style="text-align:left">Exit Date</th>
-        <th>Exit Price</th>
-        <th>Simple Return</th>
-        <th>Ann. CAGR</th>
-        <th>Result</th>
-      </tr></thead>
-      <tbody id="sbtBody"></tbody>
-    </table>
-  </div>
-  <div id="sbtEmpty" class="no-data">Set a PE threshold and click Run Strategy.</div>
+    <!-- Relative-mode output containers -->
+    <div class="bt-rel-only">
+      <div class="bt-summary" id="btSummary" style="display:none"></div>
+      <div class="bt-table-wrap" id="btTableWrap" style="display:none">
+        <table class="bt-table">
+          <thead id="btHead"></thead>
+          <tbody id="btBody"></tbody>
+        </table>
+      </div>
+      <div id="btEmpty" class="no-data">Configure settings above and click Run Backtest.</div>
+    </div>
 
-  <div class="sbt-note">
-    <strong>Strategy logic:</strong> Buy at close when PE first falls below the threshold (after cooldown). Sell after the fixed hold period. Win = positive simple return at exit.
-    <br/><strong>Limitations to keep in mind:</strong>
-    <ul style="margin:6px 0 0 16px;line-height:1.8">
-      <li><strong>Absolute threshold, not regime-adjusted</strong> &mdash; PE 25 meant different things at different rate cycles. The Backtest tab's "% of rolling median" adapts to regime changes.</li>
-      <li><strong>Win rate &ne; profitability</strong> &mdash; a 60% win rate can still be net negative if the losses are larger. Always read avg CAGR alongside win rate.</li>
-      <li><strong>Small sample size</strong> &mdash; few signals = unreliable statistics. Flag shown if N &lt; 15.</li>
-      <li><strong>COVID outlier winsorised</strong> &mdash; the COVID-era PE spike (813x in Apr 2020) is capped at the 99th percentile in percentile rank calculations to prevent distortion.</li>
-      <li><strong>Composition bias</strong> &mdash; NMid150 rebalances quarterly; historical PE includes stocks since dropped from the index.</li>
-      <li><strong>No transaction costs</strong> &mdash; assumes frictionless entry and exit.</li>
-    </ul>
+    <!-- Absolute-mode output containers -->
+    <div class="bt-abs-only" style="display:none">
+      <div class="sbt-warning" id="sbtWarning" style="display:none"></div>
+      <div class="bt-summary" id="sbtSummary" style="display:none"></div>
+      <div class="chart-container" id="sbtChartWrap" style="display:none;margin-bottom:16px">
+        <div class="chart-title">
+          <svg class="ico"><use href="#i-activity"/></svg>PE Ratio History &amp; Buy Signals
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>PE</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;width:24px;border-top:2px dashed #f59e0b;height:0"></div>Threshold</div>
+            <div class="legend-item"><div style="width:8px;height:8px;border-radius:50%;background:#4ade80;margin-right:2px"></div>Signal (Win)</div>
+            <div class="legend-item"><div style="width:8px;height:8px;border-radius:50%;background:#f87171;margin-right:2px"></div>Signal (Loss)</div>
+          </div>
+        </div>
+        <svg id="sbtChartSvg" style="width:100%;height:200px;overflow:visible"></svg>
+      </div>
+      <div class="bt-table-wrap" id="sbtTableWrap" style="display:none">
+        <table class="bt-table">
+          <thead><tr>
+            <th style="text-align:left">Signal Date</th>
+            <th>PE at Entry</th>
+            <th style="text-align:left">Exit Date</th>
+            <th>Exit Price</th>
+            <th>Simple Return</th>
+            <th>Ann. CAGR</th>
+            <th>Result</th>
+          </tr></thead>
+          <tbody id="sbtBody"></tbody>
+        </table>
+      </div>
+      <div id="sbtEmpty" class="no-data">Set a PE threshold and click Run Backtest.</div>
+
+      <div class="sbt-note">
+        <strong>Absolute-mode logic:</strong> Buy at close when PE first falls below the threshold (after cooldown). Sell after the fixed hold period. Win = positive simple return at exit.
+        <br/><strong>Limitations to keep in mind:</strong>
+        <ul style="margin:6px 0 0 16px;line-height:1.8">
+          <li><strong>Absolute threshold, not regime-adjusted</strong> &mdash; PE 25 meant different things at different rate cycles. Relative mode's "% of rolling median" adapts to regime changes.</li>
+          <li><strong>Win rate &ne; profitability</strong> &mdash; a 60% win rate can still be net negative if the losses are larger. Always read avg CAGR alongside win rate.</li>
+          <li><strong>Small sample size</strong> &mdash; few signals = unreliable statistics. Flag shown if N &lt; 15.</li>
+          <li><strong>COVID outlier winsorised</strong> &mdash; the COVID-era PE spike is capped at the 99th percentile in percentile rank calculations to prevent distortion.</li>
+          <li><strong>No transaction costs</strong> &mdash; assumes frictionless entry and exit.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </div>
+<!-- ================================================================ -->
+<!-- VIEW: HELP                                                        -->
+<!-- ================================================================ -->
+<div id="view-help" class="view">
+  <div class="page active">
 
-<!-- HELP -->
-<div id="page-help" class="page">
-  <div class="help-section">
-    <h2>What is this tool?</h2>
-    <p>This tool analyses the valuation of the <strong>Nifty Midcap 150 index</strong> &mdash; the 150 midcap companies ranked just below Nifty 100 &mdash; using historical P/E and P/B data going back to 2016.</p>
-    <p>It answers: <em>Is the Nifty Midcap 150 cheap or expensive relative to its own history?</em> And when it was cheap historically, how well did buying it work?</p>
-  </div>
-  <div class="help-section">
-    <h2>Valuation Methodology</h2>
-    <h3>Weighted Reference</h3>
-    <p>Instead of a single median, we compute a <strong>weighted reference</strong> that blends three time horizons:</p>
-    <div class="formula-box">
-Weighted Ref = 30% &times; 3-year median + 60% &times; 5-year median + 10% &times; 10-year median
+    <div class="hp-hero">
+      <div class="hp-hero-ttl">How this works</div>
+      <div class="hp-hero-sub">A walkthrough of every number in IndexScope — what the 4 cards mean, how the valuation bands are computed, and how to use the Backtest page to check whether history backs up today's signal. Five minutes, bottom to top.</div>
+    </div>
 
-Rationale:
-  &bull; 3yr (30%) &mdash; captures recent regime (post-COVID, interest rate cycle)
-  &bull; 5yr (60%) &mdash; dominant anchor; a full market cycle
-  &bull; 10yr (10%) &mdash; long-run mean, given low weight to allow for structural re-rating
+    <div class="hp-toc">
+      <div class="hp-toc-ttl">On this page</div>
+      <div class="hp-toc-list">
+        <a onclick="scrollToSection('h-quickstart')">1 · Quick start</a>
+        <a onclick="scrollToSection('h-dashboard')">2 · The 4-card Dashboard</a>
+        <a onclick="scrollToSection('h-bands')">3 · Valuation bands</a>
+        <a onclick="scrollToSection('h-ref')">4 · Weighted reference</a>
+        <a onclick="scrollToSection('h-details')">5 · Details view</a>
+        <a onclick="scrollToSection('h-backtest')">6 · Backtest (Relative vs Absolute)</a>
+        <a onclick="scrollToSection('h-limits')">7 · Limits &amp; caveats</a>
+      </div>
     </div>
-    <p>If any window is unavailable (e.g. index data starts 2016, so 10yr window is partial), weights redistribute proportionally.</p>
-    <h3>Valuation Bands</h3>
-    <p>The current P/E (or P/B) is expressed as a percentage of the weighted reference. The bands are:</p>
-    <div class="band-demo">
-      <span class="band-pill band-vcheap">&le; 80% &mdash; Very Cheap</span>
-      <span class="band-pill band-cheap">80&ndash;90% &mdash; Cheap</span>
-      <span class="band-pill band-neutral">90&ndash;105% &mdash; Neutral</span>
-      <span class="band-pill band-expensive">105&ndash;120% &mdash; Expensive</span>
-      <span class="band-pill band-vexpensive">&gt; 120% &mdash; Very Expensive</span>
+
+    <!-- ══ 1. QUICK START ══ -->
+    <div class="hp-sec" id="h-quickstart">
+      <div class="hp-sec-h">1 · Quick start</div>
+      <div class="hp-p">IndexScope answers one question: <strong>are India's major equity indices cheap or expensive right now, relative to their own history?</strong> It doesn't pick stocks — it tells you whether the index as a whole is trading at an unusual valuation vs where it has historically traded.</div>
+      <div class="hp-p">Four indices are tracked: <strong>Nifty 50, Nifty Next 50, Nifty Midcap 150, Nifty Smallcap 250</strong>. Each gets a card on the Dashboard. <span class="hp-inline-pill green">Green</span> = cheap vs history. <span class="hp-inline-pill amber">Yellow</span> = neutral. <span class="hp-inline-pill red">Red</span> = expensive.</div>
+
+      <div class="hp-card tip">
+        <div class="hp-card-ttl">Three-step workflow</div>
+        <div class="hp-step">
+          <div class="hp-step-num">1</div>
+          <div class="hp-step-body"><strong>Scan the Dashboard.</strong> The 4 cards give an at-a-glance view. Card color = valuation band. A green Smallcap 250 card with a red Nifty 50 card tells you midcap/smallcap is cheap relative to large-cap right now.</div>
+        </div>
+        <div class="hp-step">
+          <div class="hp-step-num">2</div>
+          <div class="hp-step-body"><strong>Click any card for details.</strong> Opens a full-screen view with three sub-tabs: <em>Details</em> (P/E + P/B + Dividend Yield + EPS + sparkline), <em>Historical Medians</em> (how the medians themselves have drifted over time), and <em>Backtest</em>.</div>
+        </div>
+        <div class="hp-step">
+          <div class="hp-step-num">3</div>
+          <div class="hp-step-body"><strong>Verify on Backtest.</strong> Every past date when this index was at today's valuation level — what happened to prices over the next 6 months and 1 year? Run the backtest to see if the signal has historically worked.</div>
+        </div>
+      </div>
+
+      <div class="hp-card warn">
+        <div class="hp-card-ttl">Before you use these signals</div>
+        <div class="hp-p" style="margin-bottom:0"><strong>Cheap can get cheaper.</strong> A "Very Cheap" band tells you an index is unusually depressed vs its own history. It is <em>not</em> a prediction of when it will recover. These signals work best for patient investors with a 6–12 month horizon, not for next-week timing.</div>
+      </div>
     </div>
-    <p>The neutral band is intentionally asymmetric (90&ndash;105%) to account for the natural positive drift of index earnings over time.</p>
-    <h3>Secondary Signal: Percentile Rank</h3>
-    <p>The current value is also ranked as a percentile within its 5-year <strong>winsorised</strong> history (outliers clipped at 1st&ndash;99th percentile). This is critical for NMid150 &mdash; the COVID-era PE spike reached 813x, which would completely distort unwinsorised ranks. After winsorisation the outlier is capped and the rank becomes meaningful. If the primary and secondary signals disagree, a <em>divergence flag</em> appears.</p>
-    <h3>Trend Direction Indicators</h3>
-    <p>Each metric card shows a small badge comparing the current value to the value approximately 3 months ago (63 trading days back). This helps identify whether valuation pressure is rising or easing.</p>
-  </div>
-  <div class="help-section">
-    <h2>Historical Medians Tab</h2>
-    <p>This tab shows how the <strong>rolling medians themselves have changed over time</strong> &mdash; letting you spot structural re-rating. For example, if the 5yr median P/E has risen from 25&times; (2019) to 35&times; (2024), paying 34&times; today may not be as expensive as it appears on a long-horizon basis.</p>
-    <p>Annual frequency shows year-end snapshots. Quarterly shows March/June/September/December end-of-quarter values.</p>
-  </div>
-  <div class="help-section">
-    <h2>Backtest Methodology</h2>
-    <h3>Signal Trigger</h3>
-    <p>A signal fires when the chosen metric (P/E, P/B, or both simultaneously) enters a &plusmn;1% tolerance band around the threshold. For example, with P/E threshold at 90%:</p>
-    <div class="formula-box">
-Signal fires when: 89% &le; (Current PE / Weighted Ref PE &times; 100) &le; 91%
-6-month cooldown between consecutive signals (prevents rebuying the same move)
+
+    <!-- ══ 2. DASHBOARD / READING A CARD ══ -->
+    <div class="hp-sec" id="h-dashboard">
+      <div class="hp-sec-h">2 · The 4-card Dashboard</div>
+      <div class="hp-p">The Dashboard is the home screen. All four indices are visible at once. Each card is colored by its P/E band — the card <em>border, top stripe, and background tint</em> all reflect the verdict.</div>
+
+      <div class="hp-mock-outer">
+        <div>
+          <div class="hp-mock-lbl">Example — Nifty Midcap 150 · Cheap</div>
+          <div class="hp-mock-card">
+            <div class="m-name"><span>Nifty Midcap 150</span><svg class="ico" style="color:var(--ghost)"><use href="#i-chevron-right"/></svg></div>
+            <div class="m-price">₹21,450</div>
+            <div class="m-date">As of 2026-04-21</div>
+            <span class="m-pill" style="background:var(--c-tl);color:var(--c-c);border-color:var(--c-bd)">PE: Cheap</span>
+            <div class="m-metrics">
+              <div><div class="m-lbl">Current PE</div><div class="m-val">22.4</div><div class="m-sub">85% of ref</div></div>
+              <div><div class="m-lbl">Weighted Ref PE</div><div class="m-val">26.3</div><div class="m-sub">3/5/10yr blend</div></div>
+              <div><div class="m-lbl">Current PB</div><div class="m-val">3.12</div><div class="m-sub">92% of ref</div></div>
+              <div><div class="m-lbl">Dividend Yield</div><div class="m-val">1.14%</div><div class="m-sub">&nbsp;</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="hp-mock-lbl">Each element explained</div>
+          <div class="hp-anno">
+            <div class="hp-anno-row"><div class="hp-anno-num">1</div><div class="hp-anno-body"><strong>Index name &amp; chevron.</strong> Uppercase title in condensed font. Chevron hints that the card is clickable.</div></div>
+            <div class="hp-anno-row"><div class="hp-anno-num">2</div><div class="hp-anno-body"><strong>Current price.</strong> Today's closing index value in ₹, using tabular numbers so digits align cleanly across cards.</div></div>
+            <div class="hp-anno-row"><div class="hp-anno-num">3</div><div class="hp-anno-body"><strong>Band pill.</strong> The headline signal. Drives the card's color tint, top stripe, and border. <span class="muted">See section 3.</span></div></div>
+            <div class="hp-anno-row"><div class="hp-anno-num">4</div><div class="hp-anno-body"><strong>Current PE &amp; weighted ref.</strong> Today's P/E and the blended historical median. The "% of ref" sub-line is the primary signal &mdash; 85% means today's P/E is 15% below the historical anchor.</div></div>
+            <div class="hp-anno-row"><div class="hp-anno-num">5</div><div class="hp-anno-body"><strong>Current PB &amp; Dividend Yield.</strong> Supporting metrics. PB (Price/Book) is the asset-value lens; DY is informational (doesn't affect the band).</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hp-note">On mobile the 4 cards stack vertically. On desktop they arrange into a grid of 2, 3, or 4 columns depending on screen width. Cards lift slightly on hover (desktop) to cue that they're interactive.</div>
     </div>
-    <h3>Forward Returns</h3>
-    <p>For each signal date, we compute:</p>
-    <ul>
-      <li><strong>Signal CAGR</strong>: Annualised return from signal date to target date (6mo or 1yr)</li>
-      <li><strong>Buy-and-Hold CAGR</strong>: What the index returned over the same period if you'd held regardless</li>
-      <li><strong>Hit</strong>: Signal CAGR &gt; 0</li>
-    </ul>
-    <p>If the target date hasn't been reached yet, the return is marked OPEN (partial, annualised).</p>
-    <h3>Row Colors</h3>
-    <p><span style="color:#4ade80">Green</span> = positive signal return &nbsp;|&nbsp; <span style="color:#fde68a">Yellow</span> = open &nbsp;|&nbsp; <span style="color:#f87171">Red</span> = negative return</p>
-  </div>
-  <div class="help-section">
-    <h2>EPS (Derived)</h2>
-    <p>Since Nifty Midcap 150 doesn't publish EPS directly, we derive it as: <strong>EPS = Index Value &divide; P/E</strong>.</p>
-    <p>The <strong>TURNING</strong> flag appears when EPS has risen both 90 days and 180 days ago relative to today, but the year-over-year growth is still &le;5% &mdash; indicating an early-cycle inflection that hasn't yet shown up in the annual numbers.</p>
-  </div>
-  <div class="help-section">
-    <h2>Live Data</h2>
-    <p>Historical data (2016&ndash;Apr 2026) is embedded in this file. To fetch more recent data, deploy the included Google Apps Script and paste its URL in the <code>scriptUrl</code> config at the top of the JavaScript.</p>
-    <p>The tool works fully offline &mdash; live data only fills the gap between the embedded history end date and today.</p>
+
+    <!-- ══ 3. VALUATION BANDS ══ -->
+    <div class="hp-sec" id="h-bands">
+      <div class="hp-sec-h">3 · Valuation bands</div>
+      <div class="hp-p">The band is determined by a single ratio: <strong>current P/E ÷ weighted historical reference</strong>. That ratio maps to one of five bands:</div>
+
+      <div class="hp-band-grid">
+        <div class="hp-band-cell vchp"><div class="bn">Very Cheap</div><div class="bd">≤ 80% of ref</div></div>
+        <div class="hp-band-cell chp"><div class="bn">Cheap</div><div class="bd">80 – 90% of ref</div></div>
+        <div class="hp-band-cell neu"><div class="bn">Neutral</div><div class="bd">90 – 105% of ref</div></div>
+        <div class="hp-band-cell exp"><div class="bn">Expensive</div><div class="bd">105 – 120% of ref</div></div>
+        <div class="hp-band-cell vexp"><div class="bn">Very Expensive</div><div class="bd">&gt; 120% of ref</div></div>
+      </div>
+
+      <div class="hp-sub-h">Why the Neutral band is asymmetric</div>
+      <div class="hp-p">The Neutral band extends slightly further above median (up to 105%) than below (90%). Indices naturally drift slightly above their own historical median over long periods as nominal earnings grow with inflation and the investor base expands. Being 5% above median is not yet a warning.</div>
+
+      <div class="hp-sub-h">Secondary signal: percentile rank</div>
+      <div class="hp-p">Each metric card also shows a <strong>5-year percentile bar</strong>. This measures <em>frequency</em> rather than magnitude — "how often did this index trade this cheap in the last 5 years?". A 15th-percentile reading means the index is cheaper than 85% of the last 5 years of daily observations.</div>
+      <div class="hp-p">The percentile is <strong>winsorised</strong> — outliers are clipped at the 1st and 99th percentile before ranking. This prevents the COVID P/E spike (which briefly exceeded 800× for the Midcap index as earnings collapsed) from dominating the rank.</div>
+
+      <div class="hp-card info">
+        <div class="hp-card-ttl">Divergence flag</div>
+        <div class="hp-p" style="margin-bottom:0">If the primary signal (% of ref) and the secondary signal (percentile) disagree — e.g. an index is <span class="hp-inline-pill green">Cheap</span> vs its anchor but has spent half the last 5 years at this level — a small amber ⚠ capsule appears under the metric card. Interpret this as: "the market thinks this is a normal level, even if it looks cheap by historical standards."</div>
+      </div>
+    </div>
+
+    <!-- ══ 4. WEIGHTED REFERENCE ══ -->
+    <div class="hp-sec" id="h-ref">
+      <div class="hp-sec-h">4 · Weighted reference</div>
+      <div class="hp-p">Rather than compare today to a single median, IndexScope blends <strong>three</strong> historical windows so the anchor adapts to regime changes without over-reacting to them.</div>
+
+      <div class="hp-sub-h">The weighting formula</div>
+      <div class="hp-weight-grid">
+        <div class="hp-weight-lbl">3-year median</div>
+        <div class="hp-weight-bar-wrap"><div class="hp-weight-bar" style="width:30%"></div></div>
+        <div class="hp-weight-val">× 30%</div>
+        <div class="hp-weight-lbl">5-year median</div>
+        <div class="hp-weight-bar-wrap"><div class="hp-weight-bar" style="width:60%"></div></div>
+        <div class="hp-weight-val">× 60%</div>
+        <div class="hp-weight-lbl">10-year median</div>
+        <div class="hp-weight-bar-wrap"><div class="hp-weight-bar" style="width:10%"></div></div>
+        <div class="hp-weight-val">× 10%</div>
+      </div>
+
+      <div class="hp-formula"><span class="c">// Weighted reference PE</span>
+<span class="k">ref</span> = 0.30 × median(last 3yr) + 0.60 × median(last 5yr) + 0.10 × median(last 10yr)
+
+<span class="c">// Band determined by the ratio</span>
+<span class="k">pct</span> = (current PE ÷ ref) × 100
+
+<span class="c">// If any window is unavailable (e.g. Smallcap 250 data</span>
+<span class="c">// starts in 2016, so the 10yr window is partial),</span>
+<span class="c">// weights redistribute proportionally.</span></div>
+
+      <div class="hp-sub-h">Why 60% weight on the 5-year median?</div>
+      <div class="hp-p">The 5-year window covers roughly one full business cycle in India — long enough to include both peaks and troughs, short enough to reflect today's regime. The 3-year window adds sensitivity to recent rate cycles. The 10-year leg gets only 10% weight so that indices which have permanently re-rated (like Smallcap 250 post-2020) aren't forever compared against a baseline that no longer applies.</div>
+
+      <div class="hp-sub-h">Worked example — Nifty 50</div>
+      <div class="hp-p muted">Suppose today's Nifty 50 P/E is 22.8 and the three medians are:</div>
+      <dl class="hp-kv">
+        <dt>3yr median</dt><dd>23.5 → × 30% = 7.05</dd>
+        <dt>5yr median</dt><dd>24.2 → × 60% = 14.52</dd>
+        <dt>10yr median</dt><dd>22.1 → × 10% = 2.21</dd>
+        <dt><strong>Weighted ref</strong></dt><dd><strong>23.78</strong></dd>
+        <dt>Ratio</dt><dd>22.8 ÷ 23.78 = <strong>96%</strong> → <span class="hp-inline-pill amber">Neutral</span></dd>
+      </dl>
+      <div class="hp-p">If the P/E dropped to 20.0 instead, the ratio would be 20.0 ÷ 23.78 = <strong>84%</strong> → <span class="hp-inline-pill green">Cheap</span>.</div>
+    </div>
+
+    <!-- ══ 5. DETAILS VIEW ══ -->
+    <div class="hp-sec" id="h-details">
+      <div class="hp-sec-h">5 · Details view</div>
+      <div class="hp-p">Clicking any card on the Dashboard opens the Details view. It fills the screen with a back button in the top-left, the index name, and a sub-nav of three tabs.</div>
+
+      <div class="hp-mock-outer">
+        <div>
+          <div class="hp-mock-lbl">Details sub-nav (mockup)</div>
+          <div style="display:inline-flex;gap:2px;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px">
+            <span style="padding:7px 14px;border-radius:7px;font-family:var(--body);font-size:.76rem;font-weight:600;background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)">Details</span>
+            <span style="padding:7px 14px;border-radius:7px;font-family:var(--body);font-size:.76rem;font-weight:600;color:var(--sub)">Historical Medians</span>
+            <span style="padding:7px 14px;border-radius:7px;font-family:var(--body);font-size:.76rem;font-weight:600;color:var(--sub)">Backtest</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hp-sub-h">Details sub-tab</div>
+      <div class="hp-p">Three metric cards side by side: <strong>Price / Earnings</strong>, <strong>Price / Book</strong>, <strong>Dividend Yield</strong>. Each shows today's value, the band pill, a 3-month trend badge, a median comparison table (3yr / 5yr / 10yr), and a 5-year percentile bar.</div>
+      <div class="hp-p">Below that: the <strong>Derived EPS</strong> section (EPS = Index Value ÷ P/E) with YoY growth and "% of peak", followed by a <strong>3-year P/E sparkline</strong> with the weighted reference overlaid as a dashed line.</div>
+
+      <div class="hp-card info">
+        <div class="hp-card-ttl">Trend badge</div>
+        <div class="hp-p" style="margin-bottom:0">Each metric card shows a small trend badge like <span class="hp-inline-pill green">↗ +0.8 vs 3M ago</span> or <span class="hp-inline-pill red">↘ −1.2 vs 3M ago</span>. This compares the current P/E to its value 63 trading days (~3 months) earlier and helps identify whether valuation pressure is rising or easing.</div>
+      </div>
+
+      <div class="hp-sub-h">Historical Medians sub-tab</div>
+      <div class="hp-p">This tab shows how the <strong>rolling medians themselves have changed over time</strong> — letting you spot structural re-rating. If the 5yr median P/E has risen from 18× (2019) to 24× (2024), paying 23× today may not be as expensive as it appears on a long-horizon basis.</div>
+      <div class="hp-p muted">Annual frequency shows year-end snapshots. Quarterly shows end-of-quarter values for finer resolution.</div>
+
+      <div class="hp-sub-h">EPS Turning flag</div>
+      <div class="hp-p">On the Details sub-tab, a small amber <span class="hp-inline-pill amber">▲ TURNING</span> badge appears under the YoY EPS value when EPS has been rising over both the 90-day and 180-day windows <em>but</em> year-over-year growth is still modest (≤5%). It's an early-cycle inflection signal — earnings are turning up before the annual numbers show it clearly.</div>
+    </div>
+
+    <!-- ══ 6. BACKTEST ══ -->
+    <div class="hp-sec" id="h-backtest">
+      <div class="hp-sec-h">6 · Backtest (Relative vs Absolute)</div>
+      <div class="hp-p">The Backtest tab answers: <strong>every time this index was at this valuation level in the past, what happened to prices next?</strong> IndexScope merges two different backtest modes behind a single toggle at the top of the page:</div>
+
+      <div style="margin:14px 0">
+        <div class="hp-mode-mock">
+          <span class="act"><svg class="ico ico-sm"><use href="#i-activity"/></svg> Relative</span>
+          <span><svg class="ico ico-sm"><use href="#i-target"/></svg> Absolute</span>
+        </div>
+      </div>
+
+      <div class="hp-sub-h">Relative mode</div>
+      <div class="hp-p"><strong>Fires a signal when current P/E is within ±1% of a chosen % of the rolling weighted reference.</strong> You set the threshold as a percentage — e.g. 85% means "fire a signal every past date where PE was 85% of its weighted reference." The reference is recomputed at every historical date, so the threshold adapts to regime shifts automatically.</div>
+      <div class="hp-p"><strong>When to use:</strong> Most of the time. This is the primary mode. It answers "was today's cheapness historically significant?" — the threshold you pick should roughly equal the <em>% of ref</em> number shown on the Dashboard card.</div>
+
+      <div class="hp-sub-h">Absolute mode</div>
+      <div class="hp-p"><strong>Fires a signal when current P/E falls below a fixed number</strong> (e.g. "PE &lt; 25"). No reference, no ratio — just a hard threshold on the raw P/E value. After each signal, buy at close and sell after a fixed hold period (3/6/12/24 months).</div>
+      <div class="hp-p"><strong>When to use:</strong> For simple rule-based strategies ("buy Nifty whenever PE drops below 20"). The downside: PE 25 meant very different things in 2016 vs 2024, so absolute thresholds don't adapt to regime changes. Relative mode usually gives more robust signals.</div>
+
+      <div class="hp-sub-h">How to read the results</div>
+      <div class="hp-p">After you click Run, a <strong>summary row</strong> appears showing total signals, hit rate (% of signals with positive 1yr return), average 6-month and 1-year CAGR, and the buy-and-hold CAGR of just holding the index over the same period as a benchmark.</div>
+
+      <div class="hp-p">The table below shows every individual signal, colored by outcome:</div>
+
+      <div class="hp-sig-row hit">
+        <span class="hp-sig-date">2020-03-24</span>
+        <span style="color:var(--txt);font-size:.68rem">PE: 18.2 · 74% of ref</span>
+        <span class="hp-sig-val">+38.2% <span style="color:var(--ghost);font-weight:400;font-size:.58rem">1yr CAGR</span></span>
+        <span class="hp-sig-res pos"><svg class="ico ico-sm"><use href="#i-check"/></svg> Hit</span>
+      </div>
+      <div class="hp-sig-row miss">
+        <span class="hp-sig-date">2022-01-17</span>
+        <span style="color:var(--txt);font-size:.68rem">PE: 28.4 · 114% of ref</span>
+        <span class="hp-sig-val">−4.1% <span style="color:var(--ghost);font-weight:400;font-size:.58rem">1yr CAGR</span></span>
+        <span class="hp-sig-res neg"><svg class="ico ico-sm"><use href="#i-x"/></svg> Miss</span>
+      </div>
+      <div class="hp-sig-row open">
+        <span class="hp-sig-date">2025-11-08</span>
+        <span style="color:var(--txt);font-size:.68rem">PE: 22.1 · 86% of ref</span>
+        <span class="hp-sig-val">— <span style="color:var(--ghost);font-weight:400;font-size:.58rem">not yet 1yr</span></span>
+        <span class="hp-sig-res opn"><svg class="ico ico-sm"><use href="#i-clock"/></svg> Open</span>
+      </div>
+
+      <div class="hp-note" style="margin-top:10px">Green rows = positive 1-year return at that signal. Red = negative. Yellow = signal fired too recently for a 1-year forward return to be computed.</div>
+
+      <div class="hp-sub-h">Cooldown slider</div>
+      <div class="hp-p">Controls the minimum gap between consecutive signals. Default 90 days. Without a cooldown, one multi-week dip below threshold would fire dozens of near-duplicate signals and inflate your sample with correlated trades. <strong>Rule of thumb: set cooldown ≥ your intended holding period.</strong></div>
+
+      <div class="hp-card tip">
+        <div class="hp-card-ttl">Interpretation guide</div>
+        <ul class="hp-list" style="margin:0">
+          <li><strong>Hit rate &gt; 70%, avg 1yr CAGR clearly positive</strong> → strong setup, proceed with conviction.</li>
+          <li><strong>High average but low hit rate</strong> → noisy signal, a few huge wins masking many losses. Fragile.</li>
+          <li><strong>Mostly red rows, poor hit rate</strong> → broken setup, either wrong threshold or signals cluster around earnings collapses.</li>
+          <li><strong>Too few signals (&lt; 5)</strong> → not a pattern, just a handful of data points. Widen the threshold or extend the date range.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ══ 7. LIMITS ══ -->
+    <div class="hp-sec" id="h-limits">
+      <div class="hp-sec-h">7 · Limits &amp; caveats</div>
+      <div class="hp-p">This tool is designed to sharpen decisions, not replace judgement. The honest limits:</div>
+      <ul class="hp-list">
+        <li><strong>Valuation is not timing.</strong> A "Very Cheap" signal can stay cheap — or get cheaper — for months. These are 6–12 month signals, not next-week calls.</li>
+        <li><strong>Index composition changes over time.</strong> Nifty indices reconstitute periodically (quarterly for Midcap 150, for instance). The 10-year P/E series blends companies that were in the index at different dates. Treat long histories as approximate, not precise.</li>
+        <li><strong>COVID outlier handling.</strong> The April-2020 earnings collapse produced P/E prints that exceeded 800× for Midcap 150. These are winsorised at the 99th percentile in percentile-rank calculations but still distort simple historical medians. The weighted reference is less affected because the 3/5/10yr medians are each individually resistant to a single outlier quarter.</li>
+        <li><strong>No macro overlay.</strong> The model knows nothing about rate cycles, the INR, global commodity prices, or credit conditions. A "Cheap" signal during a credit crisis is a different risk than during stable macro. Add your own read.</li>
+        <li><strong>EPS is derived, not reported.</strong> Nifty doesn't publish a single index-level EPS, so IndexScope derives it as <code>Index Value ÷ P/E</code>. One-off accounting items at a constituent level can briefly distort it. Cross-check with reported quarterly results if EPS looks surprising.</li>
+        <li><strong>Structural regime changes.</strong> The 10% weight on the 10-year median means the model adapts gradually to re-ratings. During a transition (e.g. Smallcap 250 post-2020), treat signals as directional rather than precise.</li>
+      </ul>
+
+      <div class="hp-card info">
+        <div class="hp-card-ttl">Best practice</div>
+        <div class="hp-p" style="margin-bottom:0">Use this as <strong>one structured input among several</strong>. The highest-conviction setups are when: (1) the band is <span class="hp-inline-pill green">Cheap</span> or <span class="hp-inline-pill green">Very Cheap</span>, (2) the EPS panel shows ▲ TURNING or healthy YoY growth, (3) the backtest at this threshold shows a strong hit rate, and (4) your own fundamental/macro view doesn't contradict the signal. All four together is a strong setup.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1521,7 +2107,7 @@ var NMID150_HISTORY = [
 ];
 
 // ============================================================
-// INDEX SWITCHING
+// INDEX STATE + NAVIGATION
 // ============================================================
 var HISTORIES = {
   n50: N50_HISTORY,
@@ -1529,63 +2115,207 @@ var HISTORIES = {
   sc250: SC250_HISTORY,
   nmid150: NMID150_HISTORY
 };
+var INDEX_ORDER = ['n50', 'nn50', 'nmid150', 'sc250'];
 HISTORY = HISTORIES[ACTIVE_INDEX];
 
-function switchIndex(key) {
+// Current view: 'dashboard' or 'details'
+var CURRENT_VIEW = 'dashboard';
+// When in details view, which index is being shown
+var DETAILS_INDEX = null;
+// When in details view, which sub-tab is active
+var CURRENT_SUB = 'overview';
+
+// Helper: run fn with HISTORY temporarily swapped to another index
+function withHistory(key, fn) {
+  var saved = HISTORY;
+  HISTORY = HISTORIES[key];
+  try { return fn(); } finally { HISTORY = saved; }
+}
+
+function computeStatsFor(key) {
+  return withHistory(key, function(){ return computeStats(); });
+}
+
+// ---------- Dashboard (4 cards) ----------
+function renderCards() {
+  var grid = document.getElementById('dashGrid');
+  if (!grid) return;
+  grid.innerHTML = INDEX_ORDER.map(function(key){
+    try {
+      var s = computeStatsFor(key);
+      if (!s) return cardErrorHTML(key, 'No data');
+      var name = INDICES[key].name;
+      var price = '\u20b9' + s.curIndex.toLocaleString('en-IN', {maximumFractionDigits:0});
+      var pePctStr = s.pePct != null ? fmt(s.pePct, 0) + '%' : '\u2014';
+      var pbPctStr = s.pbPct != null ? fmt(s.pbPct, 0) + '%' : '\u2014';
+      var pePill = '<span class="idx-band-pill band-'+s.peBand+'">PE: ' + bandLabel(s.peBand) + '</span>';
+      return ''
+        + '<div class="idx-card band-'+s.peBand+'" onclick="openDetails(\''+key+'\')">'
+        +   '<div class="idx-name"><span>'+name+'</span><svg class="ico idx-chevron"><use href="#i-chevron-right"/></svg></div>'
+        +   '<div class="idx-price">'+price+'</div>'
+        +   '<div class="idx-date">As of '+s.curDate+'</div>'
+        +   pePill
+        +   '<div class="idx-metrics">'
+        +     '<div><div class="idx-metric-lbl">Current PE</div><div class="idx-metric-val">'+fmt(s.curPE)+'</div><div class="idx-metric-sub">'+pePctStr+' of ref</div></div>'
+        +     '<div><div class="idx-metric-lbl">Weighted Ref PE</div><div class="idx-metric-val">'+fmt(s.peRef)+'</div><div class="idx-metric-sub">3/5/10yr blend</div></div>'
+        +     '<div><div class="idx-metric-lbl">Current PB</div><div class="idx-metric-val">'+fmt(s.curPB)+'</div><div class="idx-metric-sub">'+pbPctStr+' of ref</div></div>'
+        +     '<div><div class="idx-metric-lbl">Dividend Yield</div><div class="idx-metric-val">'+(s.curDY?fmt(s.curDY)+'%':'\u2014')+'</div><div class="idx-metric-sub">&nbsp;</div></div>'
+        +   '</div>'
+        + '</div>';
+    } catch(e){
+      console.warn('Card render failed for '+key, e);
+      return cardErrorHTML(key, 'Render error');
+    }
+  }).join('');
+}
+
+function cardErrorHTML(key, msg) {
+  var name = (INDICES[key] && INDICES[key].name) || key;
+  return '<div class="idx-card error" onclick="openDetails(\''+key+'\')">'
+    + '<div class="idx-name"><span>'+name+'</span><svg class="ico idx-chevron"><use href="#i-chevron-right"/></svg></div>'
+    + '<div class="idx-price">'+msg+'</div>'
+    + '</div>';
+}
+
+// ---------- View switching ----------
+function openDetails(key) {
   if (!INDICES[key]) return;
   ACTIVE_INDEX = key;
+  DETAILS_INDEX = key;
   CFG.scriptUrl = INDICES[key].scriptUrl;
   CFG.apiKey = INDICES[key].apiKey;
   HISTORY = HISTORIES[key];
-  var label = document.getElementById('heroIndexLabel');
-  if (label) label.textContent = INDICES[key].name + ' Index';
-  document.title = 'IndexScope — ' + INDICES[key].name;
-  // Reset any date-range inputs to defaults
-  ['btFrom','btTo','sFrom','sTo'].forEach(function(id){
-    var el = document.getElementById(id); if (el) el.value = '';
-  });
-  // Reset date-range defaults to the new index's last date
+  document.title = 'IndexScope \u2014 ' + INDICES[key].name;
+
+  // Update details header
+  var t = document.getElementById('detTitle');
+  if (t) t.textContent = INDICES[key].name;
+  var ts = document.getElementById('detTitleSub');
+  if (ts) { try { ts.textContent = 'As of ' + HISTORY[HISTORY.length-1][0]; } catch(e){ ts.textContent=''; } }
+  var hil = document.getElementById('heroIndexLabel');
+  if (hil) hil.textContent = INDICES[key].name + ' Index';
+
+  // Reset date range inputs to this index's last date
   try {
     var lastDate = HISTORY[HISTORY.length-1][0];
-    ['btTo','sTo'].forEach(function(id){
-      var el = document.getElementById(id); if (el) el.value = lastDate;
-    });
+    var bf = document.getElementById('btFrom');
+    var bt = document.getElementById('btTo');
+    if (bf && !bf.value) bf.value = '2016-01-01';
+    if (bt) bt.value = lastDate;
   } catch(e){}
-  // Fetch live (may append new rows), then re-render everything
-  try {
-    fetchLive().then(function(){
-      try { renderDashboard(); } catch(e){ console.warn('renderDashboard', e); }
-      try { renderMedians(); } catch(e){}
-      try { updateBacktestDefaults(); } catch(e){}
-    });
-  } catch(e){
-    try { renderDashboard(); } catch(_){}
-  }
-  try { localStorage.setItem('indexscope_active', key); } catch(e){}
+
+  // Clear any prior backtest results (different index)
+  BT_SIGNALS = []; BT_INCLUDED = []; BT_CONTEXT = null;
+  ['btSummary','btTableWrap','sbtWarning','sbtSummary','sbtChartWrap','sbtTableWrap'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  var btEmp = document.getElementById('btEmpty');
+  if (btEmp) { btEmp.style.display = 'block'; btEmp.textContent = 'Configure settings above and click Run Backtest.'; }
+  var sbtEmp = document.getElementById('sbtEmpty');
+  if (sbtEmp) sbtEmp.style.display = 'block';
+
+  // Switch view — Details replaces whatever was previously active
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById('view-details').classList.add('active');
+  CURRENT_VIEW = 'details';
+  // Dashboard page-tab stays active since Details is a sub-state of Dashboard view
+  document.querySelectorAll('.ptab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+
+  // Reset to overview sub-tab
+  CURRENT_SUB = 'overview';
+  document.querySelectorAll('.subnav-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+  document.querySelectorAll('#view-details .page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('sub-overview').classList.add('active');
+
+  // Render overview
+  try { renderDashboard(); } catch(e){ console.warn('renderDashboard', e); }
+  try { updateBacktestDefaults(); } catch(e){}
+  window.scrollTo(0, 0);
 }
 
-// On load: restore last selection or default to n50
-(function(){
-  try {
-    var saved = localStorage.getItem('indexscope_active');
-    // Per user request: always default to N50 on load. Ignore saved.
-    saved = 'n50';
-    if (saved && INDICES[saved]) {
-      ACTIVE_INDEX = saved;
-      CFG.scriptUrl = INDICES[saved].scriptUrl;
-      CFG.apiKey = INDICES[saved].apiKey;
-      HISTORY = HISTORIES[saved];
-    }
-  } catch(e){}
-  // Sync dropdown + hero label after DOM ready
-  document.addEventListener('DOMContentLoaded', function(){
-    var picker = document.getElementById('indexPicker');
-    if (picker) picker.value = ACTIVE_INDEX;
-    var label = document.getElementById('heroIndexLabel');
-    if (label) label.textContent = INDICES[ACTIVE_INDEX].name + ' Index';
-    document.title = 'IndexScope — ' + INDICES[ACTIVE_INDEX].name;
-  });
-})();
+function closeDetails() {
+  document.getElementById('view-details').classList.remove('active');
+  document.getElementById('view-dashboard').classList.add('active');
+  CURRENT_VIEW = 'dashboard';
+  DETAILS_INDEX = null;
+  document.title = 'IndexScope \u2014 Indian Indices Valuation Tracker';
+  // Re-render cards in case data changed
+  renderCards();
+  setStatus('ok', '4 indices loaded');
+  window.scrollTo(0, 0);
+  // Make sure the header tab reflects dashboard selection
+  document.querySelectorAll('.ptab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+}
+
+// ---------- Top-level view (Dashboard / Help) ----------
+function showMainView(target, el) {
+  document.querySelectorAll('.ptab').forEach(function(t){ t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+
+  // Hide all top-level views first
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+
+  if (target === 'help') {
+    document.getElementById('view-help').classList.add('active');
+    CURRENT_VIEW = 'help';
+    DETAILS_INDEX = null;
+    document.title = 'IndexScope \u2014 Help';
+    setStatus('ok', '4 indices loaded');
+  } else {
+    // 'dashboard' — also leaves any open details view
+    document.getElementById('view-dashboard').classList.add('active');
+    CURRENT_VIEW = 'dashboard';
+    DETAILS_INDEX = null;
+    document.title = 'IndexScope \u2014 Indian Indices Valuation Tracker';
+    renderCards();
+    setStatus('ok', '4 indices loaded');
+  }
+  window.scrollTo(0, 0);
+}
+
+function scrollToSection(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function showSub(tab, el) {
+  document.querySelectorAll('.subnav-tab').forEach(function(t){ t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  document.querySelectorAll('#view-details .page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('sub-'+tab).classList.add('active');
+  CURRENT_SUB = tab;
+  if (tab === 'medians') { setTimeout(renderMedians, 50); }
+  if (tab === 'overview') { setTimeout(function(){ try { renderSparkline(computeStats()); } catch(e){} }, 50); }
+}
+
+// ---------- Backtest mode toggle ----------
+var BT_MODE = 'relative';
+
+function setBtMode(mode, el) {
+  BT_MODE = mode;
+  document.querySelectorAll('.bt-mode-opt').forEach(function(b){ b.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  var isRel = (mode === 'relative');
+  document.querySelectorAll('.bt-rel-only').forEach(function(n){ n.style.display = isRel ? '' : 'none'; });
+  document.querySelectorAll('.bt-abs-only').forEach(function(n){ n.style.display = isRel ? 'none' : ''; });
+  // When Relative, re-apply BT_METRIC's field visibility (PE/PB/Both)
+  if (isRel) {
+    document.getElementById('peThreshField').style.display = (BT_METRIC==='pe'||BT_METRIC==='both') ? '' : 'none';
+    document.getElementById('pbThreshField').style.display = (BT_METRIC==='pb'||BT_METRIC==='both') ? '' : 'none';
+  }
+  var desc = document.getElementById('btModeDesc');
+  if (desc) {
+    desc.innerHTML = isRel
+      ? '<strong>Relative:</strong> fire signals when current P/E or P/B is within a % band of the rolling weighted reference. Adapts to regime shifts.'
+      : '<strong>Absolute:</strong> fire signals when P/E falls below a fixed threshold (e.g. 25). Simpler but does not adjust for regime changes.';
+  }
+}
+
+function runBt() {
+  if (BT_MODE === 'absolute') runSimpleBT();
+  else runBacktest();
+}
 
 
 // ============================================================
@@ -1711,10 +2441,10 @@ function computeStats() {
     else if (pctile<=90) pBand='expensive';
     else pBand='vexpensive';
     if (refBand==='vcheap'||refBand==='cheap') {
-      if (pBand==='expensive'||pBand==='vexpensive') return '\u26a0 often this cheap \u2014 may be a structural level';
+      if (pBand==='expensive'||pBand==='vexpensive') return '<svg class="ico ico-sm"><use href="#i-alert"/></svg> often this cheap \u2014 may be a structural level';
     }
     if (refBand==='expensive'||refBand==='vexpensive') {
-      if (pBand==='vcheap'||pBand==='cheap') return '\u26a0 often this expensive \u2014 structural re-rating may have occurred';
+      if (pBand==='vcheap'||pBand==='cheap') return '<svg class="ico ico-sm"><use href="#i-alert"/></svg> often this expensive \u2014 structural re-rating may have occurred';
     }
     return null;
   }
@@ -1799,7 +2529,7 @@ function renderDashboard() {
 
   setPercentile('pePctMarker','pePctVal', s.pePctile);
   var peDivEl = document.getElementById('peDivFlag');
-  if (s.peDivergence) { peDivEl.style.display='block'; peDivEl.textContent=s.peDivergence; } else { peDivEl.style.display='none'; }
+  if (s.peDivergence) { peDivEl.style.display='block'; peDivEl.innerHTML=s.peDivergence; } else { peDivEl.style.display='none'; }
 
   // PB Trend badge
   renderTrendBadge('pbTrend', s.pbTrend);
@@ -1820,7 +2550,7 @@ function renderDashboard() {
 
   setPercentile('pbPctMarker','pbPctVal', s.pbPctile);
   var pbDivEl = document.getElementById('pbDivFlag');
-  if (s.pbDivergence) { pbDivEl.style.display='block'; pbDivEl.textContent=s.pbDivergence; } else { pbDivEl.style.display='none'; }
+  if (s.pbDivergence) { pbDivEl.style.display='block'; pbDivEl.innerHTML=s.pbDivergence; } else { pbDivEl.style.display='none'; }
 
   // DY Card
   document.getElementById('dyVal').textContent = s.curDY ? fmt(s.curDY)+'%' : '\u2014';
@@ -1846,12 +2576,12 @@ function renderDashboard() {
 function renderTrendBadge(elId, trend) {
   var el = document.getElementById(elId);
   if (!el) return;
-  if (!trend) { el.textContent=''; el.className='trend-badge'; return; }
+  if (!trend) { el.innerHTML=''; el.className='trend-badge'; return; }
   var d = trend.delta;
   var sign = d > 0.05 ? 'up' : d < -0.05 ? 'dn' : 'flat';
-  var arrow = sign==='up' ? '\u2191' : sign==='dn' ? '\u2193' : '\u2192';
-  var label = arrow + ' ' + (d>=0?'+':'') + d.toFixed(2) + ' vs 3M ago';
-  el.textContent = label;
+  var iconId = sign==='up' ? 'i-arrow-up-right' : sign==='dn' ? 'i-arrow-down-right' : 'i-minus';
+  var label = (d>=0?'+':'') + d.toFixed(2) + ' vs 3M ago';
+  el.innerHTML = '<svg class="ico ico-sm"><use href="#' + iconId + '"/></svg>' + label;
   el.className = 'trend-badge trend-'+sign;
 }
 
@@ -1882,7 +2612,7 @@ function epsGrid(tiles) {
   return tiles.map(function(t){
     return '<div class="eps-tile"><div class="eps-tile-label">'+t.label+'</div>'
       + '<div class="eps-tile-val">'+t.val+'</div>'
-      + (t.turning ? '<div class="turning-badge">TURNING \u2191</div>' : '')
+      + (t.turning ? '<div class="turning-badge"><svg class="ico ico-sm"><use href="#i-trending-up"/></svg>TURNING</div>' : '')
       + '<div class="eps-tile-sub">'+t.sub+'</div>'
       + '</div>';
   }).join('');
@@ -1926,16 +2656,20 @@ function renderSparkline(stats) {
     yLabels += '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
   }
 
-  // X axis labels (years)
+  // X axis labels (years) — skip any that would overlap (min 42px apart)
   var xLabels = '';
   var years = {};
   rows.forEach(function(r,i){
     var yr = r[0].slice(0,4);
     if(!years[yr]){years[yr]=i;}
   });
+  var lastX = -999, MIN_X_GAP = 42;
   Object.keys(years).sort().forEach(function(yr){
     var i=years[yr], x=xp(i);
-    xLabels+='<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
+    if (x - lastX >= MIN_X_GAP) {
+      xLabels+='<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
+      lastX = x;
+    }
   });
 
   // Ref lines
@@ -2010,7 +2744,7 @@ function renderMedians() {
     var tr = document.createElement('tr');
     if(r.isCurrent) tr.className='cur-row';
     tr.innerHTML =
-      '<td>'+(r.isCurrent?'\u25b6 ':'')+(r.date.slice(0,7)||r.date)+'</td>'
+      '<td>'+(r.isCurrent?'<svg class="ico ico-sm" style="color:var(--acc2);margin-right:4px"><use href="#i-chevron-right"/></svg>':'')+(r.date.slice(0,7)||r.date)+'</td>'
       +'<td>'+fmt(r.actual)+'</td>'
       +'<td>'+fmt(r.m3)+'</td>'
       +'<td>'+fmt(r.m5)+'</td>'
@@ -2056,12 +2790,16 @@ function renderMediansChart(tableRows, metric) {
     yLabels+='<text x="'+(pad.l-5)+'" y="'+y+'" text-anchor="end" fill="var(--txt3)" font-size="10">'+v.toFixed(1)+'</text>';
     yLabels+='<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
   }
-  // X axis
-  var xLabels='', prevYr='';
+  // X axis — emit year labels but skip any that would overlap the previous (min 42px apart)
+  var xLabels='', prevYr='', lastX=-999, MIN_X_GAP=42;
   tableRows.forEach(function(r){
     var yr=r.date.slice(0,4);
     if(yr!==prevYr){
-      xLabels+='<text x="'+xp(r.date)+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
+      var x=xp(r.date);
+      if (x - lastX >= MIN_X_GAP) {
+        xLabels+='<text x="'+x+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
+        lastX = x;
+      }
       prevYr=yr;
     }
   });
@@ -2283,9 +3021,10 @@ function renderBacktest(signals, metric, periodBH, fromDate, toDate) {
     }
     tbody+=cagrCell(s.sig6m,s.isOpen6m);
     tbody+=cagrCell(s.sig1y,s.isOpen1y);
-    var resultText = s.isOpen1y ? 'OPEN' : (s.hit ? '\u2713 Hit' : '\u2717 Miss');
-    var resultCls  = s.isOpen1y ? 'cagr-open' : (s.hit ? 'cagr-pos' : 'cagr-neg');
-    tbody+='<td class="'+resultCls+'">'+resultText+'</td>';
+    var resultIco = s.isOpen1y ? 'i-clock' : (s.hit ? 'i-check' : 'i-x');
+    var resultLbl = s.isOpen1y ? 'OPEN' : (s.hit ? 'Hit' : 'Miss');
+    var resultCls = s.isOpen1y ? 'cagr-open' : (s.hit ? 'cagr-pos' : 'cagr-neg');
+    tbody+='<td class="'+resultCls+'"><span style="display:inline-flex;align-items:center;gap:5px;justify-content:flex-end"><svg class="ico ico-sm"><use href="#'+resultIco+'"/></svg>'+resultLbl+'</span></td>';
     tbody+='</tr>';
   });
   document.getElementById('btBody').innerHTML=tbody;
@@ -2365,9 +3104,11 @@ function avgOf(arr) {
 function runSimpleBT() {
   var threshold = parseFloat(document.getElementById('sPeThresh').value);
   var holdDays  = parseInt(document.getElementById('sHoldPeriod').value);
-  var cooldown  = parseInt(document.getElementById('sCooldown').value);
-  var from = document.getElementById('sFrom').value;
-  var to   = document.getElementById('sTo').value || HISTORY[HISTORY.length-1][0];
+  var cdEl = document.getElementById('btCooldownInput');
+  var cooldown = cdEl ? parseInt(cdEl.value) : 90;
+  if (isNaN(cooldown) || cooldown < 0) cooldown = 0;
+  var from = document.getElementById('btFrom').value;
+  var to   = document.getElementById('btTo').value || HISTORY[HISTORY.length-1][0];
 
   var rows = sliceByDate(from, to);
   if (rows.length < 50) { alert('Too few data points for selected range.'); return; }
@@ -2436,7 +3177,7 @@ function renderSimpleBT(signals, threshold, holdDays, rows, timeBelowPct, fromDa
   var n = signals.length;
   var smallSample = n < 15;
   warnEl.style.display = smallSample ? 'block' : 'none';
-  if (smallSample) warnEl.textContent = '\u26a0 Only '+n+' signal'+(n===1?'':'s')+' found \u2014 too few for reliable statistics. Interpret with caution.';
+  if (smallSample) warnEl.innerHTML = '<svg class="ico ico-sm" style="margin-right:4px;vertical-align:-2px"><use href="#i-alert"/></svg>Only '+n+' signal'+(n===1?'':'s')+' found \u2014 too few for reliable statistics. Interpret with caution.';
 
   var closed = signals.filter(function(s){return !s.isOpen&&s.simpleRet!=null;});
   var hits = closed.filter(function(s){return s.hit;});
@@ -2471,7 +3212,9 @@ function renderSimpleBT(signals, threshold, holdDays, rows, timeBelowPct, fromDa
       +'<td>'+(s.simpleRet!=null?fmtPct(s.simpleRet,1):s.isOpen?'OPEN':'\u2014')+'</td>'
       +'<td>'+(s.annRet!=null?fmtPct(s.annRet,1):s.isOpen?'OPEN':'\u2014')+'</td>';
     var rc = s.isOpen?'cagr-open':(s.hit?'cagr-pos':'cagr-neg');
-    tbody+='<td class="'+rc+'">'+(s.isOpen?'OPEN':(s.hit?'\u2713 Hit':'\u2717 Miss'))+'</td></tr>';
+    var resIco = s.isOpen ? 'i-clock' : (s.hit ? 'i-check' : 'i-x');
+    var resLbl = s.isOpen ? 'OPEN' : (s.hit ? 'Hit' : 'Miss');
+    tbody+='<td class="'+rc+'"><span style="display:inline-flex;align-items:center;gap:5px;justify-content:flex-end"><svg class="ico ico-sm"><use href="#'+resIco+'"/></svg>'+resLbl+'</span></td></tr>';
   });
   document.getElementById('sbtBody').innerHTML=tbody;
 }
@@ -2507,12 +3250,16 @@ function renderSimpleChart(rows, signals, threshold) {
     grid+='<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
   }
 
-  // X labels
-  var xLabels='', prevYr='';
+  // X labels — skip any that would overlap (min 42px apart)
+  var xLabels='', prevYr='', lastX=-999, MIN_X_GAP=42;
   peRows.forEach(function(r){
     var yr=r[0].slice(0,4);
     if(yr!==prevYr){
-      xLabels+='<text x="'+xp(r[0])+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
+      var x=xp(r[0]);
+      if (x - lastX >= MIN_X_GAP) {
+        xLabels+='<text x="'+x+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
+        lastX = x;
+      }
       prevYr=yr;
     }
   });
@@ -2537,83 +3284,98 @@ function renderSimpleChart(rows, signals, threshold) {
 }
 
 // ============================================================
-// LIVE DATA
+// LIVE DATA (per-index)
 // ============================================================
-function fetchLive() {
-  if (!CFG.scriptUrl) {
-    setStatus('stale', 'Embedded data \u00b7 '+HISTORY[HISTORY.length-1][0]);
-    return Promise.resolve();
-  }
-  setStatus('loading', '\u23f3 Fetching live data\u2026');
+function fetchLiveFor(key) {
+  var cfg = INDICES[key];
+  if (!cfg || !cfg.scriptUrl) return Promise.resolve({key: key, ok: false, embedded: true});
 
   var timeoutMs = 12000;
   var abortCtrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
   var timer = setTimeout(function() { if (abortCtrl) abortCtrl.abort(); }, timeoutMs);
 
-  var fetchOpts = {
-    headers: { 'X-API-Key': CFG.apiKey }
-  };
+  var fetchOpts = { headers: { 'X-API-Key': cfg.apiKey } };
   if (abortCtrl) fetchOpts.signal = abortCtrl.signal;
-  return fetch(CFG.scriptUrl+'?t='+Date.now(), fetchOpts)
+
+  return fetch(cfg.scriptUrl+'?t='+Date.now(), fetchOpts)
     .then(function(r){ clearTimeout(timer); return r.json(); })
     .then(function(resp){
       if (resp.status==='ok' && resp.data && resp.data.length) {
-        var lastEmbedded = HISTORY[HISTORY.length-1][0];
+        var hist = HISTORIES[key];
+        var lastEmbedded = hist[hist.length-1][0];
         var added = 0;
         resp.data.forEach(function(row){
-          if (row[0] > lastEmbedded) {
-            HISTORY.push(row);
-            added++;
-          }
+          if (row[0] > lastEmbedded) { hist.push(row); added++; }
         });
-        if (added) { HISTORY.sort(function(a,b){return a[0]<b[0]?-1:1;}); }
-        var fetchedTime = resp.fetchedAt ? new Date(resp.fetchedAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short',hour12:true}) : '';
-        setStatus('ok', '\u2713 Data: '+HISTORY[HISTORY.length-1][0]+(fetchedTime?' \u00b7 Fetched: '+fetchedTime+' IST':'')+(added?' (+'+added+' rows)':''));
-      } else {
-        setStatus('stale', 'Embedded data \u00b7 '+HISTORY[HISTORY.length-1][0]);
+        if (added) hist.sort(function(a,b){return a[0]<b[0]?-1:1;});
+        return {key: key, ok: true, added: added, fetchedAt: resp.fetchedAt, lastDate: hist[hist.length-1][0]};
       }
+      return {key: key, ok: false, embedded: true, lastDate: HISTORIES[key][HISTORIES[key].length-1][0]};
     })
     .catch(function(e){
       clearTimeout(timer);
-      var msg = (e && e.name === 'AbortError') ? '\u26a0 Live fetch timed out \u00b7 using embedded data'
-                                                : '\u26a0 Live fetch failed \u00b7 using embedded data';
-      setStatus('err', msg);
+      return {key: key, ok: false, error: (e && e.name === 'AbortError') ? 'timeout' : 'fetch_failed', lastDate: HISTORIES[key][HISTORIES[key].length-1][0]};
     });
+}
+
+function fetchAllLive() {
+  setStatus('loading', 'Fetching live data across 4 indices\u2026');
+  return Promise.all(INDEX_ORDER.map(fetchLiveFor)).then(function(results){
+    var okCount = results.filter(function(r){return r.ok;}).length;
+    var errCount = results.filter(function(r){return r.error;}).length;
+    var totalAdded = results.reduce(function(a,r){return a+(r.added||0);},0);
+    if (errCount > 0) {
+      setStatus('err', okCount + '/4 indices live, ' + errCount + ' failed \u00b7 using embedded fallback');
+    } else if (okCount === 4) {
+      setStatus('ok', '4 indices live' + (totalAdded ? ' (+'+totalAdded+' rows)' : ''));
+    } else {
+      setStatus('stale', 'Embedded data only');
+    }
+    return results;
+  });
 }
 
 function setStatus(type, msg) {
   var el = document.getElementById('statusChip');
+  if (!el) return;
   el.className = 'status-chip' + (type==='ok'?' ok':type==='err'?' err':'');
-  el.textContent = msg;
+  var iconId = 'i-clock', spin = false;
+  if (type === 'ok')           iconId = 'i-check';
+  else if (type === 'err')     iconId = 'i-alert';
+  else if (type === 'loading') { iconId = 'i-loader'; spin = true; }
+  else                         iconId = 'i-clock';
+  var safe = String(msg).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  el.innerHTML = '<svg class="ico ico-sm' + (spin?' ico-spin':'') + '"><use href="#' + iconId + '"/></svg><span>' + safe + '</span>';
 }
 
-function refreshData() {
-  fetchLive().then(function(){
-    renderDashboard();
-    if (document.getElementById('page-medians').classList.contains('active')) renderMedians();
-  });
-}
-
-// ============================================================
-// NAV + THEME
-// ============================================================
-function showPage(id, el) {
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
-  document.getElementById('page-'+id).classList.add('active');
-  if(el) el.classList.add('active');
-
-  if(id==='medians') {
-    setTimeout(renderMedians, 50);
-  }
-  if(id==='dashboard') {
-    setTimeout(function(){renderSparkline(computeStats());},50);
+function refreshCurrent() {
+  if (CURRENT_VIEW === 'dashboard') {
+    fetchAllLive().then(function(){ renderCards(); });
+  } else if (CURRENT_VIEW === 'details' && DETAILS_INDEX) {
+    setStatus('loading', 'Fetching ' + INDICES[DETAILS_INDEX].name + '\u2026');
+    fetchLiveFor(DETAILS_INDEX).then(function(r){
+      if (r.ok) {
+        var fetchedTime = r.fetchedAt ? new Date(r.fetchedAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short',hour12:true}) : '';
+        setStatus('ok', INDICES[DETAILS_INDEX].name + ' \u00b7 ' + r.lastDate + (fetchedTime?' \u00b7 Fetched ' + fetchedTime + ' IST':'') + (r.added?' (+'+r.added+' rows)':''));
+      } else if (r.error) {
+        setStatus('err', INDICES[DETAILS_INDEX].name + ' fetch ' + (r.error==='timeout'?'timed out':'failed') + ' \u00b7 using embedded');
+      } else {
+        setStatus('stale', 'Embedded data \u00b7 ' + r.lastDate);
+      }
+      try { renderDashboard(); } catch(e){}
+      if (CURRENT_SUB === 'medians') { try { renderMedians(); } catch(e){} }
+    });
   }
 }
 
 function toggleTheme() {
   var isLight = document.body.classList.toggle('light');
-  document.getElementById('themeBtn').textContent = isLight ? '\ud83c\udf19 Dark' : '\u2600 Light';
+  var btn = document.getElementById('themeBtn');
+  if (btn) {
+    btn.innerHTML = isLight
+      ? '<svg class="ico"><use href="#i-moon"/></svg><span class="btn-lbl" id="themeBtnLbl">Dark</span>'
+      : '<svg class="ico"><use href="#i-sun"/></svg><span class="btn-lbl" id="themeBtnLbl">Light</span>';
+  }
   localStorage.setItem('nmid150-theme', isLight?'light':'dark');
 }
 
@@ -2623,16 +3385,22 @@ function toggleTheme() {
 (function init() {
   if (localStorage.getItem('nmid150-theme')==='light') {
     document.body.classList.add('light');
-    document.getElementById('themeBtn').textContent='\ud83c\udf19 Dark';
+    var tb = document.getElementById('themeBtn');
+    if (tb) tb.innerHTML = '<svg class="ico"><use href="#i-moon"/></svg><span class="btn-lbl" id="themeBtnLbl">Dark</span>';
   }
 
-  var lastDate = HISTORY[HISTORY.length-1][0];
-  document.getElementById('btTo').value = lastDate;
-  document.getElementById('sTo').value  = lastDate;
+  // Render cards immediately from embedded data
+  renderCards();
+  setStatus('stale', 'Loaded from embedded data');
 
-  fetchLive().then(function(){
-    renderDashboard();
-    updateBacktestDefaults();
+  // Then fetch live data for all 4 indices in the background and re-render
+  fetchAllLive().then(function(){
+    if (CURRENT_VIEW === 'dashboard') renderCards();
+    // If user already drilled into details while fetch was in flight, refresh that view too
+    if (CURRENT_VIEW === 'details' && DETAILS_INDEX) {
+      try { renderDashboard(); } catch(e){}
+      if (CURRENT_SUB === 'medians') { try { renderMedians(); } catch(e){} }
+    }
   });
 })();
 </script>
