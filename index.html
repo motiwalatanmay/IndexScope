@@ -2870,8 +2870,14 @@ function runBacktest() {
   var rows = sliceByDate(from, to);
   if (rows.length < 100) { alert('Too few data points for selected range.'); return; }
 
-  var periodYrs = daysBetween(rows[0][0], rows[rows.length-1][0]) / 365;
-  var periodBH  = periodYrs > 0 ? (Math.pow(rows[rows.length-1][1]/rows[0][1], 1/periodYrs)-1)*100 : null;
+  // Trim trailing rows without a published close price (e.g. today's P/E-only snapshot rows).
+  var bhEnd = rows.length - 1;
+  while (bhEnd > 0 && !(rows[bhEnd][1] > 0)) bhEnd--;
+  var bhStart = 0;
+  while (bhStart < bhEnd && !(rows[bhStart][1] > 0)) bhStart++;
+  var periodYrs = daysBetween(rows[bhStart][0], rows[bhEnd][0]) / 365;
+  var periodBH  = (periodYrs > 0 && rows[bhStart][1] > 0 && rows[bhEnd][1] > 0)
+                  ? (Math.pow(rows[bhEnd][1]/rows[bhStart][1], 1/periodYrs)-1)*100 : null;
 
   var signals = btCompute(rows, BT_METRIC, peThresh, pbThresh, from, to, cooldown);
   BT_CONTEXT = { metric: BT_METRIC, periodBH: periodBH, fromDate: rows[0][0], toDate: rows[rows.length-1][0] };
