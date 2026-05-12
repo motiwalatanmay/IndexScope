@@ -143,6 +143,17 @@ body.light .idx-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.10)}
 .idx-eps-peak.high{color:var(--vc-c);background:var(--vc-tl);border-color:var(--vc-bd)}
 .idx-eps-peak.low{color:var(--e-c);background:var(--e-tl);border-color:var(--e-bd)}
 
+/* Value-trap warning capsule (Tier 2) */
+.idx-warn{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.54rem;font-weight:600;padding:4px 9px;border-radius:10px;background:var(--n-tl);color:var(--n-c);border:1px solid var(--n-bd);margin-top:8px;letter-spacing:.2px;line-height:1.3}
+.idx-warn .ico{width:11px;height:11px;flex-shrink:0}
+
+/* EPS trend tag (Tier 2): LOW·RISING / HIGH·FALLING etc. */
+.idx-eps-trend{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:9px;letter-spacing:.4px;text-transform:uppercase;margin-top:4px;border:1px solid}
+.idx-eps-trend.bull{color:var(--vc-c);background:var(--vc-tl);border-color:var(--vc-bd)}
+.idx-eps-trend.bear{color:var(--e-c);background:var(--e-tl);border-color:var(--e-bd)}
+.idx-eps-trend.flat{color:var(--ghost);background:var(--bg3);border-color:var(--bdr)}
+.idx-eps-trend .ico{width:9px;height:9px}
+
 /* Sort bar — pill group above the grid */
 .dash-sort{display:flex;align-items:center;gap:8px;margin:4px 0 16px;flex-wrap:wrap}
 .dash-sort-lbl{font-family:var(--mono);font-size:.56rem;color:var(--ghost);text-transform:uppercase;letter-spacing:1.1px;margin-right:2px}
@@ -2290,19 +2301,44 @@ function renderCards() {
         chgHTML = '<span class="idx-change '+cls+'">'+arrow+' '+(chg>=0?'+':'')+fmt(chg,2)+'%</span>';
       }
 
-      // EPS strip
+      // EPS strip + trend tag (Tier 2)
       var eps = computeEPSStats(key);
       var epsHTML = '';
       if (eps) {
         var peakCls = eps.pctOfPeak >= 95 ? 'high' : eps.pctOfPeak < 70 ? 'low' : '';
+        var trendHTML = '';
+        if (s.epsYoY != null) {
+          var rising = s.epsYoY > 2, falling = s.epsYoY < -2;
+          var lvl = eps.pctOfPeak >= 90 ? 'HIGH' : eps.pctOfPeak < 70 ? 'LOW' : 'MID';
+          var dir = rising ? 'RISING' : falling ? 'FALLING' : 'FLAT';
+          // Bull = recovery (LOW + RISING); Bear = peak deterioration (HIGH + FALLING)
+          var trendCls = (lvl==='LOW'&&rising) ? 'bull'
+                       : (lvl==='HIGH'&&falling) ? 'bear'
+                       : 'flat';
+          var arrowIco = rising ? 'i-trending-up' : falling ? 'i-trending-down' : 'i-clock';
+          trendHTML = '<span class="idx-eps-trend '+trendCls+'"><svg class="ico"><use href="#'+arrowIco+'"/></svg>'+lvl+' · '+dir+' · '+(s.epsYoY>=0?'+':'')+fmt(s.epsYoY,1)+'% YoY</span>';
+        }
         epsHTML = ''
           + '<div class="idx-eps-strip">'
           +   '<div class="idx-eps-left">'
           +     '<div class="idx-eps-lbl">EPS (Price / PE)</div>'
           +     '<div class="idx-eps-val">'+fmt(eps.current, 0)+'</div>'
+          +     trendHTML
           +   '</div>'
           +   '<div class="idx-eps-peak '+peakCls+'">'+fmt(eps.pctOfPeak, 0)+'% of peak</div>'
           + '</div>';
+      }
+
+      // Value-trap / structural-rerating warning (Tier 2)
+      // computeStats already returns peDivergence / pbDivergence as HTML strings
+      // (e.g., "⚠ often this cheap"). Surface whichever fires; PE takes priority.
+      var warnHTML = '';
+      var warnSrc = s.peDivergence || s.pbDivergence;
+      if (warnSrc) {
+        var which = s.peDivergence ? 'P/E' : 'P/B';
+        // Strip any inline SVG from the source and rebuild with our own icon.
+        var clean = warnSrc.replace(/<svg[\s\S]*?<\/svg>\s*/i, '').trim();
+        warnHTML = '<div class="idx-warn"><svg class="ico"><use href="#i-alert"/></svg>'+which+' · '+clean+'</div>';
       }
 
       // Compact back face
@@ -2325,6 +2361,7 @@ function renderCards() {
         +     '<div class="idx-name"><span>'+name+'</span><svg class="ico idx-chevron"><use href="#i-chevron-right"/></svg></div>'
         +     '<div class="idx-price-row"><div class="idx-price">'+price+'</div>'+chgHTML+'</div>'
         +     pePill
+        +     warnHTML
         +     '<div class="idx-metrics">'
         +       '<div><div class="idx-metric-lbl">Current PE</div><div class="idx-metric-val">'+fmt(s.curPE)+'</div><div class="idx-metric-sub">'+pePctStr+' of ref</div></div>'
         +       '<div><div class="idx-metric-lbl">Weighted Ref PE</div><div class="idx-metric-val">'+fmt(s.peRef)+'</div><div class="idx-metric-sub">3/5/10yr blend</div></div>'
@@ -3139,6 +3176,22 @@ function btCompute(rows, metric, peThresh, pbThresh, from, to, cooldown) {
     var sig1y = f1y ? cagr(buyPrice, f1y.price, daysBetween(r[0],f1y.date)/365) : null;
     var isOpen6m = !f6m, isOpen1y = !f1y;
 
+    // Tier 2: Nifty 50 forward 1yr from the same trigger date — for alpha
+    // calculation. Skipped (null) when the current backtest IS Nifty 50.
+    var nifty1y = null;
+    if (typeof N50_HISTORY !== 'undefined' && HISTORY !== N50_HISTORY) {
+      var n50Buy = null, n50Sell = null;
+      for (var nb=0; nb<N50_HISTORY.length; nb++) {
+        if (N50_HISTORY[nb][0] >= r[0] && N50_HISTORY[nb][1] > 0) { n50Buy = N50_HISTORY[nb]; break; }
+      }
+      for (var ns=0; ns<N50_HISTORY.length; ns++) {
+        if (N50_HISTORY[ns][0] >= target1y && N50_HISTORY[ns][1] > 0) { n50Sell = N50_HISTORY[ns]; break; }
+      }
+      if (n50Buy && n50Sell) {
+        nifty1y = cagr(n50Buy[1], n50Sell[1], daysBetween(n50Buy[0], n50Sell[0]) / 365);
+      }
+    }
+
     signals.push({
       date: r[0],
       curPE: curPE, curPB: curPB,
@@ -3147,6 +3200,8 @@ function btCompute(rows, metric, peThresh, pbThresh, from, to, cooldown) {
       pbPct: pbPct?pbPct*100:null,
       metric: metric,
       sig6m: sig6m, sig1y: sig1y,
+      nifty1y: nifty1y,
+      alpha1y: (sig1y != null && nifty1y != null) ? (sig1y - nifty1y) : null,
       isOpen6m: isOpen6m, isOpen1y: isOpen1y,
       hit: sig1y!=null ? sig1y>0 : (sig6m!=null?sig6m>0:null)
     });
@@ -3224,17 +3279,27 @@ function recomputeBtSummary() {
   var avg6m  = avgOf(included.map(function(s){return s.sig6m;}).filter(function(v){return v!=null;}));
   var avg1y  = avgOf(included.map(function(s){return s.sig1y;}).filter(function(v){return v!=null;}));
 
+  // Tier 2: Alpha vs Nifty 50 \u2014 average of (signal_1y \u2212 nifty50_1y) per trigger.
+  var alphaSamples = included.map(function(s){return s.alpha1y;}).filter(function(v){return v!=null;});
+  var avgAlpha = alphaSamples.length ? avgOf(alphaSamples) : null;
+  var isN50Run = (typeof HISTORY !== 'undefined' && typeof N50_HISTORY !== 'undefined' && HISTORY === N50_HISTORY);
+
   var bhSub = periodBH!=null
     ? 'vs '+fmtPct(periodBH,1)+' B&H ('+fromDate.slice(0,4)+'\u2013'+toDate.slice(0,4)+')'
     : '';
   var totalN = BT_SIGNALS.length, incN = included.length;
   var sigSub = incN===totalN ? 'total triggers fired' : incN+' of '+totalN+' included';
 
+  var alphaTile = isN50Run
+    ? {label:'Alpha vs N50',    val:'\u2014',                                       sub:'this IS Nifty 50'}
+    : {label:'Alpha vs N50',    val: avgAlpha!=null?fmtPct(avgAlpha,1):'\u2014',    sub:'avg 1yr signal minus N50 1yr \u00b7 '+alphaSamples.length+' pairs'};
+
   sumDiv.innerHTML = [
     {label:'Signals',          val: incN,                                         sub: sigSub},
     {label:'Hit Rate (1yr)',   val: hitRate!=null?fmt(hitRate,1)+'%':'\u2014',   sub: closed.length+' closed trades'},
     {label:'Avg 6mo CAGR',     val: avg6m!=null?fmtPct(avg6m,1):'\u2014',        sub:'annualised, signal entries'},
     {label:'Avg 1yr CAGR',     val: avg1y!=null?fmtPct(avg1y,1):'\u2014',        sub: bhSub},
+    alphaTile,
     {label:'Period B&H CAGR',  val: periodBH!=null?fmtPct(periodBH,1):'\u2014',  sub:'buy '+fromDate.slice(0,7)+' hold to '+toDate.slice(0,7)},
   ].map(function(s){
     return '<div class="bt-stat"><div class="bt-stat-label">'+s.label+'</div>'
