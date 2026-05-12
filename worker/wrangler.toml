@@ -1,0 +1,6 @@
+name = "indexscope-live"
+main = "src/worker.js"
+compatibility_date = "2025-01-01"
+
+# Free plan; no KV / D1 needed (uses built-in Cache API).
+workers_dev = true

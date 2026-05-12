@@ -1159,6 +1159,10 @@ var INDICES = {
   sc250:   { name: 'Nifty Smallcap 250', scriptUrl: './data/sc250.json',   apiKey: '', histVar: 'SC250_HISTORY' },
   nmid150: { name: 'Nifty Midcap 150',   scriptUrl: './data/nmid150.json', apiKey: '', histVar: 'NMID150_HISTORY' },
 };
+
+// Live-price proxy (Cloudflare Worker). Returns current prices for all 4 indices
+// in one call. Frontend hits it only during NSE market hours. Leave empty to disable.
+var LIVE_PROXY_URL = 'https://indexscope-live.motiwalatanmay0.workers.dev';
 var ACTIVE_INDEX = 'n50';
 var CFG = {
   scriptUrl: INDICES[ACTIVE_INDEX].scriptUrl,
@@ -3329,6 +3333,48 @@ function fetchLiveFor(key) {
     });
 }
 
+// Market hours: NSE equities trade 09:15–15:30 IST, Mon–Fri. Allow a small
+// post-close buffer so the chip stays "live" until the EOD GH Action runs.
+function isMarketHoursIST() {
+  var nowIST = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Kolkata'}));
+  var day = nowIST.getDay(); // 0=Sun, 6=Sat
+  if (day === 0 || day === 6) return false;
+  var mins = nowIST.getHours() * 60 + nowIST.getMinutes();
+  return mins >= (9 * 60 + 15) && mins <= (15 * 60 + 45);
+}
+
+function fetchLiveOverlay() {
+  if (!LIVE_PROXY_URL || !isMarketHoursIST()) return Promise.resolve(null);
+  var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var timer = setTimeout(function(){ if (ctrl) ctrl.abort(); }, 6000);
+  var opts = ctrl ? {signal: ctrl.signal} : {};
+  return fetch(LIVE_PROXY_URL + '?t=' + Date.now(), opts)
+    .then(function(r){ clearTimeout(timer); return r.json(); })
+    .then(function(resp){
+      if (!resp || resp.status !== 'ok' || !resp.prices) return null;
+      var today = new Date().toLocaleString('en-CA', {timeZone:'Asia/Kolkata'}).slice(0,10);
+      Object.keys(resp.prices).forEach(function(key){
+        var live = resp.prices[key];
+        if (!live || live.last == null) return;
+        var hist = HISTORIES[key];
+        if (!hist || !hist.length) return;
+        var lastRow = hist[hist.length - 1];
+        if (lastRow[0] === today) {
+          lastRow[1] = live.last;
+        } else {
+          // No row for today yet (e.g., morning GH Action hasn't run) — seed one
+          // using previous day's PE/PB/DY so cards have a price to display.
+          hist.push([today, live.last,
+            live.pe != null ? live.pe : lastRow[2],
+            live.pb != null ? live.pb : lastRow[3],
+            live.dy != null ? live.dy : lastRow[4]]);
+        }
+      });
+      return resp;
+    })
+    .catch(function(){ clearTimeout(timer); return null; });
+}
+
 function fetchAllLive() {
   setStatus('loading', 'Fetching live data across 4 indices\u2026');
   return Promise.all(INDEX_ORDER.map(fetchLiveFor)).then(function(results){
@@ -3379,7 +3425,9 @@ function setStatus(type, msg) {
 
 function refreshCurrent() {
   if (CURRENT_VIEW === 'dashboard') {
-    fetchAllLive().then(function(){ renderCards(); });
+    fetchAllLive()
+      .then(function(){ return fetchLiveOverlay(); })
+      .then(function(){ renderCards(); });
   } else if (CURRENT_VIEW === 'details' && DETAILS_INDEX) {
     setStatus('loading', 'Fetching ' + INDICES[DETAILS_INDEX].name + '\u2026');
     fetchLiveFor(DETAILS_INDEX).then(function(r){
@@ -3423,14 +3471,19 @@ function toggleTheme() {
   setStatus('stale', 'Loaded from embedded data');
 
   // Then fetch live data for all 4 indices in the background and re-render
-  fetchAllLive().then(function(){
-    if (CURRENT_VIEW === 'dashboard') renderCards();
-    // If user already drilled into details while fetch was in flight, refresh that view too
-    if (CURRENT_VIEW === 'details' && DETAILS_INDEX) {
-      try { renderDashboard(); } catch(e){}
-      if (CURRENT_SUB === 'medians') { try { renderMedians(); } catch(e){} }
-    }
-  });
+  fetchAllLive()
+    .then(function(){ return fetchLiveOverlay(); })
+    .then(function(liveResp){
+      if (CURRENT_VIEW === 'dashboard') renderCards();
+      if (CURRENT_VIEW === 'details' && DETAILS_INDEX) {
+        try { renderDashboard(); } catch(e){}
+        if (CURRENT_SUB === 'medians') { try { renderMedians(); } catch(e){} }
+      }
+      if (liveResp && liveResp.fetchedAt) {
+        var ts = new Date(liveResp.fetchedAt).toLocaleString('en-IN', {timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', hour12:true});
+        setStatus('ok', 'Live · ' + ts + ' IST');
+      }
+    });
 })();
 </script>
 </body>
