@@ -126,6 +126,45 @@ body.light .idx-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.10)}
 .idx-card.error{opacity:.65}
 .idx-card.error .idx-price{font-size:14px;font-weight:500;color:var(--sub)}
 
+/* Today's % change pill — sits inline next to the price */
+.idx-price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.idx-price-row .idx-price{margin-bottom:0}
+.idx-change{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:14px;letter-spacing:.3px;border:1px solid;line-height:1}
+.idx-change.up{background:var(--vc-tl);color:var(--vc-c);border-color:var(--vc-bd)}
+.idx-change.dn{background:var(--e-tl);color:var(--e-c);border-color:var(--e-bd)}
+.idx-change.flat{background:var(--bg3);color:var(--ghost);border-color:var(--bdr)}
+
+/* EPS strip — full-width row below the 4 metric tiles */
+.idx-eps-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:10px;margin-top:10px;border-top:1px solid var(--bdr2)}
+.idx-eps-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+.idx-eps-lbl{font-family:var(--mono);font-size:.5rem;color:var(--sub);text-transform:uppercase;letter-spacing:.85px}
+.idx-eps-val{font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--txt);letter-spacing:-.01em;line-height:1}
+.idx-eps-peak{font-family:var(--mono);font-size:.55rem;font-weight:700;color:var(--ghost);padding:4px 9px;border-radius:11px;background:var(--bg3);border:1px solid var(--bdr);white-space:nowrap;letter-spacing:.3px;text-transform:uppercase}
+.idx-eps-peak.high{color:var(--vc-c);background:var(--vc-tl);border-color:var(--vc-bd)}
+.idx-eps-peak.low{color:var(--e-c);background:var(--e-tl);border-color:var(--e-bd)}
+
+/* Sort bar — pill group above the grid */
+.dash-sort{display:flex;align-items:center;gap:8px;margin:4px 0 16px;flex-wrap:wrap}
+.dash-sort-lbl{font-family:var(--mono);font-size:.56rem;color:var(--ghost);text-transform:uppercase;letter-spacing:1.1px;margin-right:2px}
+.sort-pills{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px}
+.sort-btn{padding:6px 13px;border-radius:7px;border:none;background:transparent;color:var(--sub);font-family:var(--body);font-size:.74rem;font-weight:600;cursor:pointer;transition:all .18s;letter-spacing:.2px}
+.sort-btn:hover{color:var(--txt)}
+.sort-btn.active{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+body.light .sort-btn.active{box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+/* Card flip — front/back face inside each card */
+.idx-flip-btn{position:absolute;top:9px;right:9px;width:24px;height:24px;border:none;background:transparent;color:var(--ghost);cursor:pointer;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;z-index:3;transition:color .18s,background .18s,transform .25s var(--ease)}
+.idx-flip-btn:hover{color:var(--sub);background:var(--bg3)}
+.idx-flip-btn .ico{width:13px;height:13px}
+.idx-card.flipped .idx-flip-btn{transform:rotate(180deg)}
+.idx-back{display:none;flex-direction:column;justify-content:center;gap:14px;min-height:200px;padding:8px 4px}
+.idx-card.flipped .idx-front{display:none}
+.idx-card.flipped .idx-back{display:flex}
+.idx-back-name{font-family:var(--cond);font-size:1.05rem;font-weight:800;letter-spacing:-.2px;color:var(--txt);text-transform:uppercase}
+.idx-back-summary{font-family:var(--mono);font-size:.78rem;color:var(--txt);line-height:1.7}
+.idx-back-summary strong{color:var(--brand);font-weight:700}
+.idx-back-meta{font-family:var(--mono);font-size:.55rem;color:var(--ghost);letter-spacing:.4px;text-transform:uppercase}
+
 /* ═══════════════════════ DETAILS VIEW ═══════════════════════ */
 .det-hdr{position:sticky;top:0;z-index:10;padding:10px 24px;display:flex;align-items:center;gap:14px;background:rgba(8,11,18,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);flex-shrink:0;transition:background .3s}
 body.light .det-hdr{background:rgba(238,241,248,.96)}
@@ -595,6 +634,14 @@ body.light .hp-formula .k{color:#4f46e5}
       Click any card for full details, historical medians, and backtests.
     </div>
     <div id="dashUpdated" class="dash-updated" style="font-size:12px;color:var(--muted,#6b7280);margin:4px 0 10px;">Last updated: &mdash;</div>
+    <div class="dash-sort">
+      <span class="dash-sort-lbl">Sort by</span>
+      <div class="sort-pills">
+        <button class="sort-btn active" data-sort="valuation" onclick="setSortMode('valuation')">Valuation</button>
+        <button class="sort-btn" data-sort="az" onclick="setSortMode('az')">A–Z</button>
+        <button class="sort-btn" data-sort="change" onclick="setSortMode('change')">Today's %</button>
+      </div>
+    </div>
     <div class="dash-grid" id="dashGrid"></div>
   </div>
 </div>
@@ -2142,10 +2189,84 @@ function computeStatsFor(key) {
 }
 
 // ---------- Dashboard (4 cards) ----------
+// ---------- Tier 1: sort mode, change %, EPS stats ----------
+var SORT_MODE = 'valuation';
+// Band severity for "Valuation" sort (cheapest -> most expensive)
+var BAND_RANK = {vcheap:0, cheap:1, neutral:2, expensive:3, vexpensive:4};
+
+function computeChangePct(key) {
+  // Prefer live worker value if present (set on HISTORIES last row's [5] slot).
+  // Otherwise derive from last two JSON rows (prev close vs current).
+  var hist = HISTORIES[key];
+  if (!hist || hist.length < 2) return null;
+  var last = hist[hist.length-1];
+  if (last.length > 5 && typeof last[5] === 'number') return last[5];
+  var prev = hist[hist.length-2];
+  if (!last[1] || !prev[1]) return null;
+  return (last[1] / prev[1] - 1) * 100;
+}
+
+function computeEPSStats(key) {
+  var hist = HISTORIES[key];
+  if (!hist || !hist.length) return null;
+  var last = hist[hist.length-1];
+  if (!last[1] || !last[2]) return null;
+  var curEPS = last[1] / last[2];
+  var peakEPS = 0;
+  for (var i=0; i<hist.length; i++) {
+    var r = hist[i];
+    if (r[1] && r[2]) {
+      var eps = r[1] / r[2];
+      if (eps > peakEPS) peakEPS = eps;
+    }
+  }
+  if (!peakEPS) return null;
+  return {current: curEPS, peak: peakEPS, pctOfPeak: (curEPS/peakEPS)*100};
+}
+
+function setSortMode(mode) {
+  SORT_MODE = mode;
+  document.querySelectorAll('.sort-btn').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-sort') === mode);
+  });
+  renderCards();
+}
+
+function sortedIndexOrder() {
+  var keys = INDEX_ORDER.slice();
+  if (SORT_MODE === 'az') {
+    keys.sort(function(a,b){ return INDICES[a].name.localeCompare(INDICES[b].name); });
+  } else if (SORT_MODE === 'change') {
+    keys.sort(function(a,b){
+      var ca = computeChangePct(a), cb = computeChangePct(b);
+      if (ca == null) ca = -Infinity;
+      if (cb == null) cb = -Infinity;
+      return cb - ca; // descending: biggest gainers first
+    });
+  } else { // 'valuation' \u2014 cheapest first by band; tie-break by pePct
+    keys.sort(function(a,b){
+      var sa = computeStatsFor(a), sb = computeStatsFor(b);
+      var ra = sa ? (BAND_RANK[sa.peBand] != null ? BAND_RANK[sa.peBand] : 99) : 99;
+      var rb = sb ? (BAND_RANK[sb.peBand] != null ? BAND_RANK[sb.peBand] : 99) : 99;
+      if (ra !== rb) return ra - rb;
+      var pa = sa && sa.pePct != null ? sa.pePct : Infinity;
+      var pb = sb && sb.pePct != null ? sb.pePct : Infinity;
+      return pa - pb;
+    });
+  }
+  return keys;
+}
+
+function toggleFlip(evt, key) {
+  if (evt) { evt.stopPropagation(); evt.preventDefault(); }
+  var card = document.querySelector('.idx-card[data-key="'+key+'"]');
+  if (card) card.classList.toggle('flipped');
+}
+
 function renderCards() {
   var grid = document.getElementById('dashGrid');
   if (!grid) return;
-  grid.innerHTML = INDEX_ORDER.map(function(key){
+  grid.innerHTML = sortedIndexOrder().map(function(key){
     try {
       var s = computeStatsFor(key);
       if (!s) return cardErrorHTML(key, 'No data');
@@ -2154,17 +2275,60 @@ function renderCards() {
       var pePctStr = s.pePct != null ? fmt(s.pePct, 0) + '%' : '\u2014';
       var pbPctStr = s.pbPct != null ? fmt(s.pbPct, 0) + '%' : '\u2014';
       var pePill = '<span class="idx-band-pill band-'+s.peBand+'">PE: ' + bandLabel(s.peBand) + '</span>';
-      return ''
-        + '<div class="idx-card band-'+s.peBand+'" onclick="openDetails(\''+key+'\')">'
-        +   '<div class="idx-name"><span>'+name+'</span><svg class="ico idx-chevron"><use href="#i-chevron-right"/></svg></div>'
-        +   '<div class="idx-price">'+price+'</div>'
-        +   pePill
-        +   '<div class="idx-metrics">'
-        +     '<div><div class="idx-metric-lbl">Current PE</div><div class="idx-metric-val">'+fmt(s.curPE)+'</div><div class="idx-metric-sub">'+pePctStr+' of ref</div></div>'
-        +     '<div><div class="idx-metric-lbl">Weighted Ref PE</div><div class="idx-metric-val">'+fmt(s.peRef)+'</div><div class="idx-metric-sub">3/5/10yr blend</div></div>'
-        +     '<div><div class="idx-metric-lbl">Current PB</div><div class="idx-metric-val">'+fmt(s.curPB)+'</div><div class="idx-metric-sub">'+pbPctStr+' of ref</div></div>'
-        +     '<div><div class="idx-metric-lbl">Dividend Yield</div><div class="idx-metric-val">'+(s.curDY?fmt(s.curDY)+'%':'\u2014')+'</div><div class="idx-metric-sub">&nbsp;</div></div>'
+
+      // % change pill
+      var chg = computeChangePct(key);
+      var chgHTML = '';
+      if (chg != null) {
+        var cls = chg > 0.05 ? 'up' : chg < -0.05 ? 'dn' : 'flat';
+        var arrow = chg > 0.05 ? '\u25b2' : chg < -0.05 ? '\u25bc' : '\u00b7';
+        chgHTML = '<span class="idx-change '+cls+'">'+arrow+' '+(chg>=0?'+':'')+fmt(chg,2)+'%</span>';
+      }
+
+      // EPS strip
+      var eps = computeEPSStats(key);
+      var epsHTML = '';
+      if (eps) {
+        var peakCls = eps.pctOfPeak >= 95 ? 'high' : eps.pctOfPeak < 70 ? 'low' : '';
+        epsHTML = ''
+          + '<div class="idx-eps-strip">'
+          +   '<div class="idx-eps-left">'
+          +     '<div class="idx-eps-lbl">EPS (Price / PE)</div>'
+          +     '<div class="idx-eps-val">'+fmt(eps.current, 0)+'</div>'
+          +   '</div>'
+          +   '<div class="idx-eps-peak '+peakCls+'">'+fmt(eps.pctOfPeak, 0)+'% of peak</div>'
+          + '</div>';
+      }
+
+      // Compact back face
+      var backHTML = ''
+        + '<div class="idx-back">'
+        +   '<div class="idx-back-name">'+name+'</div>'
+        +   '<div class="idx-back-summary">'
+        +     'P/E <strong>'+fmt(s.curPE)+'</strong> \u00b7 '+pePctStr+' of ref<br>'
+        +     'P/B <strong>'+fmt(s.curPB)+'</strong> \u00b7 '+pbPctStr+' of ref<br>'
+        +     'Div Yield <strong>'+(s.curDY?fmt(s.curDY)+'%':'\u2014')+'</strong>'
+        +     (eps ? '<br>EPS <strong>'+fmt(eps.current,0)+'</strong> \u00b7 '+fmt(eps.pctOfPeak,0)+'% of peak' : '')
         +   '</div>'
+        +   '<div class="idx-back-meta">Tap card for full detail \u00b7 \u21bb flip back</div>'
+        + '</div>';
+
+      return ''
+        + '<div class="idx-card band-'+s.peBand+'" data-key="'+key+'" onclick="openDetails(\''+key+'\')">'
+        +   '<button class="idx-flip-btn" title="Flip card" onclick="toggleFlip(event, \''+key+'\')"><svg class="ico"><use href="#i-refresh"/></svg></button>'
+        +   '<div class="idx-front">'
+        +     '<div class="idx-name"><span>'+name+'</span><svg class="ico idx-chevron"><use href="#i-chevron-right"/></svg></div>'
+        +     '<div class="idx-price-row"><div class="idx-price">'+price+'</div>'+chgHTML+'</div>'
+        +     pePill
+        +     '<div class="idx-metrics">'
+        +       '<div><div class="idx-metric-lbl">Current PE</div><div class="idx-metric-val">'+fmt(s.curPE)+'</div><div class="idx-metric-sub">'+pePctStr+' of ref</div></div>'
+        +       '<div><div class="idx-metric-lbl">Weighted Ref PE</div><div class="idx-metric-val">'+fmt(s.peRef)+'</div><div class="idx-metric-sub">3/5/10yr blend</div></div>'
+        +       '<div><div class="idx-metric-lbl">Current PB</div><div class="idx-metric-val">'+fmt(s.curPB)+'</div><div class="idx-metric-sub">'+pbPctStr+' of ref</div></div>'
+        +       '<div><div class="idx-metric-lbl">Dividend Yield</div><div class="idx-metric-val">'+(s.curDY?fmt(s.curDY)+'%':'\u2014')+'</div><div class="idx-metric-sub">&nbsp;</div></div>'
+        +     '</div>'
+        +     epsHTML
+        +   '</div>'
+        +   backHTML
         + '</div>';
     } catch(e){
       console.warn('Card render failed for '+key, e);
@@ -3361,13 +3525,15 @@ function fetchLiveOverlay() {
         var lastRow = hist[hist.length - 1];
         if (lastRow[0] === today) {
           lastRow[1] = live.last;
+          if (live.perChange != null) lastRow[5] = live.perChange;
         } else {
           // No row for today yet (e.g., morning GH Action hasn't run) — seed one
           // using previous day's PE/PB/DY so cards have a price to display.
           hist.push([today, live.last,
             live.pe != null ? live.pe : lastRow[2],
             live.pb != null ? live.pb : lastRow[3],
-            live.dy != null ? live.dy : lastRow[4]]);
+            live.dy != null ? live.dy : lastRow[4],
+            live.perChange != null ? live.perChange : null]);
         }
       });
       return resp;
