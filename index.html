@@ -2195,14 +2195,19 @@ var SORT_MODE = 'valuation';
 var BAND_RANK = {vcheap:0, cheap:1, neutral:2, expensive:3, vexpensive:4};
 
 function computeChangePct(key) {
-  // Prefer live worker value if present (set on HISTORIES last row's [5] slot).
-  // Otherwise derive from last two JSON rows (prev close vs current).
+  // Prefer live worker value if present (set on HISTORIES last row's [5] slot
+  // during market hours).
   var hist = HISTORIES[key];
   if (!hist || hist.length < 2) return null;
   var last = hist[hist.length-1];
   if (last.length > 5 && typeof last[5] === 'number') return last[5];
+  // Otherwise derive from last two rows — but only if they're an adjacent
+  // trading day pair (≤4 cal days apart, to span weekends/holidays).
   var prev = hist[hist.length-2];
   if (!last[1] || !prev[1]) return null;
+  var dayMs = 24 * 60 * 60 * 1000;
+  var gap = (new Date(last[0]) - new Date(prev[0])) / dayMs;
+  if (!(gap > 0 && gap <= 4)) return null;
   return (last[1] / prev[1] - 1) * 100;
 }
 
