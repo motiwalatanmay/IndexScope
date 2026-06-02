@@ -1049,6 +1049,7 @@ body.light .hp-formula .k{color:#4f46e5}
         <a onclick="scrollToSection('h-details')">5 · Details view</a>
         <a onclick="scrollToSection('h-backtest')">6 · Backtest (Relative vs Absolute)</a>
         <a onclick="scrollToSection('h-limits')">7 · Limits &amp; caveats</a>
+        <a onclick="scrollToSection('h-buffett')">8 · Buffett Indicator (mcap/GDP)</a>
       </div>
     </div>
 
@@ -1295,6 +1296,29 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="hp-card info">
         <div class="hp-card-ttl">Best practice</div>
         <div class="hp-p" style="margin-bottom:0">Use this as <strong>one structured input among several</strong>. The highest-conviction setups are when: (1) the band is <span class="hp-inline-pill green">Cheap</span> or <span class="hp-inline-pill green">Very Cheap</span>, (2) the EPS panel shows ▲ TURNING or healthy YoY growth, (3) the backtest at this threshold shows a strong hit rate, and (4) your own fundamental/macro view doesn't contradict the signal. All four together is a strong setup.</div>
+      </div>
+    </div>
+
+    <div class="hp-sec" id="h-buffett">
+      <div class="hp-sec-h">8 · Buffett Indicator (market cap &divide; GDP)</div>
+      <div class="hp-p">The <strong>Buffett tab</strong> answers a different question from the 4 cards. Instead of "is each index's <em>P/E</em> high vs its own history?", it asks "is the <em>whole market</em> big vs the real economy?" &mdash; total listed market value &divide; nominal GDP, the gauge Warren Buffett called "probably the best single measure of where valuations stand." Numerator = <strong>BSE total market cap</strong> (all listed companies, refreshed daily); denominator = India's <strong>latest reported actual nominal GDP</strong> (no forecast, per Buffett). Bands are calibrated to India's own 20-year history (median ~82%), not Buffett's US zones.</div>
+
+      <div class="hp-p">It is a deliberate complement, with <strong>different failure modes</strong> from the P/E engine &mdash; so the two <em>agreeing</em> at an extreme is high-conviction, and the two <em>diverging</em> is itself the signal worth investigating.</div>
+
+      <div class="hp-card warn">
+        <div class="hp-card-ttl">Where it is blind — vs the per-index P/E method</div>
+        <ul class="hp-list" style="margin:6px 0 0">
+          <li><strong>Earnings-blind.</strong> P/E knows whether prices are high <em>because profits are high</em>; mcap/GDP doesn't. India's corporate-profit-to-GDP is at decadal highs, so part of a "stretched" Buffett reading is justified by genuine profitability that the P/E cards capture and this gauge can't.</li>
+          <li><strong>Mismatched universes.</strong> The numerator is <em>listed</em> companies (some earning abroad); the denominator is <em>domestic</em> output including India's large informal economy. Apples-to-oranges in a way that is worse for India than the US.</li>
+          <li><strong>Structural drift.</strong> Market cap inflates mechanically with IPOs, rising free float and financialisation &mdash; so comparing today to 2013 partly compares different market structures. Per-share P/E is immune to this.</li>
+          <li><strong>No relative read.</strong> One blunt number for the whole market &mdash; it can't tell you large-vs-small or which sector is frothy. That is exactly what the 4-card view is for.</li>
+          <li><strong>Denominator fragility.</strong> The headline swings ~118–140% just from the GDP-year choice, and MOSPI's 2022-23 rebasing (Feb-2026) shifts the level again. A single, slow, revised denominator drives the whole signal.</li>
+        </ul>
+      </div>
+
+      <div class="hp-card info">
+        <div class="hp-card-ttl">Best practice</div>
+        <div class="hp-p" style="margin-bottom:0">Treat the Buffett gauge as a <strong>slow macro overlay / sanity-check</strong> and keep the per-index P/E percentile + backtest as the actionable workhorse. It is the <em>least</em> timing-useful input here &mdash; it can stay stretched for years. Read it for confirmation and for the divergence: e.g. "market rich vs the economy, but cushioned by record margins" is a more honest read than either gauge alone.</div>
       </div>
     </div>
 
