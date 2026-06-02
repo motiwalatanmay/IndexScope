@@ -683,6 +683,9 @@ body.light .hp-formula .k{color:#4f46e5}
   .bf-tbl td:first-child,.bf-tbl th:first-child{text-align:left}
   .bf-tbl tr.bf-now td{color:var(--txt);font-weight:700;background:rgba(99,102,241,.06)}
   .bf-tier{font-size:.55rem;color:var(--txt3)}
+  .bf-decomp{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:10px 0 2px}
+  .bf-decomp-term{min-width:84px}
+  .bf-decomp-op{font-size:1.5rem;color:var(--sub);font-weight:300;line-height:1}
   </style>
   <div class="bf-wrap">
     <div class="dash-intro">
@@ -719,6 +722,24 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="bf-tile"><div class="bf-tile-lbl" id="bfPriorLbl">vs prior-yr GDP</div><div class="bf-tile-val" id="bfPrior">&mdash;</div><div class="bf-tile-sub" id="bfPriorSub">&mdash;</div></div>
       <div class="bf-tile"><div class="bf-tile-lbl" id="bfFwdLbl">vs forward GDP</div><div class="bf-tile-val" id="bfFwd">&mdash;</div><div class="bf-tile-sub" id="bfFwdSub">&mdash;</div></div>
       <div class="bf-tile"><div class="bf-tile-lbl">20-yr median</div><div class="bf-tile-val" id="bfMedian">&mdash;</div><div class="bf-tile-sub">FY2006&ndash;FY2026 range <span id="bfRange"></span></div></div>
+    </div>
+
+    <div class="bf-tile" style="margin-top:4px">
+      <div class="bf-tile-lbl">Decomposition &mdash; why is it high?  <span style="text-transform:none;letter-spacing:0;color:var(--txt3);font-weight:400">mkt cap / GDP = profit share &times; P/E</span></div>
+      <div class="bf-decomp">
+        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfDecHead">&mdash;</div><div class="bf-tile-sub">mkt cap / GDP</div></div>
+        <div class="bf-decomp-op">=</div>
+        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfProfitShare">&mdash;</div><div class="bf-tile-sub" id="bfProfitShareSub">profit share</div></div>
+        <div class="bf-decomp-op">&times;</div>
+        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfImpliedPE">&mdash;</div><div class="bf-tile-sub">implied market P/E</div></div>
+      </div>
+      <div class="bf-tile-lbl" style="margin-top:14px">Corporate profit share (earnings/GDP) vs its own range</div>
+      <div class="bf-gauge" id="bfPsGauge" style="height:22px">
+        <div class="bf-gauge-seg" style="flex:100;background:linear-gradient(90deg,var(--vc-c),var(--n-c),var(--ve-c))"></div>
+        <div class="bf-gauge-marker" id="bfPsMarker" style="left:50%;height:32px;top:-5px"></div>
+      </div>
+      <div class="bf-gauge-scale"><span id="bfPsLo">&mdash;</span><span>profit / GDP</span><span id="bfPsHi">&mdash;</span></div>
+      <div class="hp-p" id="bfDecRead" style="font-size:.82rem;margin:10px 0 0;color:var(--txt2);line-height:1.55">&mdash;</div>
     </div>
 
     <div class="bf-chart">
@@ -3905,6 +3926,30 @@ function renderBuffett() {
   set('bfRange', '(' + Math.round(lo) + '–' + Math.round(hi) + '%)');
   set('bfGdpUpdated', 'GDP last set ' + (g.updated || '—'));
   if (g.trailing_newbase) set('bfNewBase', '~' + (mcap / g.trailing_newbase * 100).toFixed(0) + '%');
+
+  // Decomposition: mcap/GDP = profit-share × implied P/E
+  var dc = d.decomp;
+  if (dc) {
+    var ps = dc.profit_share;            // earnings/GDP, %
+    var impliedPE = rT / ps;             // (mcap/GDP %) / (E/GDP %) = mcap/E
+    set('bfDecHead', rT.toFixed(1) + '%');
+    set('bfProfitShare', ps.toFixed(1) + '%');
+    set('bfProfitShareSub', 'profit share · ' + dc.profit_share_fy);
+    set('bfImpliedPE', impliedPE.toFixed(1) + '×');
+    set('bfPsLo', dc.trough + '% (' + dc.trough_fy + ')');
+    set('bfPsHi', dc.peak + '% (' + dc.peak_fy + ')');
+    var psPos = (ps - dc.trough) / (dc.peak - dc.trough);
+    var psm = document.getElementById('bfPsMarker');
+    if (psm) psm.style.left = Math.max(0, Math.min(100, psPos * 100)) + '%';
+    var peStretch = Math.max(0, Math.min(1, (impliedPE - 18) / (32 - 18)));
+    var psWord = psPos > 0.8 ? 'near its ' + dc.peak_fy + ' high' : psPos > 0.5 ? 'above mid-range' : 'below mid-range';
+    var peWord = impliedPE >= 30 ? 'rich' : impliedPE >= 24 ? 'elevated but not extreme' : 'moderate';
+    var driver, risk;
+    if (psPos - peStretch > 0.1)      { driver = 'recovered profitability more than a stretched multiple'; risk = 'margin mean-reversion (not the P/E)'; }
+    else if (peStretch - psPos > 0.1) { driver = 'a stretched multiple more than profitability';           risk = 'the P/E (not margins)'; }
+    else                              { driver = 'both profitability and the multiple';                     risk = 'both margins and the P/E'; }
+    set('bfDecRead', 'The ' + rT.toFixed(0) + '% reading = profit share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%) × implied market P/E ' + impliedPE.toFixed(1) + '× (' + peWord + '). Today’s level reflects ' + driver + ' — making ' + risk + ' the bigger risk to watch. Profit-share source: ' + dc.source + '.');
+  }
 
   // table
   var tb = document.getElementById('bfTbody');

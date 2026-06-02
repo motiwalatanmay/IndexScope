@@ -47,6 +47,21 @@ GDP_NOTE = ("Buffett uses latest reported actual GDP (no forecast); headline = t
             "back-cast new-base series is published. Prior = FY25 actual; forward = FY27 "
             "Budget BE (context only).")
 
+# --- Corporate profit-to-GDP (decomposition), % (annual, like GDP; update on new MO prints) ---
+# Identity: market cap/GDP = (profit/GDP) x (market cap/profit) = profit-share x P/E.
+# Profit-share lets us split a high Buffett reading into "high because profitable"
+# vs "high because expensive". Source: Motilal Oswal Nifty-500 corporate profit-to-GDP.
+# Only firmly-sourced years are kept (FY09-FY19 are not published free, so omitted —
+# the gauge spans the sourced trough->peak rather than plotting interpolated data).
+PROFIT_SHARE = 4.7              # FY25 (latest), Nifty-500, 17-yr high
+PROFIT_SHARE_FY = "FY25"
+PROFIT_SHARE_PEAK = 5.2         # FY08 peak
+PROFIT_SHARE_PEAK_FY = "FY08"
+PROFIT_SHARE_TROUGH = 2.1       # FY20 trough (two-decade low)
+PROFIT_SHARE_TROUGH_FY = "FY20"
+PROFIT_SHARE_SOURCE = "Motilal Oswal Nifty-500 corporate profit-to-GDP (FY25 = 4.7%)"
+PROFIT_SHARE_ANCHORS = [["FY08", 5.2], ["FY20", 2.1], ["FY23", 4.0], ["FY24", 4.8], ["FY25", 4.7]]
+
 DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "buffett.json"
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -136,6 +151,13 @@ def main() -> int:
         "usd_tn": snap["usd_tn"],
         "dttm": snap["dttm"],
         "date": date_ist,
+    }
+    doc["decomp"] = {
+        "profit_share": PROFIT_SHARE, "profit_share_fy": PROFIT_SHARE_FY,
+        "peak": PROFIT_SHARE_PEAK, "peak_fy": PROFIT_SHARE_PEAK_FY,
+        "trough": PROFIT_SHARE_TROUGH, "trough_fy": PROFIT_SHARE_TROUGH_FY,
+        "anchors": PROFIT_SHARE_ANCHORS,
+        "source": PROFIT_SHARE_SOURCE,
     }
     daily = doc.setdefault("daily", [])
     action = upsert_daily(daily, date_ist,
