@@ -737,8 +737,9 @@ body.light .hp-formula .k{color:#4f46e5}
         <div class="bf-decomp-op">=</div>
         <div class="bf-decomp-term"><div class="bf-tile-val" id="bfProfitShare">&mdash;</div><div class="bf-tile-sub" id="bfProfitShareSub">profit share</div></div>
         <div class="bf-decomp-op">&times;</div>
-        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfImpliedPE">&mdash;</div><div class="bf-tile-sub">implied market P/E</div></div>
+        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfImpliedPE">&mdash;</div><div class="bf-tile-sub">implied whole-market P/E</div></div>
       </div>
+      <div class="bf-tile-sub" id="bfPeNote" style="margin-top:8px;line-height:1.45">&mdash;</div>
       <div class="bf-tile-lbl" style="margin-top:14px">Corporate profit share (earnings/GDP) vs its own range</div>
       <div class="bf-gauge" id="bfPsGauge" style="height:22px">
         <div class="bf-gauge-seg" style="flex:100;background:linear-gradient(90deg,var(--vc-c),var(--n-c),var(--ve-c))"></div>
@@ -3973,7 +3974,10 @@ function renderBuffett() {
 
     var psWord = psPos > 0.8 ? 'near its ' + dc.peak_fy + ' high' : psPos > 0.5 ? 'above mid-range' : 'below mid-range';
     var peWord = pePos > 0.8 ? 'top of its range' : pePos > 0.5 ? 'upper half of its range' : 'lower half of its range';
-    set('bfDecRead', 'Read it as: ' + rT.toFixed(0) + '% = profit share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%) × implied market P/E ' + impliedPE.toFixed(1) + '× (' + peWord + '). Profit-share source: ' + dc.source + '.');
+    set('bfDecRead', 'Read it as: ' + rT.toFixed(0) + '% = profit share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%) × implied whole-market P/E ' + impliedPE.toFixed(1) + '× (' + peWord + '). Profit-share source: ' + dc.source + '.');
+    var n50pe = (typeof N50_HISTORY !== 'undefined' && N50_HISTORY.length) ? N50_HISTORY[N50_HISTORY.length - 1][2] : null;
+    var n50txt = (n50pe != null) ? n50pe.toFixed(1) + '×' : '~20×';
+    set('bfPeNote', 'Note: this is a whole-market figure (all ~5,000 listed cos), so it sits well above the large-cap Nifty 50 (now ' + n50txt + ') and roughly at Nifty 500 (~25×). It is derived (total market cap ÷ aggregate profit), which nudges it a couple of turns high — so read its position vs history, not its absolute level.');
 
     // Interpretation quadrant — highlight the current zone and write the verdict
     var psHigh = psPos >= 0.66, peHigh = pePos >= 0.66;
