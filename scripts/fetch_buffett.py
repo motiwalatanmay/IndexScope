@@ -53,14 +53,16 @@ GDP_NOTE = ("Buffett uses latest reported actual GDP (no forecast); headline = t
 # vs "high because expensive". Source: Motilal Oswal Nifty-500 corporate profit-to-GDP.
 # Only firmly-sourced years are kept (FY09-FY19 are not published free, so omitted —
 # the gauge spans the sourced trough->peak rather than plotting interpolated data).
-PROFIT_SHARE = 4.7              # FY25 (latest), Nifty-500, 17-yr high
-PROFIT_SHARE_FY = "FY25"
-PROFIT_SHARE_PEAK = 5.2         # FY08 peak
-PROFIT_SHARE_PEAK_FY = "FY08"
-PROFIT_SHARE_TROUGH = 2.1       # FY20 trough (two-decade low)
-PROFIT_SHARE_TROUGH_FY = "FY20"
-PROFIT_SHARE_SOURCE = "Motilal Oswal Nifty-500 corporate profit-to-GDP (FY25 = 4.7%)"
-PROFIT_SHARE_ANCHORS = [["FY08", 5.2], ["FY20", 2.1], ["FY23", 4.0], ["FY24", 4.8], ["FY25", 4.7]]
+PROFIT_SHARE = 4.7              # FY2025 (latest), Nifty-500, 17-yr high
+PROFIT_SHARE_FY = "FY2025"
+PROFIT_SHARE_PEAK = 5.2         # FY2008 peak
+PROFIT_SHARE_PEAK_FY = "FY2008"
+PROFIT_SHARE_TROUGH = 2.1       # FY2020 trough (two-decade low)
+PROFIT_SHARE_TROUGH_FY = "FY2020"
+PROFIT_SHARE_SOURCE = "Motilal Oswal Nifty-500 corporate profit-to-GDP (FY2025 = 4.7%)"
+# Anchor FY labels MUST match history[] keys ("FY2008" not "FY08") — they are
+# joined to history rows to derive each year's implied P/E (= ratio / profit-share).
+PROFIT_SHARE_ANCHORS = [["FY2008", 5.2], ["FY2020", 2.1], ["FY2023", 4.0], ["FY2024", 4.8], ["FY2025", 4.7]]
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "buffett.json"
 IST = timezone(timedelta(hours=5, minutes=30))
