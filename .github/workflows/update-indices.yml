@@ -29,6 +29,11 @@ jobs:
       - name: Fetch NSE /api/allIndices and upsert data/*.json
         run: python scripts/fetch_indices.py
 
+      - name: Fetch BSE total market cap and recompute Buffett indicator
+        # Non-fatal: a BSE hiccup must not block the NSE index refresh.
+        continue-on-error: true
+        run: python scripts/fetch_buffett.py
+
       - name: Commit updated data
         run: |
           git config user.name  "github-actions[bot]"
@@ -37,6 +42,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "data: refresh NSE indices ($(date -u +%Y-%m-%dT%H:%MZ))"
+            git commit -m "data: refresh NSE indices + Buffett indicator ($(date -u +%Y-%m-%dT%H:%MZ))"
             git push
           fi

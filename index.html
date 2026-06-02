@@ -623,6 +623,7 @@ body.light .hp-formula .k{color:#4f46e5}
   </div>
   <div class="page-tabs">
     <button class="ptab active" onclick="showMainView('dashboard',this)">Dashboard</button>
+    <button class="ptab" onclick="showMainView('buffett',this)">Buffett</button>
     <button class="ptab" onclick="showMainView('help',this)">Help</button>
   </div>
   <div class="hdr-right">
@@ -654,6 +655,99 @@ body.light .hp-formula .k{color:#4f46e5}
       </div>
     </div>
     <div class="dash-grid" id="dashGrid"></div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- VIEW: BUFFETT INDICATOR (market cap to GDP)                       -->
+<!-- ================================================================ -->
+<div id="view-buffett" class="view">
+  <style>
+  .bf-wrap{max-width:1000px}
+  .bf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+  .bf-tile{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px}
+  .bf-tile-lbl{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--sub);margin-bottom:6px}
+  .bf-tile-val{font-family:var(--mono);font-size:1.25rem;font-weight:700;color:var(--txt);line-height:1.1}
+  .bf-tile-sub{font-family:var(--body);font-size:.72rem;color:var(--txt3);margin-top:5px;line-height:1.4}
+  .bf-gauge{position:relative;height:26px;border-radius:6px;overflow:visible;display:flex;margin:12px 0 4px}
+  .bf-gauge-seg{height:100%}
+  .bf-gauge-seg:first-child{border-radius:6px 0 0 6px}
+  .bf-gauge-seg:last-child{border-radius:0 6px 6px 0}
+  .bf-gauge-marker{position:absolute;top:-5px;width:3px;height:36px;background:var(--txt);border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,.6);z-index:2;transform:translateX(-1.5px)}
+  .bf-gauge-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--sub);margin-top:4px}
+  .bf-verdict-pill{display:inline-flex;font-family:var(--mono);font-size:.74rem;font-weight:700;padding:5px 14px;border-radius:14px;border:1px solid;letter-spacing:.4px;text-transform:uppercase}
+  .bf-chart{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:16px 18px;margin:16px 0}
+  .bf-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem}
+  .bf-tbl th{text-align:right;color:var(--sub);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--bdr);font-size:.58rem;text-transform:uppercase;letter-spacing:.5px}
+  .bf-tbl td{text-align:right;padding:5px 8px;border-bottom:1px solid var(--bdr);color:var(--txt)}
+  .bf-tbl td:first-child,.bf-tbl th:first-child{text-align:left}
+  .bf-tbl tr.bf-now td{color:var(--txt);font-weight:700;background:rgba(99,102,241,.06)}
+  .bf-tier{font-size:.55rem;color:var(--txt3)}
+  </style>
+  <div class="bf-wrap">
+    <div class="dash-intro">
+      The <strong>Buffett Indicator</strong> = total listed market value &divide; GDP &mdash; from Warren Buffett's 2001 definition, "probably the best single measure of where valuations stand at any given moment." This uses <strong>BSE total market capitalisation</strong> (all listed companies, refreshed daily) over India's <strong>latest reported nominal GDP</strong> &mdash; the actual figure, never a forecast, as Buffett intended. India structurally trades below the US, so the bands below are calibrated to India's <strong>own 20-year history</strong> rather than Buffett's original US zones (~80% attractive, ~200% "playing with fire").
+    </div>
+
+    <div class="hero" style="align-items:flex-start">
+      <div>
+        <div class="hero-index">Market Cap to GDP &middot; India</div>
+        <div class="hero-value" id="bfRatio">&mdash;</div>
+        <div class="hero-date" id="bfRatioSub">&mdash;</div>
+      </div>
+      <div class="hero-right" style="margin-left:auto;display:block;text-align:right">
+        <div id="bfVerdict"></div>
+        <div class="bf-tile-sub" id="bfPctRank" style="margin-top:8px">&mdash;</div>
+      </div>
+    </div>
+
+    <div class="bf-tile" style="margin-bottom:4px">
+      <div class="bf-tile-lbl">Valuation gauge &mdash; India-calibrated bands</div>
+      <div class="bf-gauge" id="bfGauge">
+        <div class="bf-gauge-seg" style="flex:30;background:var(--vc-c)"></div>
+        <div class="bf-gauge-seg" style="flex:15;background:var(--c-c)"></div>
+        <div class="bf-gauge-seg" style="flex:15;background:var(--n-c)"></div>
+        <div class="bf-gauge-seg" style="flex:15;background:var(--e-c)"></div>
+        <div class="bf-gauge-seg" style="flex:35;background:var(--ve-c)"></div>
+        <div class="bf-gauge-marker" id="bfGaugeMarker" style="left:50%"></div>
+      </div>
+      <div class="bf-gauge-scale"><span>40%</span><span>70%</span><span>85%</span><span>100%</span><span>115%</span><span>150%</span></div>
+    </div>
+
+    <div class="bf-grid">
+      <div class="bf-tile"><div class="bf-tile-lbl">Total market cap (BSE)</div><div class="bf-tile-val" id="bfMcap">&mdash;</div><div class="bf-tile-sub" id="bfMcapUsd">&mdash;</div></div>
+      <div class="bf-tile"><div class="bf-tile-lbl" id="bfPriorLbl">vs prior-yr GDP</div><div class="bf-tile-val" id="bfPrior">&mdash;</div><div class="bf-tile-sub" id="bfPriorSub">&mdash;</div></div>
+      <div class="bf-tile"><div class="bf-tile-lbl" id="bfFwdLbl">vs forward GDP</div><div class="bf-tile-val" id="bfFwd">&mdash;</div><div class="bf-tile-sub" id="bfFwdSub">&mdash;</div></div>
+      <div class="bf-tile"><div class="bf-tile-lbl">20-yr median</div><div class="bf-tile-val" id="bfMedian">&mdash;</div><div class="bf-tile-sub">FY2006&ndash;FY2026 range <span id="bfRange"></span></div></div>
+    </div>
+
+    <div class="bf-chart">
+      <div class="chart-title"><svg class="ico"><use href="#i-activity"/></svg>Market Cap / GDP &mdash; FY2006 to now</div>
+      <svg id="bfChart" preserveAspectRatio="none" style="width:100%;height:260px;display:block"></svg>
+    </div>
+
+    <div class="bf-chart">
+      <div class="bf-tile-lbl" style="margin-bottom:10px">Annual history &mdash; fiscal year-end (BSE mcap &amp; nominal GDP, &#8377; lakh crore)</div>
+      <table class="bf-tbl">
+        <thead><tr><th>Fiscal year</th><th>Mcap</th><th>Nom. GDP</th><th>Ratio %</th></tr></thead>
+        <tbody id="bfTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="hp-card info">
+      <div class="hp-card-ttl">How to read it &mdash; Buffett's own framing</div>
+      <div class="hp-p" style="margin-bottom:0">Buffett (Fortune, Dec 2001): a high ratio means the market is large relative to the real economy &mdash; he called the ~70&ndash;80% zone a level where "buying stocks is likely to work very well for you," and a ratio approaching ~200% "playing with fire." It is a <strong>slow, strategic gauge</strong>, not a timing tool &mdash; it can stay stretched for years. India trades structurally lower than the US, so the bands here are set to India's own history (median ~82%); above ~115% is richly valued <em>for India</em>. Buffett's original used <strong>latest reported actual GDP</strong> (no forecasts) &mdash; so the headline is the trailing-year reading. Pair it with the per-index P/E bands on the Dashboard.</div>
+    </div>
+
+    <div class="hp-card warn">
+      <div class="hp-card-ttl">Data, denominator choice &amp; caveats</div>
+      <div class="hp-p" style="margin-bottom:0">
+        <strong>Numerator</strong> = BSE total market cap, refreshed daily from BSE (intraday-updated close).
+        <strong>Denominator</strong> = nominal GDP &mdash; <em>not</em> live; it updates only on MOSPI/Budget prints, so it is maintained by hand (<span id="bfGdpUpdated">&mdash;</span>). The headline divides by the <strong>latest reported actual GDP (trailing FY26, &#8377;357.14 L cr)</strong> per Buffett's method; the prior year and the FY27 Budget <em>estimate</em> (&#8377;392.85 L cr &rarr; ~118%) are shown only for context, since Buffett would not anchor on a forecast.
+        History FY2006&ndash;FY2018 is from primary SEBI/BSE tables, FY2021&ndash;FY2025 from BSE year-end exchange data; <strong>FY2019, FY2020 &amp; FY2026 are softer estimates (&plusmn;2&ndash;3 L cr, marked "est.")</strong>.
+        <strong>GDP base:</strong> the whole series uses MOSPI's <strong>2011-12 base</strong> for internal consistency. MOSPI <em>rebased to a 2022-23 series on 27-Feb-2026</em> (FY26 nominal = &#8377;345.47 L cr vs &#8377;357.14 old base) &mdash; on that new base today's reading is <strong><span id="bfNewBase">&mdash;</span></strong>. We migrate the full series once MOSPI publishes the back-cast new-base history. This is the pure <strong>BSE-mcap / nominal-GDP</strong> definition.
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2471,6 +2565,12 @@ function showMainView(target, el) {
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Help';
     setStatus('ok', '4 indices loaded');
+  } else if (target === 'buffett') {
+    document.getElementById('view-buffett').classList.add('active');
+    CURRENT_VIEW = 'buffett';
+    DETAILS_INDEX = null;
+    document.title = 'IndexScope \u2014 Buffett Indicator';
+    try { renderBuffett(); } catch (e) {}
   } else {
     // 'dashboard' — also leaves any open details view
     document.getElementById('view-dashboard').classList.add('active');
@@ -3695,6 +3795,147 @@ function toggleTheme() {
 // ============================================================
 // INIT
 // ============================================================
+// ============================================================
+// BUFFETT INDICATOR (market cap to GDP)
+// ============================================================
+var BUFFETT_DATA = null;
+
+function cssVar(name) {
+  try { return getComputedStyle(document.body).getPropertyValue(name).trim() || '#888'; }
+  catch (e) { return '#888'; }
+}
+
+// India-calibrated bands (the market structurally trades below the US, so
+// these are set to India's own 20-yr distribution, not the US 75/90/115 rule).
+function bfBand(r) {
+  if (r < 70)  return {label:'Very Cheap',    c:'--vc-c', bd:'--vc-bd', tl:'--vc-tl'};
+  if (r < 85)  return {label:'Cheap',         c:'--c-c',  bd:'--c-bd',  tl:'--c-tl'};
+  if (r < 100) return {label:'Fair Value',    c:'--n-c',  bd:'--n-bd',  tl:'--n-tl'};
+  if (r < 115) return {label:'Expensive',     c:'--e-c',  bd:'--e-bd',  tl:'--e-tl'};
+  return            {label:'Very Expensive', c:'--ve-c', bd:'--ve-bd', tl:'--ve-tl'};
+}
+
+function fetchBuffett() {
+  return fetch('./data/buffett.json?t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || !d.history) return;
+      BUFFETT_DATA = d;
+      if (CURRENT_VIEW === 'buffett') { try { renderBuffett(); } catch(e){} }
+    })
+    .catch(function(){ /* keep silent; tab simply shows em-dashes */ });
+}
+
+function renderBuffett() {
+  var d = BUFFETT_DATA;
+  if (!d) return;
+  var g = d.gdp;
+  var mcap = d.live.mcap;
+  var rT = mcap / g.trailing * 100;   // headline: latest reported actual GDP (Buffett's method)
+  var rP = mcap / g.prior * 100;      // prior year, context
+  var rF = mcap / g.forward * 100;    // forward Budget estimate, context only
+  var ratios = d.history.map(function(h){ return h[4]; });
+  var sorted = ratios.slice().sort(function(a,b){ return a-b; });
+  var n = sorted.length;
+  var median = n % 2 ? sorted[(n-1)/2] : (sorted[n/2-1]+sorted[n/2])/2;
+  var lo = sorted[0], hi = sorted[n-1];
+  var below = ratios.filter(function(x){ return x <= rT; }).length;
+  var pct = Math.round(below / n * 100);
+  var band = bfBand(rT);
+
+  function set(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
+
+  set('bfRatio', rT.toFixed(1) + '%');
+  var dateStr = d.live.date ? new Date(d.live.date + 'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—';
+  set('bfRatioSub', 'vs ' + g.trailing_label + ' nominal GDP (latest reported) · as of ' + dateStr);
+
+  var vEl = document.getElementById('bfVerdict');
+  if (vEl) vEl.innerHTML = '<span class="bf-verdict-pill" style="color:var('+band.c+');border-color:var('+band.bd+');background:var('+band.tl+')">'+band.label+'</span>';
+  set('bfPctRank', 'Richer than ' + below + ' of ' + n + ' years · ' + pct + 'th percentile (FY06–FY26)');
+
+  var marker = document.getElementById('bfGaugeMarker');
+  if (marker) {
+    var posPct = (rT - 40) / (150 - 40) * 100;
+    marker.style.left = Math.max(0, Math.min(100, posPct)) + '%';
+  }
+
+  set('bfMcap', '₹' + mcap.toLocaleString('en-IN') + ' L cr');
+  set('bfMcapUsd', (d.live.usd_tn ? '$' + d.live.usd_tn + ' trillion · ' : '') + (d.live.dttm || ''));
+  set('bfPriorLbl', 'vs ' + g.prior_label + ' (prior yr)');
+  set('bfPrior', rP.toFixed(1) + '%');
+  set('bfPriorSub', 'GDP ₹' + g.prior + ' L cr · actual');
+  set('bfFwdLbl', 'vs ' + g.forward_label + ' (forecast)');
+  set('bfFwd', rF.toFixed(1) + '%');
+  set('bfFwdSub', 'GDP ₹' + g.forward + ' L cr · Budget est.');
+  set('bfMedian', Math.round(median) + '%');
+  set('bfRange', '(' + Math.round(lo) + '–' + Math.round(hi) + '%)');
+  set('bfGdpUpdated', 'GDP last set ' + (g.updated || '—'));
+  if (g.trailing_newbase) set('bfNewBase', '~' + (mcap / g.trailing_newbase * 100).toFixed(0) + '%');
+
+  // table
+  var tb = document.getElementById('bfTbody');
+  if (tb) {
+    var rows = d.history.map(function(h){
+      return '<tr><td>'+h[0]+' <span class="bf-tier">'+(h[5]==='B'?'est.':'')+'</span></td><td>'+h[2].toFixed(0)+'</td><td>'+h[3].toFixed(0)+'</td><td>'+h[4].toFixed(1)+'</td></tr>';
+    }).join('');
+    rows += '<tr class="bf-now"><td>Now ('+dateStr+')</td><td>'+mcap.toFixed(0)+'</td><td>'+g.trailing.toFixed(0)+'</td><td>'+rT.toFixed(1)+'</td></tr>';
+    tb.innerHTML = rows;
+  }
+
+  bfDrawChart(d.history, rT, median);
+}
+
+function bfDrawChart(history, nowRatio, median) {
+  var svg = document.getElementById('bfChart');
+  if (!svg) return;
+  var W = 720, H = 240, pad = {l:34, r:14, t:14, b:24};
+  var iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+
+  var labels = history.map(function(h){ return h[0]; }).concat(['Now']);
+  var vals = history.map(function(h){ return h[4]; }).concat([nowRatio]);
+  var allMax = Math.max.apply(null, vals.concat([median]));
+  var allMin = Math.min.apply(null, vals.concat([median]));
+  var yMax = Math.ceil((allMax + 8) / 10) * 10;
+  var yMin = Math.floor((allMin - 8) / 10) * 10;
+  if (yMin < 0) yMin = 0;
+
+  function x(i){ return pad.l + (vals.length === 1 ? 0 : i / (vals.length - 1) * iW); }
+  function y(v){ return pad.t + (1 - (v - yMin) / (yMax - yMin)) * iH; }
+
+  // gridlines + y labels every ~25
+  var grid = '', step = 25;
+  for (var g = Math.ceil(yMin/step)*step; g <= yMax; g += step) {
+    var gy = y(g);
+    grid += '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+gy+'" y2="'+gy+'" stroke="var(--bdr)" stroke-width="1" opacity="0.5"/>';
+    grid += '<text x="'+(pad.l-6)+'" y="'+(gy+3)+'" text-anchor="end" font-size="9" fill="var(--sub)" font-family="monospace">'+g+'</text>';
+  }
+
+  // x labels: first, every 4th, and Now
+  var xLabels = '';
+  labels.forEach(function(lb, i){
+    if (i === 0 || i === labels.length-1 || i % 4 === 0) {
+      var short = (lb === 'Now') ? 'Now' : lb.replace('FY','’').slice(0,3);
+      xLabels += '<text x="'+x(i)+'" y="'+(pad.t+iH+15)+'" text-anchor="middle" font-size="9" fill="var(--sub)" font-family="monospace">'+short+'</text>';
+    }
+  });
+
+  var pts = vals.map(function(v,i){ return x(i)+','+y(v); }).join(' ');
+  var medY = y(median);
+  var nowColor = cssVar(bfBand(nowRatio).c);
+  var dots = vals.map(function(v,i){
+    var isNow = (i === vals.length-1);
+    return '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="'+(isNow?4.5:2.4)+'" fill="'+(isNow?nowColor:'#60a5fa')+'"'+(isNow?' stroke="var(--bg2)" stroke-width="2"':'')+'/>';
+  }).join('');
+
+  svg.setAttribute('viewBox', '0 0 '+W+' '+H);
+  svg.innerHTML = grid + xLabels
+    + '<line x1="'+pad.l+'" x2="'+pad.l+'" y1="'+pad.t+'" y2="'+(pad.t+iH)+'" stroke="var(--brd)" stroke-width="1"/>'
+    + '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+medY+'" y2="'+medY+'" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="6,3"/>'
+    + '<text x="'+(pad.l+iW)+'" y="'+(medY-4)+'" text-anchor="end" font-size="9" fill="#f59e0b" font-family="monospace">median '+Math.round(median)+'%</text>'
+    + '<polyline points="'+pts+'" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linejoin="round"/>'
+    + dots;
+}
+
 (function init() {
   if (localStorage.getItem('nmid150-theme')==='light') {
     document.body.classList.add('light');
@@ -3705,6 +3946,9 @@ function toggleTheme() {
   // Render cards immediately from embedded data
   renderCards();
   setStatus('stale', 'Loaded from embedded data');
+
+  // Buffett indicator loads its own data file in the background.
+  fetchBuffett();
 
   // Then fetch live data for all 4 indices in the background and re-render
   fetchAllLive()
