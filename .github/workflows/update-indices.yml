@@ -34,6 +34,11 @@ jobs:
         continue-on-error: true
         run: python scripts/fetch_buffett.py
 
+      - name: Refresh India 10Y G-Sec series (EY-BY panel)
+        # Non-fatal: frontend has an embedded fallback series.
+        continue-on-error: true
+        run: python scripts/fetch_gsec.py
+
       - name: Commit updated data
         run: |
           git config user.name  "github-actions[bot]"
