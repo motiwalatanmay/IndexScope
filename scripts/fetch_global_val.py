@@ -117,6 +117,39 @@ def main() -> int:
     except Exception as e:
         print(f"WARN: nifty NSE override failed: {e}", file=sys.stderr)
 
+    # Data-driven bands: for non-India markets set the fair band to the p25-p75
+    # of that market's OWN accruing P/E history (the metric-consistent
+    # worldperatio Wayback seed). Auto-matures as the daily scrape extends it.
+    # India stays on its static NSE-appropriate band — its history series is a
+    # different (broad-India) basket, so banding the Nifty 50 number against it
+    # would be a splice error. India's real percentile lives on the Dashboard.
+    def _pctl(vals, p):
+        v = sorted(vals)
+        k = (len(v) - 1) * p / 100
+        f = int(k)
+        c = min(f + 1, len(v) - 1)
+        return v[f] + (v[c] - v[f]) * (k - f)
+    try:
+        hist = json.loads((DATA_DIR / "global_pe_history.json").read_text()).get("byKey", {})
+    except Exception:
+        hist = {}
+    for rec in out:
+        if rec["key"] == "nifty":
+            rec["bandNote"] = "long-run ref"
+            continue
+        ser = hist.get(rec["key"], [])
+        vals = [v for _, v in ser]
+        if len(vals) >= 8:
+            lo, hi = round(_pctl(vals, 25), 1), round(_pctl(vals, 75), 1)
+            if hi - lo < 3:                       # floor the spread so it isn't hair-trigger
+                mid = (lo + hi) / 2
+                lo, hi = round(mid - 1.5, 1), round(mid + 1.5, 1)
+            rec["refLo"], rec["refHi"] = lo, hi
+            rec["verdict"] = verdict(rec["pe"], lo, hi)
+            rec["bandNote"] = f"own range since {ser[0][0][:4]}"
+        else:
+            rec["bandNote"] = "long-run ref"
+
     doc = {
         "status": "ok",
         "fetchedAt": now_utc.isoformat().replace("+00:00", "Z"),

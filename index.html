@@ -4613,7 +4613,7 @@ function renderGlobalVal(){
       +'<div class="gl-vc-name">'+m.name+'</div>'
       +'<div class="gl-vc-region">'+m.region+'</div>'
       +'<div class="gl-vc-pe">'+it.pe.toFixed(1)+' <small>P/E</small>'+src+'</div>'
-      +'<div class="gl-vc-band">long-run band '+it.refLo+'&ndash;'+it.refHi+'</div>'
+      +'<div class="gl-vc-band">'+(it.bandNote||'band')+' '+it.refLo+'&ndash;'+it.refHi+'</div>'
       +'<span class="gl-vc-tag '+it.verdict+'">'+it.verdict+'</span>'+cape
       +'</div>';
   }).join('')
