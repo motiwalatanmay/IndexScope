@@ -4667,10 +4667,11 @@ function renderGlobalVal(){
 // ===================== GOOGLE SIGN-IN (Google Identity Services) =====================
 // In-page "Sign in with Google" in the header, matching SectorScope. The
 // dashboard stays publicly viewable; signing in shows the user's name + avatar
-// (and is where any member-only feature would hook in later). Reuses the SAME
-// Google OAuth client as SectorScope, so https://indexscope.in must be listed
-// under that client's "Authorized JavaScript origins". See AUTH_SETUP.md.
-var GOOGLE_CLIENT_ID = '575713517295-uo4blh9i4sqg1l6n37fv664v8uv8u0ed.apps.googleusercontent.com';
+// (and is where any member-only feature would hook in later). Uses IndexScope's
+// own Google OAuth client (project "indexscope", owner Motiwalatanmay0@gmail.com);
+// https://indexscope.in + https://www.indexscope.in are its authorised JS
+// origins. See AUTH_SETUP.md.
+var GOOGLE_CLIENT_ID = '583500951310-6dapvdgbe6je6k6mi87qn2jt3ori90cj.apps.googleusercontent.com';
 var AUTH_SESSION_DAYS = 30;             // how long a sign-in persists before re-login
 // Only run on the live domain; on localhost/preview it's skipped (the Google
 // client only authorises indexscope.in), so the rest of the app stays testable.

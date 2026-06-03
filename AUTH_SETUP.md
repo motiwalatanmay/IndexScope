@@ -2,29 +2,24 @@
 
 IndexScope uses an in-page **"Sign in with Google"** in the header, exactly like
 SectorScope. The dashboard stays publicly viewable; signing in shows the user's
-name + avatar and persists for 30 days. It **reuses the same Google OAuth client
-as SectorScope** (`575713517295-…`), so there's nothing to create — you just have
-to authorise the new domain.
+name + avatar and persists for 30 days.
 
-The code is already in `index.html` (search `GOOGLE_CLIENT_ID`). It activates
-automatically on `indexscope.in` and is skipped on localhost.
+## Already set up (for reference)
 
-## The one required step: authorise indexscope.in on the OAuth client
+- **Google Cloud project:** `indexscope` (owner `Motiwalatanmay0@gmail.com`).
+  > Note: SectorScope's client belongs to a *different* owner (Prashant), so
+  > IndexScope has its **own** project/client — they're independent.
+- **OAuth client ID:** `583500951310-6dapvdgbe6je6k6mi87qn2jt3ori90cj.apps.googleusercontent.com`
+  (hardcoded in `index.html` as `GOOGLE_CLIENT_ID`).
+- **Authorized JavaScript origins:** `https://indexscope.in`, `https://www.indexscope.in`.
+- **OAuth consent screen:** app name "IndexScope", External audience.
 
-1. Go to **Google Cloud Console → APIs & Services → Credentials**:
-   <https://console.cloud.google.com/apis/credentials>
-   (use the same Google account / project where SectorScope's OAuth client lives.)
-2. Click the **OAuth 2.0 Client ID** whose ID starts with **`575713517295-`**
-   (the one SectorScope uses).
-3. Under **Authorized JavaScript origins → + Add URI**, add **both**:
-   ```
-   https://indexscope.in
-   https://www.indexscope.in
-   ```
-4. (Authorized redirect URIs are NOT needed for GSI — leave them as they are.)
-5. **Save.** Changes can take a few minutes to propagate.
+The login activates automatically on `indexscope.in` and is skipped on localhost.
 
-That's it — no new project, no Firebase, no billing card.
+## If you ever need to change the authorised origins
+Google Cloud Console → **APIs & Services → Credentials** (project `indexscope`,
+account `Motiwalatanmay0@gmail.com`) → open the client above → edit **Authorized
+JavaScript origins**. Changes take a few minutes to propagate. No Firebase, no card.
 
 ## How it behaves
 - Visitors see the dashboard normally, with a **"Sign in with Google"** button in
