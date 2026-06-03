@@ -731,15 +731,12 @@ body.light .hp-formula .k{color:#4f46e5}
     </div>
 
     <div class="bf-tile" style="margin-top:4px">
-      <div class="bf-tile-lbl">Decomposition &mdash; why is it high?  <span style="text-transform:none;letter-spacing:0;color:var(--txt3);font-weight:400">mkt cap / GDP = profit share &times; P/E</span></div>
+      <div class="bf-tile-lbl">Why is it high?  <span style="text-transform:none;letter-spacing:0;color:var(--txt3);font-weight:400">two levers &mdash; corporate profitability &times; the market multiple</span></div>
       <div class="bf-decomp">
-        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfDecHead">&mdash;</div><div class="bf-tile-sub">mkt cap / GDP</div></div>
-        <div class="bf-decomp-op">=</div>
-        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfProfitShare">&mdash;</div><div class="bf-tile-sub" id="bfProfitShareSub">profit share</div></div>
+        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfProfitShare">&mdash;</div><div class="bf-tile-sub" id="bfProfitShareSub">profit share (E/GDP)</div></div>
         <div class="bf-decomp-op">&times;</div>
-        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfImpliedPE">&mdash;</div><div class="bf-tile-sub">implied whole-market P/E</div></div>
+        <div class="bf-decomp-term"><div class="bf-tile-val" id="bfMktPE">&mdash;</div><div class="bf-tile-sub" id="bfMktPESub">market P/E</div></div>
       </div>
-      <div class="bf-tile-sub" id="bfPeNote" style="margin-top:8px;line-height:1.45">&mdash;</div>
       <div class="bf-tile-lbl" style="margin-top:14px">Corporate profit share (earnings/GDP) vs its own range</div>
       <div class="bf-gauge" id="bfPsGauge" style="height:22px">
         <div class="bf-gauge-seg" style="flex:100;background:linear-gradient(90deg,var(--vc-c),var(--n-c),var(--ve-c))"></div>
@@ -751,14 +748,14 @@ body.light .hp-formula .k{color:#4f46e5}
 
     <div class="bf-tile" style="margin-top:4px">
       <div class="bf-tile-lbl">Interpretation &mdash; the two levers</div>
-      <div class="hp-p" style="font-size:.82rem;margin:6px 0 10px;color:var(--txt2);line-height:1.55"><strong>Profit-share</strong> tells you whether the <em>earnings</em> are healthy or stretched (margins mean-revert, so a high reading warns E itself could shrink). <strong>Implied P/E</strong> tells you how richly those earnings are <em>priced</em>. What each combination means &mdash; your current zone is highlighted:</div>
+      <div class="hp-p" style="font-size:.82rem;margin:6px 0 10px;color:var(--txt2);line-height:1.55"><strong>Profit-share</strong> tells you whether the <em>earnings</em> are healthy or stretched (margins mean-revert, so a high reading warns E itself could shrink). <strong>Market P/E</strong> (the live Nifty 50 / Nifty 500 multiple) tells you how richly those earnings are <em>priced</em>. What each combination means &mdash; your current zone is highlighted:</div>
       <table class="bf-quad">
-        <tr><td class="bf-quad-corner"></td><td class="bf-quad-hd">Low implied P/E</td><td class="bf-quad-hd">High implied P/E</td></tr>
+        <tr><td class="bf-quad-corner"></td><td class="bf-quad-hd">Low market P/E</td><td class="bf-quad-hd">High market P/E</td></tr>
         <tr><td class="bf-quad-hd">High<br>profit-share</td><td class="bf-quad-cell" data-cell="hi-lo">Earned by profits &mdash; watch margin mean-reversion</td><td class="bf-quad-cell" data-cell="hi-hi">Both stretched &mdash; richly valued (most cautious)</td></tr>
         <tr><td class="bf-quad-hd">Low<br>profit-share</td><td class="bf-quad-cell" data-cell="lo-lo">Cheap on recoverable earnings (most attractive)</td><td class="bf-quad-cell" data-cell="lo-hi">Paying up for weak earnings</td></tr>
       </table>
       <div class="hp-p" id="bfQuadRead" style="font-size:.82rem;margin:10px 0 0;color:var(--txt2);line-height:1.55">&mdash;</div>
-      <div class="bf-tile-sub" style="margin-top:8px">Cross-check the implied P/E against the per-index P/E percentiles on the <strong>Dashboard</strong>: both elevated &rArr; a <em>price</em> caution; only profit-share stretched &rArr; an <em>earnings-durability</em> caution.</div>
+      <div class="bf-tile-sub" style="margin-top:8px">The market P/E here is large-cap (Nifty 50/500); the small &amp; mid-cap cards on the <strong>Dashboard</strong> show where multiples actually run richer. Both levers elevated &rArr; a <em>price</em> caution; only profit-share stretched &rArr; an <em>earnings-durability</em> caution.</div>
     </div>
 
     <div class="bf-chart">
@@ -1361,9 +1358,9 @@ body.light .hp-formula .k{color:#4f46e5}
         <div class="hp-p">Because <code>Market cap / GDP = (Earnings / GDP) &times; (Market cap / Earnings)</code>, the Buffett ratio is simply <strong>corporate profit-share &times; P/E</strong>. Splitting it tells you <em>which</em> is driving a high reading:</div>
         <ul class="hp-list" style="margin:6px 0">
           <li><strong>Profit-share (Earnings/GDP)</strong> &mdash; how big a slice of the economy corporate profits are. Margins are highly mean-reverting, so a <em>high</em> profit-share is a caution on the <strong>sustainability of earnings</strong>, not on price.</li>
-          <li><strong>P/E (Market cap/Earnings)</strong> &mdash; how richly those profits are priced. A high P/E is the caution on <strong>price</strong>.</li>
+          <li><strong>Market P/E (Market cap/Earnings)</strong> &mdash; how richly those profits are priced. A high P/E is the caution on <strong>price</strong>.</li>
         </ul>
-        <div class="hp-p" style="margin-bottom:0">India's listed profit-to-GDP collapsed to ~2% in FY2020 and has recovered to a decadal-high ~4.5&ndash;5% &mdash; so much of today's elevated Buffett reading is <strong>recovered profitability, not pure over-valuation</strong>. The <strong>Decomposition</strong> panel on the Buffett tab surfaces this split (profit-share &times; implied P/E) so you can tell "high because profitable" from "high because expensive."</div>
+        <div class="hp-p" style="margin-bottom:0">India's listed profit-to-GDP collapsed to ~2% in FY2020 and has recovered to a decadal-high ~4.5&ndash;5% &mdash; so much of today's elevated Buffett reading is <strong>recovered profitability, not pure over-valuation</strong>. The <strong>Decomposition</strong> panel on the Buffett tab surfaces this split (profit-share &times; the live Nifty 50 / Nifty 500 P/E) so you can tell "high because profitable" from "high because expensive."</div>
       </div>
 
       <div class="hp-card info">
@@ -3946,50 +3943,52 @@ function renderBuffett() {
   set('bfGdpUpdated', 'GDP last set ' + (g.updated || '—'));
   if (g.trailing_newbase) set('bfNewBase', '~' + (mcap / g.trailing_newbase * 100).toFixed(0) + '%');
 
-  // Decomposition: mcap/GDP = profit-share × implied P/E
+  // Decomposition: the high mcap/GDP reflects two levers — corporate profitability
+  // (profit-share) and the market multiple (the REAL, live P/E — not a derived one).
   var dc = d.decomp;
   if (dc) {
-    var ps = dc.profit_share;            // earnings/GDP, %
-    var impliedPE = rT / ps;             // (mcap/GDP %) / (E/GDP %) = mcap/E
-    set('bfDecHead', rT.toFixed(1) + '%');
+    var ps = dc.profit_share;            // earnings/GDP, % (Motilal Nifty-500 series)
+    var pe500 = dc.nifty500_pe, pe50 = dc.nifty50_pe;
     set('bfProfitShare', ps.toFixed(1) + '%');
     set('bfProfitShareSub', 'profit share · ' + dc.profit_share_fy);
-    set('bfImpliedPE', impliedPE.toFixed(1) + '×');
+    set('bfMktPE', pe500 != null ? pe500.toFixed(1) + '×' : (pe50 != null ? pe50.toFixed(1) + '×' : '—'));
+    set('bfMktPESub', (pe500 != null ? 'Nifty 500' : 'Nifty 50') + (pe50 != null ? ' · Nifty 50 ' + pe50.toFixed(1) + '×' : '') + ' · live');
     set('bfPsLo', dc.trough + '% (' + dc.trough_fy + ')');
     set('bfPsHi', dc.peak + '% (' + dc.peak_fy + ')');
     var psPos = (ps - dc.trough) / (dc.peak - dc.trough);
     var psm = document.getElementById('bfPsMarker');
     if (psm) psm.style.left = Math.max(0, Math.min(100, psPos * 100)) + '%';
 
-    // Place implied P/E vs its own range: implied P/E of each sourced anchor year = that
-    // year's ratio ÷ that year's profit-share (same universe basis as today's number).
-    var pes = [];
-    dc.anchors.forEach(function(a){
-      var h = d.history.filter(function(r){ return r[0] === a[0]; })[0];
-      if (h) pes.push(h[4] / a[1]);
-    });
-    var peLo = pes.length ? Math.min.apply(null, pes) : impliedPE;
-    var peHi = pes.length ? Math.max.apply(null, pes) : impliedPE;
-    var pePos = (peHi > peLo) ? (impliedPE - peLo) / (peHi - peLo) : 0.5;
+    // Place the market multiple vs its OWN history: percentile of Nifty 50's live P/E
+    // within its last ~10yr (the relevant re-rated regime), winsorising COVID outliers.
+    var pePctile = null;
+    if (pe50 != null && typeof N50_HISTORY !== 'undefined' && N50_HISTORY.length) {
+      var hpes = N50_HISTORY.filter(function(r){ return r[0] >= '2016-01-01'; })
+                            .map(function(r){ return r[2]; })
+                            .filter(function(x){ return x > 0 && x < 60; });
+      if (hpes.length) {
+        var below = hpes.filter(function(x){ return x <= pe50; }).length;
+        pePctile = Math.round(below / hpes.length * 100);
+      }
+    }
 
     var psWord = psPos > 0.8 ? 'near its ' + dc.peak_fy + ' high' : psPos > 0.5 ? 'above mid-range' : 'below mid-range';
-    var peWord = pePos > 0.8 ? 'top of its range' : pePos > 0.5 ? 'upper half of its range' : 'lower half of its range';
-    set('bfDecRead', 'Read it as: ' + rT.toFixed(0) + '% = profit share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%) × implied whole-market P/E ' + impliedPE.toFixed(1) + '× (' + peWord + '). Profit-share source: ' + dc.source + '.');
-    var n50pe = (typeof N50_HISTORY !== 'undefined' && N50_HISTORY.length) ? N50_HISTORY[N50_HISTORY.length - 1][2] : null;
-    var n50txt = (n50pe != null) ? n50pe.toFixed(1) + '×' : '~20×';
-    set('bfPeNote', 'Note: this is a whole-market figure (all ~5,000 listed cos), so it sits well above the large-cap Nifty 50 (now ' + n50txt + ') and roughly at Nifty 500 (~25×). It is derived (total market cap ÷ aggregate profit), which nudges it a couple of turns high — so read its position vs history, not its absolute level.');
+    var peWord = (pePctile == null) ? 'elevated' : pePctile >= 75 ? 'historically rich' : pePctile >= 45 ? 'around its 10-yr average' : 'below its 10-yr average';
+    set('bfDecRead', 'Two levers behind it: corporate profit-share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%), and the market P/E — ' + (pe500 != null ? 'Nifty 500 ' + pe500.toFixed(1) + '×' : '') + (pe50 != null ? ', Nifty 50 ' + pe50.toFixed(1) + '×' + (pePctile != null ? ' (≈' + pePctile + 'th pctile, ' + peWord + ')' : '') : '') + '. Profit-share: Motilal Oswal Nifty-500 series.');
 
-    // Interpretation quadrant — highlight the current zone and write the verdict
-    var psHigh = psPos >= 0.66, peHigh = pePos >= 0.66;
+    // Interpretation quadrant — profit-share × the actual market multiple
+    var psHigh = psPos >= 0.66;
+    var peHigh = (pePctile != null) ? pePctile >= 66 : false;
     var cellKey = (psHigh ? 'hi' : 'lo') + '-' + (peHigh ? 'hi' : 'lo');
     [].forEach.call(document.querySelectorAll('.bf-quad-cell'), function(c){
       c.classList.toggle('active', c.getAttribute('data-cell') === cellKey);
     });
+    var peTxt = (pe50 != null ? '≈' + pe50.toFixed(0) + '×' : 'moderate');
     var verdict;
-    if (psHigh && peHigh)       verdict = '<strong>Today: both stretched.</strong> Profit-share is ' + psWord + ' AND the implied multiple is at the ' + peWord + ' — the market is richly valued on both counts. Two risks stack: margin mean-reversion shrinking earnings, and the multiple de-rating.';
-    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, contained multiple.</strong> The elevated reading is largely <em>earned</em> by profitability, so margin mean-reversion &mdash; not the P/E &mdash; is the main risk.';
-    else if (!psHigh && peHigh) verdict = '<strong>Today: stretched multiple on sub-peak margins.</strong> You are paying up; the P/E is the main risk, with little margin cushion.';
-    else                        verdict = '<strong>Today: both subdued.</strong> Neither profitability nor the multiple is stretched &mdash; historically a more comfortable zone.';
+    if (psHigh && peHigh)       verdict = '<strong>Today: both stretched.</strong> Profit-share ' + psWord + ' AND the market P/E ' + peWord + ' — richly valued on both counts; margin mean-reversion and a P/E de-rating both in play.';
+    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, contained multiple.</strong> The Nifty 50 P/E (' + peTxt + ') is ' + peWord + ' — so the elevated Buffett reading is driven by <em>record profitability</em>, not a bubble multiple. The main risk is <strong>margin mean-reversion</strong> (earnings shrinking), not a large-cap P/E de-rating. The richer multiples sit in the small/mid-cap tail beyond the Nifty 500 — check those cards on the Dashboard.';
+    else if (!psHigh && peHigh) verdict = '<strong>Today: stretched multiple on sub-peak margins.</strong> You are paying up; the P/E is the main risk.';
+    else                        verdict = '<strong>Today: both subdued.</strong> Neither profitability nor the multiple is stretched — a more comfortable zone.';
     var qEl = document.getElementById('bfQuadRead');
     if (qEl) qEl.innerHTML = verdict;
   }

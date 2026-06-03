@@ -109,6 +109,40 @@ def fetch_total_mcap() -> dict:
     raise RuntimeError(f"BSE market-cap fetch failed after retries: {last_err}")
 
 
+def fetch_market_pe() -> dict:
+    """Live actual P/E of NIFTY 50 and NIFTY 500 from NSE /api/allIndices.
+
+    Used so the decomposition shows the REAL market multiple (not a derived,
+    universe-mismatched figure). Non-fatal: returns {} on any failure.
+    """
+    try:
+        s = requests.Session()
+        s.headers.update({
+            "User-Agent": UA,
+            "Accept": "application/json,text/plain,*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.nseindia.com/",
+        })
+        s.get("https://www.nseindia.com/", timeout=15)
+        s.get("https://www.nseindia.com/market-data/live-equity-market", timeout=15)
+        r = s.get("https://www.nseindia.com/api/allIndices", timeout=15)
+        r.raise_for_status()
+        payload = r.json()
+        want = {"NIFTY 50": "nifty50_pe", "NIFTY 500": "nifty500_pe"}
+        out = {}
+        for row in payload.get("data", []):
+            key = want.get(row.get("index"))
+            if key:
+                try:
+                    out[key] = float(row.get("pe"))
+                except (TypeError, ValueError):
+                    pass
+        return out
+    except Exception as e:  # noqa: BLE001
+        print(f"market-pe fetch failed (non-fatal): {e}", file=sys.stderr)
+        return {}
+
+
 def load_doc() -> dict:
     if DATA_FILE.exists():
         return json.loads(DATA_FILE.read_text())
@@ -154,12 +188,17 @@ def main() -> int:
         "dttm": snap["dttm"],
         "date": date_ist,
     }
+    market = fetch_market_pe()
     doc["decomp"] = {
         "profit_share": PROFIT_SHARE, "profit_share_fy": PROFIT_SHARE_FY,
         "peak": PROFIT_SHARE_PEAK, "peak_fy": PROFIT_SHARE_PEAK_FY,
         "trough": PROFIT_SHARE_TROUGH, "trough_fy": PROFIT_SHARE_TROUGH_FY,
         "anchors": PROFIT_SHARE_ANCHORS,
         "source": PROFIT_SHARE_SOURCE,
+        # Live actual market P/E (the real multiple lever). Preserve prior values
+        # if NSE fetch failed this run so the panel never goes blank.
+        "nifty50_pe": market.get("nifty50_pe", doc.get("decomp", {}).get("nifty50_pe")),
+        "nifty500_pe": market.get("nifty500_pe", doc.get("decomp", {}).get("nifty500_pe")),
     }
     daily = doc.setdefault("daily", [])
     action = upsert_daily(daily, date_ist,
