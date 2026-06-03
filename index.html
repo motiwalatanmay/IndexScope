@@ -897,8 +897,18 @@ body.light .hp-formula .k{color:#4f46e5}
     .gl-verdict b{color:var(--brand)}
     .gl-verdict .lo{color:var(--vc-c);font-weight:700}
     .gl-verdict .hi{color:var(--ve-c);font-weight:700}
-    .gl-chart-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 14px 8px}
-    .gl-chart{width:100%;height:340px;overflow:visible;display:block}
+    .gl-chart-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 14px 8px;position:relative}
+    .gl-chart{width:100%;height:340px;overflow:visible;display:block;cursor:crosshair}
+    .gl-tip{position:absolute;z-index:6;pointer-events:none;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:8px 10px;min-width:158px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+    body.light .gl-tip{box-shadow:0 10px 30px rgba(0,0,0,.14)}
+    .gl-tip-d{font-family:var(--mono);font-size:.58rem;color:var(--ghost);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--bdr)}
+    .gl-tip-r{display:flex;align-items:center;gap:7px;line-height:1.6;font-size:.72rem}
+    .gl-tip-r.ind{font-weight:700}
+    .gl-tip-sw{width:9px;height:9px;border-radius:2px;flex:none}
+    .gl-tip-n{color:var(--sub);flex:1;white-space:nowrap}
+    .gl-tip-r.ind .gl-tip-n{color:var(--txt)}
+    .gl-tip-v{font-family:var(--mono);color:var(--txt);font-weight:600;white-space:nowrap}
+    .gl-tip-v small{color:var(--ghost);font-weight:500;font-size:.62rem;margin-left:4px}
     .gl-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin:12px 2px 0;align-items:center}
     .gl-leg{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;color:var(--sub);cursor:pointer;user-select:none;transition:opacity .14s}
     .gl-leg .tick{width:12px;height:12px;border-radius:3px;flex:none;border:1.5px solid var(--ghost);background:transparent;box-sizing:border-box}
@@ -959,7 +969,7 @@ body.light .hp-formula .k{color:#4f46e5}
       </div>
     </div>
     <div id="glVerdict" class="gl-verdict">&mdash;</div>
-    <div class="gl-chart-wrap"><svg id="glChart" class="gl-chart"></svg></div>
+    <div class="gl-chart-wrap"><svg id="glChart" class="gl-chart"></svg><div id="glTip" class="gl-tip" style="display:none"></div></div>
     <div id="glLegend" class="gl-legend"></div>
 
     <div class="gl-table-wrap">
@@ -4598,6 +4608,60 @@ function renderGlobalChart(d, si, cutoffStr){
   svg.setAttribute('viewBox','0 0 '+W+' '+H);
   svg.setAttribute('preserveAspectRatio','none');
   svg.innerHTML = grid + xl + body;
+
+  // ---- hover tooltip / crosshair state ----
+  var dset={}; lines.forEach(function(L){ L.reb.forEach(function(p){ dset[p[0]]=1; }); });
+  GL_CHART={ W:W, H:H, pad:pad, iW:iW, iH:iH, minV:minV, maxV:maxV, dMinT:dMinT, dMaxT:dMaxT,
+    dates: Object.keys(dset).sort(),
+    lines: lines.map(function(L){ var m={}; L.reb.forEach(function(p){ m[p[0]]=p[1]; });
+      return { key:L.key, name:L.name, hi:L.hi, col:GL_COLORS[L.key]||'#888', reb:L.reb, map:m }; }) };
+  svg.onmousemove=glChartMove; svg.onmouseleave=glChartLeave;
+}
+
+var GL_CHART=null;
+
+function glChartMove(e){
+  var c=GL_CHART; if(!c) return;
+  var svg=document.getElementById('glChart'), rect=svg.getBoundingClientRect();
+  var vbx=(e.clientX-rect.left)/rect.width*c.W;
+  if(vbx<c.pad.l) vbx=c.pad.l; if(vbx>c.pad.l+c.iW) vbx=c.pad.l+c.iW;
+  var t=c.dMinT + (vbx-c.pad.l)/c.iW*(c.dMaxT-c.dMinT);
+  var date=c.dates[0], bestd=Infinity;
+  for(var i=0;i<c.dates.length;i++){ var dd=Math.abs(+new Date(c.dates[i])-t); if(dd<bestd){ bestd=dd; date=c.dates[i]; } }
+  var xpx=c.pad.l + ((+new Date(date)-c.dMinT)/(c.dMaxT-c.dMinT))*c.iW;
+  function yp(v){ return c.pad.t + c.iH - ((v-c.minV)/(c.maxV-c.minV))*c.iH; }
+  var rows=[], dots='';
+  c.lines.forEach(function(L){
+    var v=L.map[date];
+    if(v==null){ for(var j=L.reb.length-1;j>=0;j--){ if(L.reb[j][0]<=date){ v=L.reb[j][1]; break; } } }
+    if(v==null) return;
+    rows.push({name:L.name, hi:L.hi, col:L.col, v:v});
+    dots+='<circle cx="'+xpx.toFixed(1)+'" cy="'+yp(v).toFixed(1)+'" r="3.4" fill="'+L.col+'" stroke="var(--sur)" stroke-width="1.2"/>';
+  });
+  rows.sort(function(a,b){ return b.v-a.v; });
+  var old=document.getElementById('glCrosshair'); if(old) old.remove();
+  svg.insertAdjacentHTML('beforeend',
+    '<g id="glCrosshair"><line x1="'+xpx.toFixed(1)+'" x2="'+xpx.toFixed(1)+'" y1="'+c.pad.t+'" y2="'+(c.pad.t+c.iH)+'" stroke="var(--txt3)" stroke-width="1" stroke-dasharray="3 3" opacity=".65"/>'+dots+'</g>');
+  var tip=document.getElementById('glTip');
+  var dl=new Date(date).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'});
+  tip.innerHTML='<div class="gl-tip-d">'+dl+'</div>'+rows.map(function(r){
+    var g=r.v-100;
+    return '<div class="gl-tip-r'+(r.hi?' ind':'')+'"><span class="gl-tip-sw" style="background:'+r.col+'"></span>'
+      +'<span class="gl-tip-n">'+r.name+'</span><span class="gl-tip-v">'+r.v.toFixed(1)
+      +'<small>'+(g>=0?'+':'')+g.toFixed(0)+'%</small></span></div>';
+  }).join('');
+  tip.style.display='block';
+  var wrap=svg.parentElement, wr=wrap.getBoundingClientRect();
+  var lx=e.clientX-wr.left+16, ty=e.clientY-wr.top+8, tw=tip.offsetWidth, th=tip.offsetHeight;
+  if(lx+tw>wr.width-6) lx=e.clientX-wr.left-tw-16;
+  if(lx<6) lx=6;
+  if(ty+th>wr.height-6) ty=wr.height-th-6; if(ty<6) ty=6;
+  tip.style.left=lx+'px'; tip.style.top=ty+'px';
+}
+
+function glChartLeave(){
+  var old=document.getElementById('glCrosshair'); if(old) old.remove();
+  var tip=document.getElementById('glTip'); if(tip) tip.style.display='none';
 }
 
 function renderGlobalVerdict(d, localMode){
