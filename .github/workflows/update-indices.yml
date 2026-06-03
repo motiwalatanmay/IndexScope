@@ -24,10 +24,20 @@ jobs:
         with:
           python-version: "3.12"
 
-      - run: pip install requests
+      - run: pip install requests yfinance
 
       - name: Fetch NSE /api/allIndices and upsert data/*.json
         run: python scripts/fetch_indices.py
+
+      - name: Fetch global index history (yfinance) -> data/global.json
+        # Non-fatal: a Yahoo hiccup must not block the India refresh. The
+        # frontend keeps the last committed global.json if this is skipped.
+        continue-on-error: true
+        run: python scripts/fetch_global.py
+
+      - name: Fetch global valuation (trailing P/E + CAPE) -> data/global_val.json
+        continue-on-error: true
+        run: python scripts/fetch_global_val.py
 
       - name: Fetch BSE total market cap and recompute Buffett indicator
         # Non-fatal: a BSE hiccup must not block the NSE index refresh.

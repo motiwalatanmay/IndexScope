@@ -624,6 +624,7 @@ body.light .hp-formula .k{color:#4f46e5}
   <div class="page-tabs">
     <button class="ptab active" onclick="showMainView('dashboard',this)">Dashboard</button>
     <button class="ptab" onclick="showMainView('buffett',this)">Buffett</button>
+    <button class="ptab" onclick="showMainView('global',this)">Global</button>
     <button class="ptab" onclick="showMainView('help',this)">Help</button>
   </div>
   <div class="hdr-right">
@@ -829,6 +830,111 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="hp-p" style="font-size:.8rem;margin:6px 0 10px;color:var(--txt3);line-height:1.5">Market cap (BSE) and market P/E (NSE) refresh <strong>automatically twice daily</strong>. The slower inputs below are maintained by hand on their release calendars &mdash; this shows when each was last set and when the next official update is due.</div>
       <div id="bfSchedBody"></div>
     </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- VIEW: GLOBAL (cross-border performance + valuation)              -->
+<!-- ================================================================ -->
+<div id="view-global" class="view">
+  <style>
+    .gl-wrap{max-width:1180px;margin:0 auto;padding:0 24px 60px}
+    .gl-intro{font-size:.92rem;line-height:1.6;color:var(--sub);margin:18px 0 4px}
+    .gl-intro strong{color:var(--txt)}
+    .gl-updated{font-size:12px;color:var(--ghost);margin:4px 0 18px}
+    .gl-section-title{font-family:var(--mono);font-size:.62rem;letter-spacing:.7px;text-transform:uppercase;color:var(--ghost);font-weight:700;margin:30px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--bdr)}
+    .gl-perf-head{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .gl-pillrow{display:inline-flex;gap:2px;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px}
+    .gl-pill{padding:6px 13px;border-radius:7px;font-family:var(--mono);font-size:.66rem;font-weight:600;letter-spacing:.4px;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .16s;white-space:nowrap}
+    .gl-pill:hover{color:var(--txt)}
+    .gl-pill.active{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+    body.light .gl-pill.active{box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    .gl-verdict{font-size:.95rem;line-height:1.5;color:var(--txt);background:var(--sur);border:1px solid var(--bdr);border-left:3px solid var(--brand);border-radius:10px;padding:13px 16px;margin-bottom:16px}
+    .gl-verdict b{color:var(--brand)}
+    .gl-verdict .lo{color:var(--vc-c);font-weight:700}
+    .gl-verdict .hi{color:var(--ve-c);font-weight:700}
+    .gl-chart-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 14px 8px}
+    .gl-chart{width:100%;height:340px;overflow:visible;display:block}
+    .gl-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin:12px 2px 0;align-items:center}
+    .gl-leg{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;color:var(--sub);cursor:pointer;user-select:none;transition:opacity .14s}
+    .gl-leg .tick{width:12px;height:12px;border-radius:3px;flex:none;border:1.5px solid var(--ghost);background:transparent;box-sizing:border-box}
+    .gl-leg .sw{width:13px;height:3px;border-radius:2px;flex:none}
+    .gl-leg:hover{color:var(--txt)}
+    .gl-leg.off{opacity:.4}
+    .gl-leg.off .sw{opacity:.35}
+    .gl-leg.ind{color:var(--txt);font-weight:700}
+    .gl-leg-act{display:inline-flex;gap:5px;margin-right:6px}
+    .gl-leg-btn{font-family:var(--mono);font-size:.58rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--sub);background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:4px 9px;cursor:pointer;transition:all .14s}
+    .gl-leg-btn:hover{color:var(--txt);border-color:var(--ghost)}
+    .gl-table-wrap{margin-top:18px;border:1px solid var(--bdr);border-radius:12px;overflow:hidden;overflow-x:auto}
+    .gl-ret{color:var(--vc-c);font-weight:600}
+    .gl-ret.neg{color:var(--ve-c)}
+    #glRetTable tr.ind-row td{background:var(--vc-tl);color:var(--txt)}
+    body.light #glRetTable tr.ind-row td{background:rgba(99,102,241,.06)}
+    #glRetTable tr.ind-row td:first-child{color:var(--brand);font-weight:700}
+    .gl-rank{font-family:var(--mono);font-size:.6rem;color:var(--ghost)}
+    .gl-val-note{font-size:.8rem;line-height:1.55;color:var(--ghost);margin:-2px 0 14px}
+    .gl-val-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+    .gl-vcard{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 15px;position:relative;overflow:hidden}
+    .gl-vcard::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+    .gl-vcard.cheap{background:var(--vc-bg);border-color:var(--vc-bd)}.gl-vcard.cheap::after{background:var(--vc-c)}
+    .gl-vcard.fair{background:var(--n-bg,var(--sur));border-color:var(--n-bd)}.gl-vcard.fair::after{background:var(--n-c)}
+    .gl-vcard.expensive{background:var(--ve-bg);border-color:var(--ve-bd)}.gl-vcard.expensive::after{background:var(--ve-c)}
+    .gl-vc-name{font-family:var(--body);font-size:.82rem;font-weight:700;color:var(--txt)}
+    .gl-vc-region{font-family:var(--mono);font-size:.56rem;letter-spacing:.5px;text-transform:uppercase;color:var(--ghost);margin-top:1px}
+    .gl-vc-pe{font-family:var(--mono);font-size:1.7rem;font-weight:700;color:var(--txt);margin:8px 0 1px;line-height:1}
+    .gl-vc-pe small{font-size:.6rem;color:var(--ghost);font-weight:600;letter-spacing:.5px}
+    .gl-vc-band{font-family:var(--mono);font-size:.62rem;color:var(--sub);margin-top:5px}
+    .gl-vc-tag{display:inline-block;font-family:var(--mono);font-size:.56rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 8px;border-radius:6px;margin-top:8px}
+    .gl-vc-tag.cheap{color:var(--vc-c);background:var(--vc-tl);border:1px solid var(--vc-bd)}
+    .gl-vc-tag.fair{color:var(--n-c);background:var(--n-tl);border:1px solid var(--n-bd)}
+    .gl-vc-tag.expensive{color:var(--ve-c);background:var(--ve-tl);border:1px solid var(--ve-bd)}
+    .gl-vc-cape{font-family:var(--mono);font-size:.58rem;color:var(--ghost);margin-top:6px}
+    @media(max-width:640px){.gl-wrap{padding:0 14px 50px}.gl-chart{height:280px}}
+  </style>
+  <div class="gl-wrap">
+    <div class="gl-intro">
+      How India stacks up against the world. Equity-index performance is shown in
+      <strong>USD</strong> by default — the only apples-to-apples comparison, since
+      local-currency gains can be erased by a falling currency. Valuation uses
+      <strong>current trailing P/E</strong> against long-run reference bands.
+    </div>
+    <div id="glUpdated" class="gl-updated">Loading global data&hellip;</div>
+
+    <div class="gl-section-title">Relative Performance &mdash; "100 invested"</div>
+    <div class="gl-perf-head">
+      <div class="gl-pillrow" id="glCcyRow">
+        <button class="gl-pill active" data-ccy="usd" onclick="setGlobalCcy('usd')">USD · comparable</button>
+        <button class="gl-pill" data-ccy="local" onclick="setGlobalCcy('local')">Local currency</button>
+      </div>
+      <div class="gl-pillrow" id="glRangeRow">
+        <button class="gl-pill" data-range="1y" onclick="setGlobalRange('1y')">1Y</button>
+        <button class="gl-pill" data-range="3y" onclick="setGlobalRange('3y')">3Y</button>
+        <button class="gl-pill active" data-range="5y" onclick="setGlobalRange('5y')">5Y</button>
+        <button class="gl-pill" data-range="10y" onclick="setGlobalRange('10y')">10Y</button>
+      </div>
+    </div>
+    <div id="glVerdict" class="gl-verdict">&mdash;</div>
+    <div class="gl-chart-wrap"><svg id="glChart" class="gl-chart"></svg></div>
+    <div id="glLegend" class="gl-legend"></div>
+
+    <div class="gl-table-wrap">
+      <table class="data-table" id="glRetTable">
+        <thead><tr>
+          <th>Index</th><th>Wk %</th><th>YTD</th><th>1Y</th><th>3Y</th><th>5Y</th><th>10Y</th>
+        </tr></thead>
+        <tbody id="glRetBody"></tbody>
+      </table>
+    </div>
+
+    <div class="gl-section-title">Valuation &mdash; Trailing P/E vs Long-Run Band</div>
+    <div class="gl-val-note" id="glValNote">
+      Unlike the India cards (ranked against their own 10-yr P/E history), there is no
+      free historical P/E feed for foreign indices &mdash; so these compare current
+      trailing P/E to a static long-run reference band. Treat as a coarse cheap/fair/rich
+      read, refreshed periodically.
+    </div>
+    <div id="glValGrid" class="gl-val-grid"></div>
   </div>
 </div>
 
@@ -2865,6 +2971,12 @@ function showMainView(target, el) {
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Buffett Indicator';
     try { renderBuffett(); } catch (e) {}
+  } else if (target === 'global') {
+    document.getElementById('view-global').classList.add('active');
+    CURRENT_VIEW = 'global';
+    DETAILS_INDEX = null;
+    document.title = 'IndexScope \u2014 Global Indices';
+    try { renderGlobal(); } catch (e) {}
   } else {
     // 'dashboard' — also leaves any open details view
     document.getElementById('view-dashboard').classList.add('active');
@@ -4327,6 +4439,184 @@ function bfDrawChart(history, nowRatio, median) {
     + dots;
 }
 
+// ===================== GLOBAL INDICES TAB =====================
+var GLOBAL_DATA = null, GLOBAL_VAL = null;
+var GL_CCY = 'usd', GL_RANGE = '5y';
+var GL_HIDDEN = {};   // key -> true when the user un-ticks an index
+var GL_RANGE_YEARS = { '1y':1, '3y':3, '5y':5, '10y':10 };
+var GL_COLORS = {
+  nifty:'#fbbf24', spx:'#60a5fa', ndx:'#818cf8', em:'#a78bfa',
+  csi300:'#f87171', hsi:'#fb7185', nikkei:'#34d399', kospi:'#2dd4bf',
+  taiex:'#22d3ee', estoxx:'#a3e635', ftse:'#cbd5e1', gold:'#a16207', dxy:'#9ca3af'
+};
+// Equity indices only — gold & DXY are excluded from the leadership ranking.
+var GL_EQUITY = ['nifty','spx','ndx','em','csi300','hsi','nikkei','kospi','taiex','estoxx','ftse'];
+
+function fetchGlobal() {
+  Promise.all([
+    fetch('./data/global.json?t='+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
+    fetch('./data/global_val.json?t='+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(res){
+    GLOBAL_DATA = res[0]; GLOBAL_VAL = res[1];
+    if (CURRENT_VIEW === 'global') { try { renderGlobal(); } catch(e){} }
+  });
+}
+
+function setGlobalCcy(c){ GL_CCY=c; document.querySelectorAll('#glCcyRow .gl-pill').forEach(function(b){b.classList.toggle('active',b.dataset.ccy===c);}); renderGlobal(); }
+function setGlobalRange(r){ GL_RANGE=r; document.querySelectorAll('#glRangeRow .gl-pill').forEach(function(b){b.classList.toggle('active',b.dataset.range===r);}); renderGlobal(); }
+
+function glFmtPct(v){
+  if(v==null||isNaN(v)) return '<span style="color:var(--ghost)">&mdash;</span>';
+  var cls = v<0 ? 'gl-ret neg' : 'gl-ret';
+  return '<span class="'+cls+'">'+(v>0?'+':'')+v.toFixed(1)+'%</span>';
+}
+
+function renderGlobal(){
+  var d = GLOBAL_DATA;
+  if(!d || !d.indices){ var u=document.getElementById('glUpdated'); if(u) u.textContent='Global data unavailable (run scripts/fetch_global.py).'; return; }
+  document.getElementById('glUpdated').innerHTML = 'As of '+d.asOf+' &middot; weekly closes &middot; price returns (ex-dividend)';
+  var localMode = GL_CCY==='local';
+  var si = localMode ? 1 : 2;
+  var years = GL_RANGE_YEARS[GL_RANGE];
+  var lastDate = d.indices[0].lastDate;
+  var cutoff = new Date(lastDate); cutoff.setFullYear(cutoff.getFullYear()-years);
+  var cutoffStr = cutoff.toISOString().slice(0,10);
+  renderGlobalChart(d, si, cutoffStr);
+  renderGlobalVerdict(d, localMode);
+  renderGlobalTable(d, localMode);
+  renderGlobalVal();
+}
+
+function toggleGlobalLine(key){
+  if(GL_HIDDEN[key]) delete GL_HIDDEN[key]; else GL_HIDDEN[key]=true;
+  renderGlobal();
+}
+function setGlobalLines(mode){
+  GL_HIDDEN = {};
+  if(mode==='none' && GLOBAL_DATA){ GLOBAL_DATA.indices.forEach(function(ix){ if(!ix.highlight) GL_HIDDEN[ix.key]=true; }); }
+  renderGlobal();
+}
+
+function renderGlobalChart(d, si, cutoffStr){
+  var svg = document.getElementById('glChart');
+  var W=900, H=340, pad={l:40,r:14,t:14,b:24};
+  var iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  // allLines = everything with data in range (drives the legend/ticks);
+  // lines    = the subset the user has left ticked (drives the chart).
+  var allLines=[];
+  d.indices.forEach(function(ix){
+    var pts = ix.series.filter(function(p){ return p[0]>=cutoffStr && p[si]!=null; });
+    if(pts.length<2) return;
+    var base = pts[0][si]; if(!base) return;
+    allLines.push({ key:ix.key, name:ix.name, hi:ix.highlight,
+      reb: pts.map(function(p){ return [p[0], p[si]/base*100]; }) });
+  });
+  var lines = allLines.filter(function(L){ return !GL_HIDDEN[L.key]; });
+  var leg = allLines.slice().sort(function(a,b){ return b.reb[b.reb.length-1][1]-a.reb[a.reb.length-1][1]; });
+  document.getElementById('glLegend').innerHTML =
+    '<span class="gl-leg-act"><button class="gl-leg-btn" onclick="setGlobalLines(\'all\')">All</button>'
+    + '<button class="gl-leg-btn" onclick="setGlobalLines(\'none\')">India only</button></span>'
+    + leg.map(function(L){
+      var gain = L.reb[L.reb.length-1][1]-100, off=GL_HIDDEN[L.key];
+      return '<span class="gl-leg'+(L.hi?' ind':'')+(off?' off':'')+'" onclick="toggleGlobalLine(\''+L.key+'\')">'
+        +'<span class="tick"'+(off?'':' style="background:'+(GL_COLORS[L.key]||'#888')+';border-color:'+(GL_COLORS[L.key]||'#888')+'"')+'></span>'
+        +'<span class="sw" style="background:'+(GL_COLORS[L.key]||'#888')+'"></span>'+L.name
+        +' <span style="color:'+(gain>=0?'var(--vc-c)':'var(--ve-c)')+';font-family:var(--mono);font-size:.64rem">'+(gain>=0?'+':'')+gain.toFixed(0)+'%</span></span>';
+    }).join('');
+  if(!lines.length){ svg.innerHTML=''; return; }
+  var allV=[], dMinT=Infinity, dMaxT=-Infinity;
+  lines.forEach(function(L){ L.reb.forEach(function(p){ allV.push(p[1]); var t=+new Date(p[0]); if(t<dMinT)dMinT=t; if(t>dMaxT)dMaxT=t; }); });
+  var minV=Math.min.apply(null,allV), maxV=Math.max.apply(null,allV);
+  var padV=(maxV-minV)*0.05||1; minV-=padV; maxV+=padV;
+  var vRange=maxV-minV||1, dRange=dMaxT-dMinT||1;
+  function xp(ds){ return pad.l+((+new Date(ds)-dMinT)/dRange)*iW; }
+  function yp(v){ return pad.t+iH-((v-minV)/vRange)*iH; }
+  var grid='';
+  for(var i=0;i<=4;i++){ var v=minV+vRange*i/4, y=yp(v);
+    grid+='<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
+    grid+='<text x="'+(pad.l-5)+'" y="'+(y+3)+'" text-anchor="end" fill="var(--txt3)" font-size="10">'+v.toFixed(0)+'</text>';
+  }
+  if(100>=minV&&100<=maxV){ var y100=yp(100); grid+='<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y100+'" y2="'+y100+'" stroke="var(--txt3)" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>'; }
+  var xl='', prevYr='', lastX=-999;
+  lines[0].reb.forEach(function(p){ var yr=p[0].slice(0,4); if(yr!==prevYr){ var x=xp(p[0]); if(x-lastX>=46){ xl+='<text x="'+x+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>'; lastX=x; } prevYr=yr; } });
+  function poly(L){
+    var pts=L.reb.map(function(p){ return xp(p[0]).toFixed(1)+','+yp(p[1]).toFixed(1); }).join(' ');
+    var col=GL_COLORS[L.key]||'#888';
+    var dash=(L.key==='gold'||L.key==='dxy')?' stroke-dasharray="4 3"':'';
+    var w=L.hi?3:1.4, op=L.hi?1:.7;
+    return '<polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="'+w+'" stroke-linejoin="round" stroke-linecap="round" opacity="'+op+'"'+dash+'/>';
+  }
+  var body='';
+  lines.filter(function(L){return !L.hi;}).forEach(function(L){ body+=poly(L); });
+  lines.filter(function(L){return L.hi;}).forEach(function(L){ body+=poly(L); });
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.setAttribute('preserveAspectRatio','none');
+  svg.innerHTML = grid + xl + body;
+}
+
+function renderGlobalVerdict(d, localMode){
+  var key=GL_RANGE;
+  var eq = d.indices.filter(function(ix){ return GL_EQUITY.indexOf(ix.key)>=0; })
+    .map(function(ix){ var r=localMode?ix.ret:(ix.retUsd||ix.ret); return {name:ix.name,key:ix.key,v:r?r[key]:null}; })
+    .filter(function(o){ return o.v!=null; })
+    .sort(function(a,b){ return b.v-a.v; });
+  var el=document.getElementById('glVerdict');
+  if(!eq.length){ el.innerHTML='&mdash;'; return; }
+  var n=eq.length, india=null, rank=0;
+  eq.forEach(function(o,i){ if(o.key==='nifty'){ india=o; rank=i+1; } });
+  var ccyTxt = localMode?'local-currency':'common-currency (USD)';
+  var top=eq[0], bot=eq[n-1];
+  if(india){
+    var below = eq.slice(rank).map(function(o){return o.name;});
+    var tail = below.length ? ('ahead of only '+below.join(', ')) : 'the weakest of the set';
+    var lagging = rank > n/2;
+    el.innerHTML = 'Over <b>'+GL_RANGE.toUpperCase()+'</b> in '+ccyTxt+' terms, <b>India</b> ('
+      +(india.v>=0?'+':'')+india.v.toFixed(0)+'%) ranks <b>#'+rank+' of '+n+'</b> major equity markets'
+      + (lagging ? ' — <span class="hi">'+tail+'</span>. ' : '. ')
+      + top.name+' (<span class="lo">+'+top.v.toFixed(0)+'%</span>) led; '+bot.name+' (<span class="'+(bot.v<0?'hi':'lo')+'">'
+      +(bot.v>=0?'+':'')+bot.v.toFixed(0)+'%</span>) lagged.';
+  } else {
+    el.innerHTML = top.name+' led the field ('+top.v.toFixed(0)+'%).';
+  }
+}
+
+function renderGlobalTable(d, localMode){
+  var key=GL_RANGE;
+  var rows=d.indices.slice().sort(function(a,b){
+    var ra=(localMode?a.ret:(a.retUsd||a.ret)); var rb=(localMode?b.ret:(b.retUsd||b.ret));
+    var va=(ra&&ra[key]!=null)?ra[key]:-1e9, vb=(rb&&rb[key]!=null)?rb[key]:-1e9; return vb-va;
+  });
+  document.getElementById('glRetBody').innerHTML = rows.map(function(ix){
+    var r=localMode?ix.ret:(ix.retUsd||ix.ret); r=r||{};
+    return '<tr class="'+(ix.highlight?'ind-row':'')+'">'
+      +'<td>'+ix.name+' <span class="gl-rank">'+ix.region+'</span></td>'
+      +'<td>'+glFmtPct(ix.chgWk)+'</td>'
+      +'<td>'+glFmtPct(r.ytd)+'</td>'+'<td>'+glFmtPct(r['1y'])+'</td>'
+      +'<td>'+glFmtPct(r['3y'])+'</td>'+'<td>'+glFmtPct(r['5y'])+'</td>'
+      +'<td>'+glFmtPct(r['10y'])+'</td></tr>';
+  }).join('');
+}
+
+function renderGlobalVal(){
+  var v=GLOBAL_VAL, d=GLOBAL_DATA, grid=document.getElementById('glValGrid');
+  if(!v||!v.indices){ grid.innerHTML='<div class="gl-val-note">Valuation feed unavailable (run scripts/fetch_global_val.py).</div>'; return; }
+  var meta={}; if(d&&d.indices) d.indices.forEach(function(ix){ meta[ix.key]={name:ix.name,region:ix.region}; });
+  var order={cheap:0,fair:1,expensive:2};
+  var items=v.indices.slice().sort(function(a,b){ return (order[a.verdict]-order[b.verdict])||(a.pe-b.pe); });
+  grid.innerHTML = items.map(function(it){
+    var m=meta[it.key]||{name:it.key,region:''};
+    var cape = it.cape ? '<div class="gl-vc-cape">Shiller CAPE '+it.cape+'</div>' : '';
+    return '<div class="gl-vcard '+it.verdict+'">'
+      +'<div class="gl-vc-name">'+m.name+'</div>'
+      +'<div class="gl-vc-region">'+m.region+'</div>'
+      +'<div class="gl-vc-pe">'+it.pe.toFixed(1)+' <small>P/E</small></div>'
+      +'<div class="gl-vc-band">long-run band '+it.refLo+'&ndash;'+it.refHi+'</div>'
+      +'<span class="gl-vc-tag '+it.verdict+'">'+it.verdict+'</span>'+cape
+      +'</div>';
+  }).join('')
+  + '<div style="grid-column:1/-1;font-family:var(--mono);font-size:.55rem;color:var(--ghost);margin-top:2px">P/E source: '+(v.source||'')+' &middot; as of '+(v.asOf||'')+'</div>';
+}
+
 (function init() {
   if (localStorage.getItem('nmid150-theme')==='light') {
     document.body.classList.add('light');
@@ -4340,6 +4630,9 @@ function bfDrawChart(history, nowRatio, median) {
 
   // Buffett indicator loads its own data file in the background.
   fetchBuffett();
+
+  // Global indices tab loads its own data files in the background.
+  fetchGlobal();
 
   // Refresh the 10Y G-Sec series (for the EY-BY yield-gap panel) in the background.
   loadGsec();
