@@ -614,6 +614,46 @@ body.light .hp-formula .k{color:#4f46e5}
   </defs>
 </svg>
 
+<!-- ================================================================ -->
+<!-- AUTH GATE (Google sign-in) — inert until FIREBASE_CONFIG is set    -->
+<!-- ================================================================ -->
+<div id="authGate" class="auth-gate" style="display:none">
+  <div class="auth-card">
+    <div class="auth-wordmark">INDEXSCOPE</div>
+    <div class="auth-tag">Indian &amp; global index valuation tracker</div>
+    <div id="authBody">
+      <div class="auth-spinner"><svg class="ico ico-spin"><use href="#i-loader"/></svg></div>
+    </div>
+    <div id="authErr" class="auth-err" style="display:none"></div>
+    <div class="auth-foot">Sign-in is used only to manage access. We see your name, email and profile photo &mdash; nothing else.</div>
+  </div>
+</div>
+
+<style>
+  .auth-gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    background:var(--bg,#0a0b0f);background-image:radial-gradient(120% 100% at 50% 0%,rgba(99,102,241,.10),transparent 60%)}
+  .auth-card{width:min(92vw,380px);text-align:center;padding:38px 30px;background:var(--sur);border:1px solid var(--bdr);
+    border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .auth-wordmark{font-family:var(--head,inherit);font-weight:800;letter-spacing:1.5px;font-size:1.35rem;color:var(--txt)}
+  .auth-tag{font-size:.8rem;color:var(--sub);margin:6px 0 26px}
+  .auth-spinner{color:var(--ghost);font-size:1.4rem}
+  .auth-gbtn{display:inline-flex;align-items:center;gap:11px;width:100%;justify-content:center;cursor:pointer;
+    background:#fff;color:#1f1f1f;border:1px solid #dadce0;border-radius:10px;padding:12px 16px;font-size:.92rem;
+    font-weight:600;font-family:var(--body,system-ui);transition:box-shadow .15s,background .15s}
+  .auth-gbtn:hover{box-shadow:0 1px 4px rgba(0,0,0,.25);background:#f8f9fa}
+  .auth-gbtn svg{width:18px;height:18px;flex:none}
+  .auth-user{display:flex;align-items:center;gap:9px;justify-content:center;flex-direction:column}
+  .auth-user .nm{font-size:.92rem;color:var(--txt);font-weight:600}
+  .auth-user .em{font-size:.76rem;color:var(--sub)}
+  .auth-signout{margin-top:14px;font-size:.78rem;color:var(--brand);background:none;border:none;cursor:pointer;font-weight:600}
+  .auth-err{margin-top:14px;font-size:.8rem;color:var(--ve-c);background:var(--ve-tl);border:1px solid var(--ve-bd);border-radius:8px;padding:9px 12px}
+  .auth-foot{margin-top:22px;font-size:.66rem;line-height:1.5;color:var(--ghost)}
+  .auth-chip{display:inline-flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:3px 4px 3px 10px;cursor:pointer}
+  .auth-chip img{width:24px;height:24px;border-radius:50%;flex:none}
+  .auth-chip .ac-em{font-size:.72rem;color:var(--sub);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media(max-width:700px){.auth-chip .ac-em{display:none}}
+</style>
+
 <div class="hdr">
   <div class="hdr-title">
     <div class="hdr-wordmark-wrap">
@@ -631,6 +671,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <div id="statusChip" class="status-chip"><svg class="ico ico-sm ico-spin"><use href="#i-loader"/></svg><span id="statusText">Loading&hellip;</span></div>
     <button class="btn btn-icon-only" onclick="refreshCurrent()" aria-label="Refresh"><svg class="ico"><use href="#i-refresh"/></svg><span class="btn-lbl">Refresh</span></button>
     <button class="btn btn-icon-only" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme"><svg class="ico"><use href="#i-sun"/></svg><span class="btn-lbl" id="themeBtnLbl">Light</span></button>
+    <div id="authChip" class="auth-chip" style="display:none" onclick="authSignOut()" title="Sign out"><img id="authChipImg" alt=""><span class="ac-em" id="authChipEm"></span></div>
   </div>
 </div>
 
@@ -4620,7 +4661,89 @@ function renderGlobalVal(){
   + '<div style="grid-column:1/-1;font-family:var(--mono);font-size:.55rem;color:var(--ghost);margin-top:2px">P/E source: '+(v.source||'')+' &middot; as of '+(v.asOf||'')+'</div>';
 }
 
+// ===================== GOOGLE SIGN-IN (Firebase Auth) =====================
+// Paste your Firebase web-app config below to ACTIVATE the login gate.
+// Until apiKey is filled in, AUTH stays OFF and the site behaves exactly as
+// before (no login wall). Setup steps: see AUTH_SETUP.md in the repo.
+var FIREBASE_CONFIG = {
+  apiKey: "",            // <-- paste from Firebase console -> Project settings -> Web app
+  authDomain: "",
+  projectId: "",
+  appId: ""
+};
+// Optional: restrict to specific emails (lowercase). Empty = any Google account
+// may sign in (you can still disable individuals in the Firebase console).
+var AUTH_ALLOWLIST = [];
+
+var AUTH_ENABLED = !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey);
+var AUTH_GOOGLE = null;
+var GOOGLE_G = '<svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
+function authShowErr(msg){ var e=document.getElementById('authErr'); if(e){ e.textContent=msg; e.style.display='block'; } }
+function authHideErr(){ var e=document.getElementById('authErr'); if(e){ e.style.display='none'; } }
+
+function loadFirebaseSdk(){
+  return new Promise(function(resolve,reject){
+    if(window.firebase && firebase.auth){ return resolve(); }
+    var base='https://www.gstatic.com/firebasejs/10.12.5/';
+    var s1=document.createElement('script'); s1.src=base+'firebase-app-compat.js';
+    s1.onload=function(){
+      var s2=document.createElement('script'); s2.src=base+'firebase-auth-compat.js';
+      s2.onload=function(){ resolve(); }; s2.onerror=reject; document.head.appendChild(s2);
+    };
+    s1.onerror=reject; document.head.appendChild(s1);
+  });
+}
+
+function authShowSignIn(){
+  var chip=document.getElementById('authChip'); if(chip) chip.style.display='none';
+  document.getElementById('authGate').style.display='flex';
+  document.getElementById('authBody').innerHTML='<button class="auth-gbtn" onclick="authSignIn()">'+GOOGLE_G+'Sign in with Google</button>';
+}
+
+function authOnSignedIn(u){
+  document.getElementById('authGate').style.display='none';
+  var chip=document.getElementById('authChip'); if(chip) chip.style.display='inline-flex';
+  var em=document.getElementById('authChipEm'); if(em) em.textContent=u.email||u.displayName||'';
+  var img=document.getElementById('authChipImg');
+  if(img){ if(u.photoURL){ img.src=u.photoURL; img.style.display=''; } else { img.style.display='none'; } }
+}
+
+function authSignIn(){
+  authHideErr();
+  if(!(window.firebase&&firebase.auth)) return;
+  firebase.auth().signInWithPopup(AUTH_GOOGLE).catch(function(e){
+    if(e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request')) return;
+    authShowErr((e&&e.message)||'Sign-in failed. Please try again.');
+  });
+}
+function authSignOut(){ if(window.firebase&&firebase.auth) firebase.auth().signOut(); }
+
+function initAuth(){
+  if(!AUTH_ENABLED) return;                       // inert until config is set
+  var gate=document.getElementById('authGate');
+  if(gate) gate.style.display='flex';             // cover the app while resolving
+  loadFirebaseSdk().then(function(){
+    firebase.initializeApp(FIREBASE_CONFIG);
+    AUTH_GOOGLE=new firebase.auth.GoogleAuthProvider();
+    firebase.auth().onAuthStateChanged(function(user){
+      if(user){
+        var email=(user.email||'').toLowerCase();
+        if(AUTH_ALLOWLIST.length && AUTH_ALLOWLIST.indexOf(email)<0){
+          authShowErr((user.email||'This account')+' is not on the access list.');
+          setTimeout(function(){ firebase.auth().signOut(); }, 1800);
+          return;
+        }
+        authOnSignedIn(user);
+      } else {
+        authShowSignIn();
+      }
+    });
+  }).catch(function(){ authShowErr('Could not load sign-in. Check your connection and refresh.'); });
+}
+
 (function init() {
+  initAuth();
   if (localStorage.getItem('nmid150-theme')==='light') {
     document.body.classList.add('light');
     var tb = document.getElementById('themeBtn');
