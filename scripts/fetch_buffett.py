@@ -64,6 +64,25 @@ PROFIT_SHARE_SOURCE = "Motilal Oswal Nifty-500 corporate profit-to-GDP (FY2025 =
 # joined to history rows to derive each year's implied P/E (= ratio / profit-share).
 PROFIT_SHARE_ANCHORS = [["FY2008", 5.2], ["FY2020", 2.1], ["FY2023", 4.0], ["FY2024", 4.8], ["FY2025", 4.7]]
 
+# --- Manual-update schedule (the slow, hand-maintained inputs) ---------------
+# BSE market cap + NSE market P/E refresh automatically twice daily. Everything
+# below is updated by hand on its release calendar. When you bump a data value
+# above, also update that item's "updated" and "next_due" here. Dates ISO (UTC).
+SCHEDULE = [
+    {"item": "Nominal GDP", "detail": "FY26 trailing + FY27E", "source": "MOSPI / Union Budget",
+     "updated": GDP_UPDATED, "next_due": "2027-01-07",
+     "next_label": "FY27 First Advance Estimate (~Jan)", "cadence": "Jan FAE · Feb Budget · May provisional"},
+    {"item": "Corporate profit-share", "detail": f"{PROFIT_SHARE_FY} = {PROFIT_SHARE}% (Nifty-500)", "source": "Motilal Oswal",
+     "updated": "2026-06-02", "next_due": "2026-06-30",
+     "next_label": "FY26 Profit-to-GDP report", "cadence": "annual (~June)"},
+    {"item": "Annual FY-end mcap row", "detail": "latest: FY2026 = 412.43 L cr", "source": "BSE year-end data",
+     "updated": "2026-06-02", "next_due": "2027-04-01",
+     "next_label": "FY2027 year-end snapshot", "cadence": "annual (end-March)"},
+    {"item": "GDP base-series migration", "detail": "2011-12 → 2022-23", "source": "MOSPI",
+     "updated": "2026-02-27", "next_due": None,
+     "next_label": "when MOSPI publishes the back-cast series", "cadence": "one-off"},
+]
+
 DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "buffett.json"
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -200,6 +219,7 @@ def main() -> int:
         "nifty50_pe": market.get("nifty50_pe", doc.get("decomp", {}).get("nifty50_pe")),
         "nifty500_pe": market.get("nifty500_pe", doc.get("decomp", {}).get("nifty500_pe")),
     }
+    doc["schedule"] = SCHEDULE
     daily = doc.setdefault("daily", [])
     action = upsert_daily(daily, date_ist,
                           [date_ist, mcap, ratio_trailing, ratio_prior, ratio_forward])

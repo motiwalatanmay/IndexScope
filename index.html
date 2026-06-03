@@ -692,6 +692,13 @@ body.light .hp-formula .k{color:#4f46e5}
   .bf-quad-hd{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.5px;color:var(--sub);text-align:center;background:var(--bg3)}
   .bf-quad-cell{color:var(--txt3);text-align:center;transition:all .2s}
   .bf-quad-cell.active{background:rgba(99,102,241,.12);box-shadow:inset 0 0 0 2px var(--brand);color:var(--txt);font-weight:600}
+  .bf-sched-row{padding:10px 0;border-bottom:1px solid var(--bdr)}
+  .bf-sched-row:last-child{border-bottom:0;padding-bottom:0}
+  .bf-sched-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .bf-sched-name{font-family:var(--mono);font-size:.78rem;font-weight:700;color:var(--txt)}
+  .bf-sched-status{font-family:var(--mono);font-size:.56rem;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+  .bf-sched-detail{font-size:.74rem;color:var(--txt3);margin-top:2px}
+  .bf-sched-dates{font-family:var(--mono);font-size:.64rem;color:var(--sub);margin-top:5px;line-height:1.5}
   </style>
   <div class="bf-wrap">
     <div class="dash-intro">
@@ -784,6 +791,12 @@ body.light .hp-formula .k{color:#4f46e5}
         History FY2006&ndash;FY2018 is from primary SEBI/BSE tables, FY2021&ndash;FY2025 from BSE year-end exchange data; <strong>FY2019, FY2020 &amp; FY2026 are softer estimates (&plusmn;2&ndash;3 L cr, marked "est.")</strong>.
         <strong>GDP base:</strong> the whole series uses MOSPI's <strong>2011-12 base</strong> for internal consistency. MOSPI <em>rebased to a 2022-23 series on 27-Feb-2026</em> (FY26 nominal = &#8377;345.47 L cr vs &#8377;357.14 old base) &mdash; on that new base today's reading is <strong><span id="bfNewBase">&mdash;</span></strong>. We migrate the full series once MOSPI publishes the back-cast new-base history. This is the pure <strong>BSE-mcap / nominal-GDP</strong> definition.
       </div>
+    </div>
+
+    <div class="bf-tile" style="margin-top:4px">
+      <div class="bf-tile-lbl">Data freshness &amp; manual-update schedule</div>
+      <div class="hp-p" style="font-size:.8rem;margin:6px 0 10px;color:var(--txt3);line-height:1.5">Market cap (BSE) and market P/E (NSE) refresh <strong>automatically twice daily</strong>. The slower inputs below are maintained by hand on their release calendars &mdash; this shows when each was last set and when the next official update is due.</div>
+      <div id="bfSchedBody"></div>
     </div>
   </div>
 </div>
@@ -3984,13 +3997,60 @@ function renderBuffett() {
       c.classList.toggle('active', c.getAttribute('data-cell') === cellKey);
     });
     var peTxt = (pe50 != null ? '≈' + pe50.toFixed(0) + '×' : 'moderate');
+
+    // LIVE segment map — read each index's band + EPS trend from the SAME engine
+    // the Dashboard cards use, so this characterisation updates with the market
+    // (no hardcoded "small-caps"). Identifies the cheap cushion and the froth pocket.
+    var segLine = '';
+    try {
+      var SEG = [['n50','Nifty 50'],['nn50','Nifty Next 50'],['nmid150','Nifty Midcap 150'],['sc250','Nifty Smallcap 250']];
+      var segs = SEG.map(function(x){
+        var st = computeStatsFor(x[0]);
+        return st ? {name: x[1], band: st.peBand, epsYoY: st.epsYoY} : null;
+      }).filter(Boolean);
+      var cheap = segs.filter(function(s){ return s.band === 'vcheap' || s.band === 'cheap'; });
+      var rich = segs.filter(function(s){ return s.band === 'expensive' || s.band === 'vexpensive'; });
+      var froth = rich.filter(function(s){ return s.epsYoY != null && s.epsYoY < -2; });
+      var nm = function(a){ return a.map(function(s){ return s.name; }).join(' & '); };
+      var bits = [];
+      if (cheap.length) bits.push('the cheap-multiple cushion is in <strong>' + nm(cheap) + '</strong>');
+      if (froth.length) bits.push('the genuine froth — <strong>expensive on falling earnings</strong> — is in <strong>' + nm(froth) + '</strong>');
+      else if (rich.length) bits.push('the priciest vs their own history are <strong>' + nm(rich) + '</strong>');
+      if (bits.length) segLine = ' Live across the Dashboard: ' + bits.join('; ') + '.';
+    } catch (e) { segLine = ''; }
+
     var verdict;
     if (psHigh && peHigh)       verdict = '<strong>Today: both stretched.</strong> Profit-share ' + psWord + ' AND the market P/E ' + peWord + ' — richly valued on both counts; margin mean-reversion and a P/E de-rating both in play.';
-    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, cheap multiple — a two-way setup.</strong> The reading is elevated because profitability is near record, not because multiples are stretched (Nifty 50 ' + peTxt + ', ' + peWord + '). Two mean-reversions pull opposite ways: <strong>margins reverting down is the risk</strong> (earnings near peak), while a <strong>P/E re-rating up with margins holding is the opportunity</strong> — the cheap large-cap multiple is a cushion. The bad case (expensive multiple <em>and</em> falling earnings) is concentrated in <strong>small-caps</strong> — check the Dashboard cards.';
+    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, cheap multiple — a two-way setup.</strong> The reading is elevated because profitability is near record, not because multiples are stretched (Nifty 50 ' + peTxt + ', ' + peWord + '). Two mean-reversions pull opposite ways: <strong>margins reverting down is the risk</strong> (earnings near peak), while a <strong>P/E re-rating up with margins holding is the opportunity</strong> — the cheap large-cap multiple is a cushion.';
     else if (!psHigh && peHigh) verdict = '<strong>Today: stretched multiple on sub-peak margins.</strong> You are paying up; the P/E is the main risk.';
     else                        verdict = '<strong>Today: both subdued.</strong> Neither profitability nor the multiple is stretched — a more comfortable zone.';
     var qEl = document.getElementById('bfQuadRead');
-    if (qEl) qEl.innerHTML = verdict;
+    if (qEl) qEl.innerHTML = verdict + segLine;
+  }
+
+  // Manual-update schedule (bottom of tab): last set / next due / status
+  var sched = d.schedule, sbody = document.getElementById('bfSchedBody');
+  if (sched && sbody) {
+    var nowMs = Date.now();
+    var fmtD = function(s){ return s ? new Date(s + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '—'; };
+    sbody.innerHTML = sched.map(function(it){
+      var status, col;
+      if (!it.next_due) { status = 'no fixed date'; col = 'var(--txt3)'; }
+      else {
+        var days = Math.round((new Date(it.next_due + 'T00:00:00') - nowMs) / 86400000);
+        if (days < 0)        { status = 'overdue ' + (-days) + 'd'; col = 'var(--ve-c)'; }
+        else if (days <= 30) { status = 'due in ' + days + 'd';     col = 'var(--n-c)'; }
+        else                 { status = 'current';                  col = 'var(--vc-c)'; }
+      }
+      return '<div class="bf-sched-row">'
+        + '<div class="bf-sched-head"><span class="bf-sched-name">' + it.item + '</span>'
+        + '<span class="bf-sched-status" style="color:' + col + ';border-color:' + col + '">' + status + '</span></div>'
+        + '<div class="bf-sched-detail">' + it.detail + ' · ' + it.source + '</div>'
+        + '<div class="bf-sched-dates">Last set <strong style="color:var(--txt2)">' + fmtD(it.updated) + '</strong>'
+        + ' &nbsp;·&nbsp; Next due <strong style="color:var(--txt2)">' + fmtD(it.next_due) + '</strong>'
+        + (it.next_label ? ' <span style="color:var(--txt3)">(' + it.next_label + ')</span>' : '') + '</div>'
+        + '</div>';
+    }).join('');
   }
 
   // table
