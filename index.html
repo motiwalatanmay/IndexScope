@@ -663,7 +663,8 @@ body.light .hp-formula .k{color:#4f46e5}
 <!-- ================================================================ -->
 <div id="view-buffett" class="view">
   <style>
-  .bf-wrap{max-width:1000px}
+  .bf-wrap{max-width:1200px;margin:0 auto;padding:22px 32px 48px}
+  @media(max-width:680px){.bf-wrap{padding:14px 12px 36px}}
   .bf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
   .bf-tile{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px}
   .bf-tile-lbl{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--sub);margin-bottom:6px}
