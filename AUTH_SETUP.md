@@ -1,69 +1,54 @@
-# Google Sign-In setup (Firebase Auth)
+# Google Sign-In setup (Google Identity Services) — matches SectorScope
 
-The login gate is already coded in `index.html` but **inert** — the site behaves
-exactly as before until you paste your Firebase config. Follow these steps once.
+IndexScope uses an in-page **"Sign in with Google"** in the header, exactly like
+SectorScope. The dashboard stays publicly viewable; signing in shows the user's
+name + avatar and persists for 30 days. It **reuses the same Google OAuth client
+as SectorScope** (`575713517295-…`), so there's nothing to create — you just have
+to authorise the new domain.
 
-Total time: ~10 minutes. Cost: free (Firebase Spark plan).
+The code is already in `index.html` (search `GOOGLE_CLIENT_ID`). It activates
+automatically on `indexscope.in` and is skipped on localhost.
 
-## 1. Create a Firebase project
-1. Go to <https://console.firebase.google.com> and sign in with your Google account.
-2. **Add project** → name it `indexscope` (or reuse an existing project) → you can
-   disable Google Analytics for the project, it's not needed → **Create**.
+## The one required step: authorise indexscope.in on the OAuth client
 
-## 2. Register a Web app & copy the config
-1. On the project overview, click the **`</>` (Web)** icon → register app
-   (nickname `indexscope-web`; you do **not** need Firebase Hosting).
-2. Firebase shows a `firebaseConfig = { ... }` block. Copy these four values:
-   `apiKey`, `authDomain`, `projectId`, `appId`.
-   > These are **not secrets** — they're safe to commit to a public repo. Security
-   > comes from the authorized-domains list (step 4), not from hiding the key.
+1. Go to **Google Cloud Console → APIs & Services → Credentials**:
+   <https://console.cloud.google.com/apis/credentials>
+   (use the same Google account / project where SectorScope's OAuth client lives.)
+2. Click the **OAuth 2.0 Client ID** whose ID starts with **`575713517295-`**
+   (the one SectorScope uses).
+3. Under **Authorized JavaScript origins → + Add URI**, add **both**:
+   ```
+   https://indexscope.in
+   https://www.indexscope.in
+   ```
+4. (Authorized redirect URIs are NOT needed for GSI — leave them as they are.)
+5. **Save.** Changes can take a few minutes to propagate.
 
-## 3. Turn on Google sign-in
-1. Left menu → **Build → Authentication → Get started**.
-2. **Sign-in method** tab → **Google** → toggle **Enable** → pick a support email → **Save**.
+That's it — no new project, no Firebase, no billing card.
 
-## 4. Authorize your domain
-1. Authentication → **Settings → Authorized domains → Add domain**.
-2. Add **`indexscope.in`**. (`localhost` and `*.firebaseapp.com` are already there,
-   so local testing works too.)
+## How it behaves
+- Visitors see the dashboard normally, with a **"Sign in with Google"** button in
+  the top-right header (plus a Google One-Tap prompt on first visit).
+- After signing in, the header shows their **avatar + name**; click it to sign out.
+- The session lasts **30 days** (stored in `localStorage` as `is_user`), so they
+  stay signed in across visits.
 
-## 5. Paste the config into the site
-In `index.html`, find `var FIREBASE_CONFIG = {` (near the bottom, in the
-"GOOGLE SIGN-IN" section) and fill in the four values:
-
+## Optional: restrict who can sign in
+In `index.html`, set:
 ```js
-var FIREBASE_CONFIG = {
-  apiKey: "AIza...your-key...",
-  authDomain: "indexscope.firebaseapp.com",
-  projectId: "indexscope",
-  appId: "1:1234567890:web:abcdef..."
-};
+var AUTH_ALLOWLIST = ["motiwalatanmay0@gmail.com", "friend@gmail.com"]; // lowercase
 ```
+Empty list = any Google account may sign in. (Note: this is a **client-side** check
+— fine for a friendly gate, but not a hard security boundary, since the data files
+are publicly served. The login here is for identity/UX, same as SectorScope.)
 
-Commit & push. The login wall goes live on the next deploy. (`AUTH_ENABLED`
-flips to true automatically once `apiKey` is non-empty.)
+## Tracking who signs in
+Because this is client-side Google Sign-In (no backend), there's no automatic
+server-side list of who logged in. Options if you want that later:
+- **Counts:** turn on free Cloudflare Web Analytics (the domain is on Cloudflare now).
+- **Identities:** add a tiny `/signin` log endpoint to the `indexscope-live` worker
+  that records `{email, time}` on each sign-in (small follow-up; needs a worker deploy).
 
-## How to TRACK who's using it
-Firebase console → **Authentication → Users**. You get a live table of every
-person who signed in: **email, display name, sign-up date, last sign-in date,
-and the total count** at the top. That's your usage record — no extra code.
-
-## How to CONTROL access
-- **Block one person:** Authentication → Users → row menu → **Disable account**
-  (or Delete). A disabled user can no longer sign in.
-- **Pre-restrict to a known list:** in `index.html` set
-  `var AUTH_ALLOWLIST = ["you@gmail.com", "friend@gmail.com"];` (lowercase).
-  Anyone not on the list is signed out with a notice. Empty list = any Google
-  account may sign in (default).
-
-## Notes & limits
-- **Soft gate.** This gates the *UI*. The underlying `data/*.json` files are still
-  public URLs on GitHub Pages, so a technical user could fetch them directly. For
-  most purposes (knowing your audience + a block switch) this is what you want. If
-  you ever need *hard* gating, the data has to move behind the Cloudflare Worker
-  with token verification — a larger change.
-- **Consent screen.** Firebase auto-creates an OAuth consent screen using your
-  project name. With only basic email/profile scopes, sign-in works immediately;
-  some users may see an "unverified app" notice until you complete Google's app
-  verification (optional for a small audience).
-- **To turn the gate OFF again:** blank out `apiKey` in `FIREBASE_CONFIG` and push.
+## Turn it off
+Set `var AUTH_ENABLED = false;` near `GOOGLE_CLIENT_ID` in `index.html`, or change
+the hostname check. The dashboard then shows no sign-in control.

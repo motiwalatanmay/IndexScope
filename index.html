@@ -648,6 +648,8 @@ body.light .hp-formula .k{color:#4f46e5}
   .auth-signout{margin-top:14px;font-size:.78rem;color:var(--brand);background:none;border:none;cursor:pointer;font-weight:600}
   .auth-err{margin-top:14px;font-size:.8rem;color:var(--ve-c);background:var(--ve-tl);border:1px solid var(--ve-bd);border-radius:8px;padding:9px 12px}
   .auth-foot{margin-top:22px;font-size:.66rem;line-height:1.5;color:var(--ghost)}
+  .auth-btn{display:inline-flex;align-items:center;height:36px;overflow:hidden}
+  .auth-btn #gsiBtn{display:flex;align-items:center}
   .auth-chip{display:inline-flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:3px 4px 3px 10px;cursor:pointer}
   .auth-chip img{width:24px;height:24px;border-radius:50%;flex:none}
   .auth-chip .ac-em{font-size:.72rem;color:var(--sub);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -671,6 +673,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <div id="statusChip" class="status-chip"><svg class="ico ico-sm ico-spin"><use href="#i-loader"/></svg><span id="statusText">Loading&hellip;</span></div>
     <button class="btn btn-icon-only" onclick="refreshCurrent()" aria-label="Refresh"><svg class="ico"><use href="#i-refresh"/></svg><span class="btn-lbl">Refresh</span></button>
     <button class="btn btn-icon-only" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme"><svg class="ico"><use href="#i-sun"/></svg><span class="btn-lbl" id="themeBtnLbl">Light</span></button>
+    <div id="authBtn" class="auth-btn" style="display:none"></div>
     <div id="authChip" class="auth-chip" style="display:none" onclick="authSignOut()" title="Sign out"><img id="authChipImg" alt=""><span class="ac-em" id="authChipEm"></span></div>
   </div>
 </div>
@@ -4661,85 +4664,88 @@ function renderGlobalVal(){
   + '<div style="grid-column:1/-1;font-family:var(--mono);font-size:.55rem;color:var(--ghost);margin-top:2px">P/E source: '+(v.source||'')+' &middot; as of '+(v.asOf||'')+'</div>';
 }
 
-// ===================== GOOGLE SIGN-IN (Firebase Auth) =====================
-// Paste your Firebase web-app config below to ACTIVATE the login gate.
-// Until apiKey is filled in, AUTH stays OFF and the site behaves exactly as
-// before (no login wall). Setup steps: see AUTH_SETUP.md in the repo.
-var FIREBASE_CONFIG = {
-  apiKey: "",            // <-- paste from Firebase console -> Project settings -> Web app
-  authDomain: "",
-  projectId: "",
-  appId: ""
-};
-// Optional: restrict to specific emails (lowercase). Empty = any Google account
-// may sign in (you can still disable individuals in the Firebase console).
-var AUTH_ALLOWLIST = [];
+// ===================== GOOGLE SIGN-IN (Google Identity Services) =====================
+// In-page "Sign in with Google" in the header, matching SectorScope. The
+// dashboard stays publicly viewable; signing in shows the user's name + avatar
+// (and is where any member-only feature would hook in later). Reuses the SAME
+// Google OAuth client as SectorScope, so https://indexscope.in must be listed
+// under that client's "Authorized JavaScript origins". See AUTH_SETUP.md.
+var GOOGLE_CLIENT_ID = '575713517295-uo4blh9i4sqg1l6n37fv664v8uv8u0ed.apps.googleusercontent.com';
+var AUTH_SESSION_DAYS = 30;             // how long a sign-in persists before re-login
+// Only run on the live domain; on localhost/preview it's skipped (the Google
+// client only authorises indexscope.in), so the rest of the app stays testable.
+var AUTH_ENABLED = /(^|\.)indexscope\.in$/i.test(location.hostname);
+var IS_USER = null;
 
-var AUTH_ENABLED = !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey);
-var AUTH_GOOGLE = null;
-var GOOGLE_G = '<svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+function _jwtDecode(t){
+  try{ var p=t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    return JSON.parse(decodeURIComponent(escape(atob(p)))); }catch(e){ return null; }
+}
+function _authStored(){
+  try{ var u=JSON.parse(localStorage.getItem('is_user')||'null');
+    if(u && u.exp && u.exp>Date.now()) return u; }catch(e){}
+  return null;
+}
 
-function authShowErr(msg){ var e=document.getElementById('authErr'); if(e){ e.textContent=msg; e.style.display='block'; } }
-function authHideErr(){ var e=document.getElementById('authErr'); if(e){ e.style.display='none'; } }
-
-function loadFirebaseSdk(){
+function loadGsi(){
   return new Promise(function(resolve,reject){
-    if(window.firebase && firebase.auth){ return resolve(); }
-    var base='https://www.gstatic.com/firebasejs/10.12.5/';
-    var s1=document.createElement('script'); s1.src=base+'firebase-app-compat.js';
-    s1.onload=function(){
-      var s2=document.createElement('script'); s2.src=base+'firebase-auth-compat.js';
-      s2.onload=function(){ resolve(); }; s2.onerror=reject; document.head.appendChild(s2);
-    };
-    s1.onerror=reject; document.head.appendChild(s1);
+    if(window.google && google.accounts && google.accounts.id) return resolve();
+    var s=document.createElement('script');
+    s.src='https://accounts.google.com/gsi/client'; s.async=true; s.defer=true;
+    s.onload=function(){ resolve(); }; s.onerror=reject; document.head.appendChild(s);
   });
 }
 
-function authShowSignIn(){
-  var chip=document.getElementById('authChip'); if(chip) chip.style.display='none';
-  document.getElementById('authGate').style.display='flex';
-  document.getElementById('authBody').innerHTML='<button class="auth-gbtn" onclick="authSignIn()">'+GOOGLE_G+'Sign in with Google</button>';
+function authRender(){
+  var btn=document.getElementById('authBtn'), chip=document.getElementById('authChip');
+  if(IS_USER){
+    if(btn) btn.style.display='none';
+    if(chip) chip.style.display='inline-flex';
+    var em=document.getElementById('authChipEm'); if(em) em.textContent=IS_USER.name||IS_USER.email||'';
+    var img=document.getElementById('authChipImg');
+    if(img){ if(IS_USER.picture){ img.src=IS_USER.picture; img.style.display=''; } else { img.style.display='none'; } }
+  } else {
+    if(chip) chip.style.display='none';
+    if(btn){
+      btn.style.display='inline-flex';
+      btn.innerHTML='<div id="gsiBtn"></div>';
+      try{
+        google.accounts.id.renderButton(document.getElementById('gsiBtn'),
+          {type:'standard', theme:'filled_blue', size:'medium', text:'signin', shape:'pill', logo_alignment:'left'});
+      }catch(e){}
+    }
+  }
 }
 
-function authOnSignedIn(u){
-  document.getElementById('authGate').style.display='none';
-  var chip=document.getElementById('authChip'); if(chip) chip.style.display='inline-flex';
-  var em=document.getElementById('authChipEm'); if(em) em.textContent=u.email||u.displayName||'';
-  var img=document.getElementById('authChipImg');
-  if(img){ if(u.photoURL){ img.src=u.photoURL; img.style.display=''; } else { img.style.display='none'; } }
+function authHandleCredential(resp){
+  var p=_jwtDecode(resp && resp.credential);
+  if(!p || p.aud!==GOOGLE_CLIENT_ID) return;          // basic audience check
+  IS_USER={ email:p.email, name:p.name, picture:p.picture||'',
+            exp: Date.now() + AUTH_SESSION_DAYS*864e5 };
+  try{ localStorage.setItem('is_user', JSON.stringify(IS_USER)); }catch(e){}
+  authRender();
 }
 
-function authSignIn(){
-  authHideErr();
-  if(!(window.firebase&&firebase.auth)) return;
-  firebase.auth().signInWithPopup(AUTH_GOOGLE).catch(function(e){
-    if(e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request')) return;
-    authShowErr((e&&e.message)||'Sign-in failed. Please try again.');
-  });
+function authSignOut(){
+  IS_USER=null;
+  try{ localStorage.removeItem('is_user'); }catch(e){}
+  try{ google.accounts.id.disableAutoSelect(); }catch(e){}
+  authRender();
 }
-function authSignOut(){ if(window.firebase&&firebase.auth) firebase.auth().signOut(); }
 
 function initAuth(){
-  if(!AUTH_ENABLED) return;                       // inert until config is set
-  var gate=document.getElementById('authGate');
-  if(gate) gate.style.display='flex';             // cover the app while resolving
-  loadFirebaseSdk().then(function(){
-    firebase.initializeApp(FIREBASE_CONFIG);
-    AUTH_GOOGLE=new firebase.auth.GoogleAuthProvider();
-    firebase.auth().onAuthStateChanged(function(user){
-      if(user){
-        var email=(user.email||'').toLowerCase();
-        if(AUTH_ALLOWLIST.length && AUTH_ALLOWLIST.indexOf(email)<0){
-          authShowErr((user.email||'This account')+' is not on the access list.');
-          setTimeout(function(){ firebase.auth().signOut(); }, 1800);
-          return;
-        }
-        authOnSignedIn(user);
-      } else {
-        authShowSignIn();
-      }
+  if(!AUTH_ENABLED) return;                            // skipped on localhost/preview
+  IS_USER=_authStored();                               // 30-day persisted session
+  loadGsi().then(function(){
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: authHandleCredential,
+      auto_select: true,
+      cancel_on_tap_outside: true,
     });
-  }).catch(function(){ authShowErr('Could not load sign-in. Check your connection and refresh.'); });
+    authRender();
+    if(!IS_USER){ try{ google.accounts.id.prompt(); }catch(e){} }   // One Tap on first visit
+  }).catch(function(){ /* network issue — header just shows no sign-in control */ });
 }
 
 (function init() {
