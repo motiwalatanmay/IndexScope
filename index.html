@@ -929,10 +929,12 @@ body.light .hp-formula .k{color:#4f46e5}
 
     <div class="gl-section-title">Valuation &mdash; Trailing P/E vs Long-Run Band</div>
     <div class="gl-val-note" id="glValNote">
-      Unlike the India cards (ranked against their own 10-yr P/E history), there is no
-      free historical P/E feed for foreign indices &mdash; so these compare current
-      trailing P/E to a static long-run reference band. Treat as a coarse cheap/fair/rich
-      read, refreshed periodically.
+      Current trailing P/E vs a static long-run band (no free <em>historical</em> P/E feed
+      exists for foreign indices, so these aren't own-history percentiles like the India
+      cards). Non-India figures use worldperatio's consistent country-basket methodology for
+      cross-country comparability &mdash; broad baskets that can differ from a single headline
+      index. <strong>India uses NSE Nifty 50</strong> to match the Dashboard. Coarse
+      cheap/fair/rich read, refreshed periodically.
     </div>
     <div id="glValGrid" class="gl-val-grid"></div>
   </div>
@@ -4606,10 +4608,11 @@ function renderGlobalVal(){
   grid.innerHTML = items.map(function(it){
     var m=meta[it.key]||{name:it.key,region:''};
     var cape = it.cape ? '<div class="gl-vc-cape">Shiller CAPE '+it.cape+'</div>' : '';
+    var src = it.src ? ' <small style="color:var(--brand)">'+it.src+'</small>' : '';
     return '<div class="gl-vcard '+it.verdict+'">'
       +'<div class="gl-vc-name">'+m.name+'</div>'
       +'<div class="gl-vc-region">'+m.region+'</div>'
-      +'<div class="gl-vc-pe">'+it.pe.toFixed(1)+' <small>P/E</small></div>'
+      +'<div class="gl-vc-pe">'+it.pe.toFixed(1)+' <small>P/E</small>'+src+'</div>'
       +'<div class="gl-vc-band">long-run band '+it.refLo+'&ndash;'+it.refHi+'</div>'
       +'<span class="gl-vc-tag '+it.verdict+'">'+it.verdict+'</span>'+cape
       +'</div>';

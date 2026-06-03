@@ -56,7 +56,8 @@ def country_pes() -> dict:
 def sp_cape() -> float | None:
     try:
         txt = re.sub(r"<[^>]+>", " ", get("https://www.multpl.com/shiller-pe"))
-        m = re.search(r"Current\s*([0-9]+\.[0-9]+)", txt)
+        # Format: "Current Shiller PE Ratio : 42.84 ..."
+        m = re.search(r"Current[^0-9]*([0-9]+\.[0-9]+)", txt)
         return float(m.group(1)) if m else None
     except Exception:
         return None
@@ -99,13 +100,33 @@ def main() -> int:
         print(f"{key:>7}  pe={rec['pe']:>5}  band={lo}-{hi}  -> {rec['verdict']}"
               + (f"  cape={rec.get('cape')}" if rec.get("cape") else ""))
 
+    # India: override with the authoritative NSE Nifty 50 P/E (same number the
+    # Dashboard tab shows) instead of worldperatio's broad-India basket, so the
+    # two tabs reconcile. Cross-check: worldperatio India ~23 vs NSE Nifty ~20.
+    try:
+        n50 = json.loads((DATA_DIR / "n50.json").read_text())
+        rows = n50.get("data", [])
+        last_pe = next((r[2] for r in reversed(rows) if len(r) > 2 and r[2]), None)
+        if last_pe:
+            for rec in out:
+                if rec["key"] == "nifty":
+                    rec["pe"] = round(float(last_pe), 2)
+                    rec["verdict"] = verdict(rec["pe"], rec["refLo"], rec["refHi"])
+                    rec["src"] = "NSE"
+                    print(f"  nifty override -> NSE Nifty 50 P/E {rec['pe']} ({rec['verdict']})")
+    except Exception as e:
+        print(f"WARN: nifty NSE override failed: {e}", file=sys.stderr)
+
     doc = {
         "status": "ok",
         "fetchedAt": now_utc.isoformat().replace("+00:00", "Z"),
         "asOf": now_utc.astimezone(IST).strftime("%Y-%m-%d"),
-        "source": "worldperatio.com (trailing P/E) + multpl.com (US CAPE)",
-        "note": "Trailing P/E. Bands are static long-run references, not "
-                "own-history percentiles. Manual periodic refresh.",
+        "source": "worldperatio.com country baskets (trailing P/E) · India=NSE Nifty 50 · US CAPE=multpl.com",
+        "note": "Trailing P/E. Non-India figures use worldperatio's consistent "
+                "country-basket methodology (operating earnings) for cross-country "
+                "comparability — these are broad baskets and can differ from a single "
+                "headline index. India uses NSE Nifty 50 to match the Dashboard. "
+                "Bands are static long-run references, not own-history percentiles.",
         "indices": out,
     }
     (DATA_DIR / "global_val.json").write_text(
