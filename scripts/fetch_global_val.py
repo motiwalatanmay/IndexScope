@@ -129,10 +129,31 @@ def main() -> int:
         f = int(k)
         c = min(f + 1, len(v) - 1)
         return v[f] + (v[c] - v[f]) * (k - f)
+    # Append today's worldperatio reading to the rolling P/E history (de-duped
+    # by date), then band off the UPDATED history — so the bands self-mature as
+    # the daily Action runs. Seeded once from Wayback (seed_global_pe_history.py).
+    today = now_utc.astimezone(IST).strftime("%Y-%m-%d")
+    hist_path = DATA_DIR / "global_pe_history.json"
     try:
-        hist = json.loads((DATA_DIR / "global_pe_history.json").read_text()).get("byKey", {})
+        hist_doc = json.loads(hist_path.read_text())
     except Exception:
-        hist = {}
+        hist_doc = {"source": "worldperatio.com (live-extended)",
+                    "metric": "trailing P/E (country basket)", "byKey": {}}
+    by_key = hist_doc.setdefault("byKey", {})
+    for key, (country, _lo, _hi) in MAP.items():
+        pe_today = euro if country == "__euro__" else pes.get(country)
+        if pe_today is None:
+            continue
+        ser = by_key.setdefault(key, [])
+        ser[:] = [p for p in ser if p[0] != today]      # replace same-day point
+        ser.append([today, round(float(pe_today), 2)])
+        ser.sort()
+    hist_doc["lastUpdated"] = today
+    hist_path.write_text(json.dumps(hist_doc, separators=(",", ":")) + "\n")
+    print(f"  appended {today} to global_pe_history.json "
+          f"({len(by_key.get('spx', []))} pts for spx)")
+
+    hist = by_key
     for rec in out:
         if rec["key"] == "nifty":
             rec["bandNote"] = "long-run ref"
@@ -159,7 +180,8 @@ def main() -> int:
                 "country-basket methodology (operating earnings) for cross-country "
                 "comparability — these are broad baskets and can differ from a single "
                 "headline index. India uses NSE Nifty 50 to match the Dashboard. "
-                "Bands are static long-run references, not own-history percentiles.",
+                "Non-India bands are the p25-p75 of each market's own P/E history, which "
+                "extends daily; India uses a static long-run reference band.",
         "indices": out,
     }
     (DATA_DIR / "global_val.json").write_text(
