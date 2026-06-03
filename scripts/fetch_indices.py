@@ -19,6 +19,7 @@ INDICES = {
     "nn50":    "NIFTY NEXT 50",
     "nmid150": "NIFTY MIDCAP 150",
     "sc250":   "NIFTY SMALLCAP 250",
+    "n500":    "NIFTY 500",
 }
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"

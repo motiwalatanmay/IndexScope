@@ -3,3 +3,6 @@ node_modules/
 worker/.wrangler/
 worker/.dev.vars
 *.log
+
+.claude/
+data/n500_history_skip.json
