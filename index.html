@@ -751,7 +751,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="hp-p" style="font-size:.82rem;margin:6px 0 10px;color:var(--txt2);line-height:1.55"><strong>Profit-share</strong> tells you whether the <em>earnings</em> are healthy or stretched (margins mean-revert, so a high reading warns E itself could shrink). <strong>Market P/E</strong> (the live Nifty 50 / Nifty 500 multiple) tells you how richly those earnings are <em>priced</em>. What each combination means &mdash; your current zone is highlighted:</div>
       <table class="bf-quad">
         <tr><td class="bf-quad-corner"></td><td class="bf-quad-hd">Low market P/E</td><td class="bf-quad-hd">High market P/E</td></tr>
-        <tr><td class="bf-quad-hd">High<br>profit-share</td><td class="bf-quad-cell" data-cell="hi-lo">Earned by profits &mdash; watch margin mean-reversion</td><td class="bf-quad-cell" data-cell="hi-hi">Both stretched &mdash; richly valued (most cautious)</td></tr>
+        <tr><td class="bf-quad-hd">High<br>profit-share</td><td class="bf-quad-cell" data-cell="hi-lo">Earned by profits &mdash; margin risk down, but cheap multiple = re-rating upside</td><td class="bf-quad-cell" data-cell="hi-hi">Both stretched &mdash; richly valued (most cautious)</td></tr>
         <tr><td class="bf-quad-hd">Low<br>profit-share</td><td class="bf-quad-cell" data-cell="lo-lo">Cheap on recoverable earnings (most attractive)</td><td class="bf-quad-cell" data-cell="lo-hi">Paying up for weak earnings</td></tr>
       </table>
       <div class="hp-p" id="bfQuadRead" style="font-size:.82rem;margin:10px 0 0;color:var(--txt2);line-height:1.55">&mdash;</div>
@@ -3986,7 +3986,7 @@ function renderBuffett() {
     var peTxt = (pe50 != null ? '≈' + pe50.toFixed(0) + '×' : 'moderate');
     var verdict;
     if (psHigh && peHigh)       verdict = '<strong>Today: both stretched.</strong> Profit-share ' + psWord + ' AND the market P/E ' + peWord + ' — richly valued on both counts; margin mean-reversion and a P/E de-rating both in play.';
-    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, contained multiple.</strong> The Nifty 50 P/E (' + peTxt + ') is ' + peWord + ' — so the elevated Buffett reading is driven by <em>record profitability</em>, not a bubble multiple. The main risk is <strong>margin mean-reversion</strong> (earnings shrinking), not a large-cap P/E de-rating. The richer multiples sit in the small/mid-cap tail beyond the Nifty 500 — check those cards on the Dashboard.';
+    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, cheap multiple — a two-way setup.</strong> The reading is elevated because profitability is near record, not because multiples are stretched (Nifty 50 ' + peTxt + ', ' + peWord + '). Two mean-reversions pull opposite ways: <strong>margins reverting down is the risk</strong> (earnings near peak), while a <strong>P/E re-rating up with margins holding is the opportunity</strong> — the cheap large-cap multiple is a cushion. The bad case (expensive multiple <em>and</em> falling earnings) is concentrated in <strong>small-caps</strong> — check the Dashboard cards.';
     else if (!psHigh && peHigh) verdict = '<strong>Today: stretched multiple on sub-peak margins.</strong> You are paying up; the P/E is the main risk.';
     else                        verdict = '<strong>Today: both subdued.</strong> Neither profitability nor the multiple is stretched — a more comfortable zone.';
     var qEl = document.getElementById('bfQuadRead');
