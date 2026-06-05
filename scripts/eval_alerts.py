@@ -154,6 +154,8 @@ def current_values(key: str) -> dict:
     return {
         "pe_pct": pct_of_ref(hist, METRIC_COL["pe"]),
         "pb_pct": pct_of_ref(hist, METRIC_COL["pb"]),
+        "pe_abs": last[2] if len(last) > 2 else None,
+        "pb_abs": last[3] if len(last) > 3 else None,
         "level": last[1] if len(last) > 1 else None,
         "date": last[0],
     }
@@ -166,6 +168,10 @@ def observed_value(metric: str, cur: dict):
         return cur.get("pe_pct")
     if metric == "pb":
         return cur.get("pb_pct")
+    if metric == "pe_abs":
+        return cur.get("pe_abs")
+    if metric == "pb_abs":
+        return cur.get("pb_abs")
     if metric == "level":
         return cur.get("level")
     return None
@@ -181,10 +187,16 @@ def is_triggered(alert: dict, value) -> bool:
 def describe(alert: dict) -> str:
     name = INDEX_NAME.get(alert["index"], alert["index"])
     cmp = "≥" if alert["direction"] == "above" else "≤"
-    if alert["metric"] == "level":
-        return f"{name} index level {cmp} {alert['threshold']:g}"
-    m = "P/E" if alert["metric"] == "pe" else "P/B"
-    return f"{name} {m} {cmp} {alert['threshold']:g}% of reference"
+    metric = alert["metric"]
+    thr = alert["threshold"]
+    if metric == "level":
+        return f"{name} index level {cmp} {thr:g}"
+    if metric == "pe_abs":
+        return f"{name} P/E {cmp} {thr:g}"
+    if metric == "pb_abs":
+        return f"{name} P/B {cmp} {thr:g}"
+    m = "P/E" if metric == "pe" else "P/B"
+    return f"{name} {m} {cmp} {thr:g}% of reference"
 
 
 def value_str(metric: str, value) -> str:
@@ -192,6 +204,8 @@ def value_str(metric: str, value) -> str:
         return "—"
     if metric == "level":
         return f"{value:,.2f}"
+    if metric in ("pe_abs", "pb_abs"):
+        return f"{value:.2f}"
     return f"{value:.1f}% of ref"
 
 

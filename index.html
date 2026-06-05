@@ -1615,6 +1615,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="hp-p">Three trigger types, each <em>at or below</em> / <em>at or above</em> your threshold:</div>
       <div class="hp-card info">
         <div class="hp-p"><strong>P/E or P/B — % of reference.</strong> Fires when the index's P/E (or P/B) as a percentage of its weighted historical reference crosses your level. This is the same <em>% of ref</em> the cards show — below ~90% is cheap, above ~120% is expensive. Example: "alert me when Nifty 50 P/E is at or below 85% of ref."</div>
+        <div class="hp-p"><strong>P/E or P/B — absolute.</strong> Fires on the raw ratio rather than its % of reference. Not regime-adjusted, but useful if you think in absolute multiples. Example: "alert me when Nifty 50 P/E is at or below 18."</div>
         <div class="hp-p" style="margin-bottom:0"><strong>Index level.</strong> Fires on the raw index value. Example: "alert me when Nifty 50 is at or below 22,000."</div>
       </div>
 
@@ -4968,8 +4969,13 @@ function openAlertsFromBacktest(){
   try{
     var metric=(typeof BT_METRIC!=='undefined'?BT_METRIC:'pe');
     if(metric==='both') metric='pe';
-    pre.metric=metric;
-    if(typeof BT_MODE==='undefined'||BT_MODE==='relative'){
+    if(typeof BT_MODE!=='undefined' && BT_MODE==='absolute'){
+      // Absolute backtest is P/E-only — map to the absolute-P/E alert metric.
+      pre.metric='pe_abs';
+      var sp=document.getElementById('sPeThresh');
+      if(sp) pre.threshold=parseFloat(sp.value);
+    }else{
+      pre.metric=metric;
       var sl=document.getElementById(metric==='pb'?'pbThresh':'peThresh');
       if(sl) pre.threshold=parseInt(sl.value,10);
     }
@@ -4993,6 +4999,8 @@ function renderAlertsBody(pre){
     +'<div class="am-field"><label>Metric</label><select id="al-metric" onchange="alMetricChange()">'
       +'<option value="pe">P/E (% of reference)</option>'
       +'<option value="pb">P/B (% of reference)</option>'
+      +'<option value="pe_abs">P/E (absolute)</option>'
+      +'<option value="pb_abs">P/B (absolute)</option>'
       +'<option value="level">Index level</option></select></div>'
     +'<div class="am-field"><label>Condition</label><select id="al-dir">'
       +'<option value="below">At or below</option><option value="above">At or above</option></select></div>'
@@ -5017,9 +5025,12 @@ function alMetricChange(){
   var thr=document.getElementById('al-threshold');
   var hint=document.getElementById('al-hint');
   if(m==='level'){
-    suffix.textContent='index pts';
-    if(parseFloat(thr.value)<=200) thr.value='';
+    suffix.textContent='index pts'; thr.value='';
     hint.textContent='Email when the index value crosses this number (e.g. Nifty 50 below 22000).';
+  }else if(m==='pe_abs'||m==='pb_abs'){
+    var ml=(m==='pe_abs'?'P/E':'P/B');
+    suffix.textContent=ml; thr.value='';
+    hint.textContent='Email when the absolute '+ml+' ratio crosses this number (e.g. '+(m==='pe_abs'?'P/E below 18':'P/B below 3')+'). Not regime-adjusted. Checked twice daily (9am / 7pm IST).';
   }else{
     suffix.textContent='% of ref';
     if(!thr.value) thr.value='90';
@@ -5055,6 +5066,8 @@ function alLabel(a){
   var name=(ALERT_INDICES.find(function(p){return p[0]===a.index;})||[a.index,a.index])[1];
   var cmp=a.direction==='above'?'≥':'≤';
   if(a.metric==='level') return name+' level '+cmp+' '+a.threshold;
+  if(a.metric==='pe_abs') return name+' P/E '+cmp+' '+a.threshold;
+  if(a.metric==='pb_abs') return name+' P/B '+cmp+' '+a.threshold;
   return name+' '+(a.metric==='pe'?'P/E':'P/B')+' '+cmp+' '+a.threshold+'% of ref';
 }
 
