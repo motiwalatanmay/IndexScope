@@ -26,7 +26,7 @@ const INDEX_MAP = {
   n500:    "NIFTY 500",
 };
 const VALID_INDEX = new Set(Object.keys(INDEX_MAP));
-const VALID_METRIC = new Set(["pe", "pb", "level"]);
+const VALID_METRIC = new Set(["pe", "pb", "pe_abs", "pb_abs", "level"]);
 const VALID_DIR = new Set(["above", "below"]);
 const MAX_PER_INDEX = 2;
 const SESSION_DAYS = 30;
