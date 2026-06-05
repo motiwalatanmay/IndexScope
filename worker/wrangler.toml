@@ -1,6 +1,19 @@
 name = "indexscope-live"
 main = "src/worker.js"
 compatibility_date = "2025-01-01"
-
-# Free plan; no KV / D1 needed (uses built-in Cache API).
 workers_dev = true
+
+# Expected audience of Google ID tokens (the IndexScope OAuth client).
+[vars]
+GOOGLE_CLIENT_ID = "583500951310-6dapvdgbe6je6k6mi87qn2jt3ori90cj.apps.googleusercontent.com"
+
+# Alert + session storage. Create with:
+#   wrangler kv namespace create ALERTS
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "ALERTS"
+id = "a7164ba65a9e417c9cdbc5352ff3554c"
+
+# Secrets (NOT stored here — set once via wrangler):
+#   wrangler secret put JWT_SECRET     # any long random string, signs session tokens
+#   wrangler secret put ADMIN_KEY      # long random string, guards /admin/export
