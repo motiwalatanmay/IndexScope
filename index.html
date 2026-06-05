@@ -1212,6 +1212,10 @@ body.light .hp-formula .k{color:#4f46e5}
           <label>&nbsp;</label>
           <button class="btn-run" onclick="runBt()"><svg class="ico"><use href="#i-play"/></svg>Run Backtest</button>
         </div>
+        <div class="bt-field">
+          <label>&nbsp;</label>
+          <button class="btn" onclick="openAlertsFromBacktest()" title="Set an email alert at this threshold">🔔&nbsp;Set alert at this level</button>
+        </div>
       </div>
     </div>
 
@@ -4949,14 +4953,34 @@ function alertsExchangeSession(googleCredential){
   }).catch(function(){});
 }
 
-function openAlerts(preIndex){
+// Accepts either an index key string (pre-select index only) or a pre-fill
+// object {index, metric, direction, threshold}.
+function openAlerts(pre){
   document.getElementById('alerts-modal').classList.add('open');
-  renderAlertsBody(preIndex);
+  renderAlertsBody(typeof pre==='string' ? {index:pre} : pre);
+}
+
+// Open the alerts modal pre-filled from the current backtest settings:
+// same index, the selected metric, condition "at or below", and (in relative
+// mode) the threshold slider's "% of ref" value.
+function openAlertsFromBacktest(){
+  var pre={ index:(typeof DETAILS_INDEX!=='undefined'?DETAILS_INDEX:null), direction:'below' };
+  try{
+    var metric=(typeof BT_METRIC!=='undefined'?BT_METRIC:'pe');
+    if(metric==='both') metric='pe';
+    pre.metric=metric;
+    if(typeof BT_MODE==='undefined'||BT_MODE==='relative'){
+      var sl=document.getElementById(metric==='pb'?'pbThresh':'peThresh');
+      if(sl) pre.threshold=parseInt(sl.value,10);
+    }
+  }catch(e){}
+  openAlerts(pre);
 }
 function closeAlerts(){ document.getElementById('alerts-modal').classList.remove('open'); }
 document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeAlerts(); });
 
-function renderAlertsBody(preIndex){
+function renderAlertsBody(pre){
+  pre=pre||{};
   var body=document.getElementById('am-body');
   if(!alertSessionValid()){
     body.innerHTML='<div class="am-gate">Sign in (top-right) to create email alerts.<br><br>'
@@ -4979,8 +5003,11 @@ function renderAlertsBody(preIndex){
     +'<button class="am-save" id="al-save" onclick="saveAlert()">Set alert</button>'
     +'<div class="am-fb" id="al-fb"></div>'
     +'<div class="am-list"><div class="am-list-ttl">Your alerts</div><div id="al-list"><div class="am-empty">Loading&hellip;</div></div></div>';
-  if(preIndex){ var sel=document.getElementById('al-index'); if(sel) sel.value=preIndex; }
+  if(pre.index){ var sel=document.getElementById('al-index'); if(sel) sel.value=pre.index; }
+  if(pre.metric){ var ms=document.getElementById('al-metric'); if(ms) ms.value=pre.metric; }
+  if(pre.direction){ var ds=document.getElementById('al-dir'); if(ds) ds.value=pre.direction; }
   alMetricChange();
+  if(pre.threshold!=null && !isNaN(pre.threshold)){ var th=document.getElementById('al-threshold'); if(th) th.value=pre.threshold; }
   loadAlertsList();
 }
 
