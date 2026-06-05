@@ -49,6 +49,18 @@ jobs:
         continue-on-error: true
         run: python scripts/fetch_gsec.py
 
+      - name: Evaluate user alerts and email on crossings
+        # Non-fatal: a worker/Resend hiccup must not block the data refresh.
+        # Reads users' alerts from the worker, emails crossings via Resend,
+        # and updates data/alert_state.json (committed below).
+        continue-on-error: true
+        env:
+          WORKER_BASE: ${{ secrets.WORKER_BASE }}
+          ADMIN_KEY: ${{ secrets.ALERTS_ADMIN_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_FROM: ${{ secrets.ALERT_FROM }}
+        run: python scripts/eval_alerts.py
+
       - name: Commit updated data
         run: |
           git config user.name  "github-actions[bot]"

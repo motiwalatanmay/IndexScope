@@ -673,6 +673,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <div id="statusChip" class="status-chip"><svg class="ico ico-sm ico-spin"><use href="#i-loader"/></svg><span id="statusText">Loading&hellip;</span></div>
     <button class="btn btn-icon-only" onclick="refreshCurrent()" aria-label="Refresh"><svg class="ico"><use href="#i-refresh"/></svg><span class="btn-lbl">Refresh</span></button>
     <button class="btn btn-icon-only" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme"><svg class="ico"><use href="#i-sun"/></svg><span class="btn-lbl" id="themeBtnLbl">Light</span></button>
+    <button class="btn btn-icon-only" onclick="openAlerts()" id="alertsBtn" aria-label="Email alerts" title="Email alerts">🔔<span class="btn-lbl">Alerts</span></button>
     <div id="authBtn" class="auth-btn" style="display:none"></div>
     <div id="authChip" class="auth-chip" style="display:none" onclick="authSignOut()" title="Sign out"><img id="authChipImg" alt=""><span class="ac-em" id="authChipEm"></span></div>
   </div>
@@ -4789,11 +4790,18 @@ function authHandleCredential(resp){
             exp: Date.now() + AUTH_SESSION_DAYS*864e5 };
   try{ localStorage.setItem('is_user', JSON.stringify(IS_USER)); }catch(e){}
   authRender();
+  // Additive: exchange the Google credential for a worker session token so the
+  // alerts backend can trust the user's email. Failure here is silent and never
+  // affects the existing sign-in UX — alerts simply stay unavailable until the
+  // exchange succeeds on a later sign-in.
+  alertsExchangeSession(resp && resp.credential);
 }
 
 function authSignOut(){
   IS_USER=null;
   try{ localStorage.removeItem('is_user'); }catch(e){}
+  try{ localStorage.removeItem('is_session'); }catch(e){}   // additive: clear alerts session
+  ALERT_SESSION=null;
   try{ google.accounts.id.disableAutoSelect(); }catch(e){}
   authRender();
 }
@@ -4849,6 +4857,181 @@ function initAuth(){
       }
     });
 })();
+</script>
+
+<!-- ════════════════════ Email alerts (additive module) ════════════════════
+     Self-contained: a header button (#alertsBtn) opens this modal, where a
+     signed-in user creates valuation alerts that the twice-daily GitHub Action
+     emails on a threshold crossing. Talks to the same Cloudflare Worker as the
+     live-price proxy (LIVE_PROXY_URL). Nothing here touches the dashboard. -->
+<style>
+#alerts-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px}
+#alerts-modal.open{display:flex}
+#alerts-modal .am-box{background:var(--bg2,#15171c);color:var(--txt,#e7e9ee);border:1px solid var(--bdr,#2a2e37);border-radius:14px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#alerts-modal .am-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--bdr,#2a2e37)}
+#alerts-modal .am-head h3{margin:0;font-size:1rem}
+#alerts-modal .am-x{background:none;border:none;color:var(--sub,#9aa0ab);font-size:1.3rem;cursor:pointer;line-height:1}
+#alerts-modal .am-body{padding:16px 18px}
+#alerts-modal .am-gate{text-align:center;color:var(--sub,#9aa0ab);font-size:.85rem;padding:24px 8px}
+#alerts-modal .am-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+#alerts-modal .am-field label{font-size:.62rem;letter-spacing:.4px;text-transform:uppercase;color:var(--sub,#9aa0ab)}
+#alerts-modal select,#alerts-modal input{background:var(--bg3,#1c1f26);color:var(--txt,#e7e9ee);border:1px solid var(--bdr,#2a2e37);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:inherit}
+#alerts-modal .am-thr-wrap{display:flex;align-items:center;gap:8px}
+#alerts-modal .am-thr-wrap input{flex:1}
+#alerts-modal .am-thr-suffix{font-size:.72rem;color:var(--sub,#9aa0ab);white-space:nowrap}
+#alerts-modal .am-hint{font-size:.66rem;color:var(--sub,#9aa0ab);line-height:1.5;margin:-4px 0 12px}
+#alerts-modal .am-save{width:100%;background:var(--acc,#2563eb);color:#fff;border:none;border-radius:9px;padding:10px;font-size:.85rem;font-weight:600;cursor:pointer}
+#alerts-modal .am-save:disabled{opacity:.6;cursor:default}
+#alerts-modal .am-fb{font-size:.75rem;margin-top:8px;min-height:1em}
+#alerts-modal .am-fb.ok{color:#34d399}
+#alerts-modal .am-fb.err{color:#f87171}
+#alerts-modal .am-list{margin-top:18px;border-top:1px solid var(--bdr,#2a2e37);padding-top:14px}
+#alerts-modal .am-list-ttl{font-size:.62rem;letter-spacing:.4px;text-transform:uppercase;color:var(--sub,#9aa0ab);margin-bottom:8px}
+#alerts-modal .am-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--bdr,#2a2e37);border-radius:8px;margin-bottom:7px;font-size:.78rem}
+#alerts-modal .am-item-del{background:none;border:none;color:#f87171;cursor:pointer;font-size:.72rem}
+#alerts-modal .am-empty{font-size:.75rem;color:var(--sub,#9aa0ab)}
+</style>
+<div id="alerts-modal" onclick="if(event.target===this)closeAlerts()">
+  <div class="am-box">
+    <div class="am-head"><h3>🔔 Email alerts</h3><button class="am-x" onclick="closeAlerts()" aria-label="Close">&times;</button></div>
+    <div class="am-body" id="am-body"><div class="am-gate">Loading&hellip;</div></div>
+  </div>
+</div>
+<script>
+/* ── Email alerts: client logic (additive) ──────────────────────────── */
+var ALERT_SESSION = null;                 // {sessionToken,expiresAt,email,name,picture}
+var ALERTS_API = (typeof LIVE_PROXY_URL !== 'undefined' && LIVE_PROXY_URL) || '';
+var ALERT_INDICES = [
+  ['n50','Nifty 50'],['nn50','Nifty Next 50'],['nmid150','Nifty Midcap 150'],
+  ['sc250','Nifty Smallcap 250'],['n500','Nifty 500']
+];
+
+(function restoreAlertSession(){
+  try{
+    var s=JSON.parse(localStorage.getItem('is_session')||'null');
+    if(s && s.sessionToken && s.expiresAt && s.expiresAt>Date.now()) ALERT_SESSION=s;
+  }catch(e){}
+})();
+
+function alertSessionValid(){ return !!(ALERT_SESSION && ALERT_SESSION.sessionToken && ALERT_SESSION.expiresAt>Date.now()); }
+
+// Exchange a Google credential for a worker session token. Silent on failure.
+function alertsExchangeSession(googleCredential){
+  if(!googleCredential || !ALERTS_API) return;
+  fetch(ALERTS_API+'/session',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({token:googleCredential})
+  }).then(function(r){ return r.ok?r.json():null; }).then(function(s){
+    if(s && s.sessionToken){
+      ALERT_SESSION=s;
+      try{ localStorage.setItem('is_session', JSON.stringify(s)); }catch(e){}
+      if(document.getElementById('alerts-modal').classList.contains('open')) renderAlertsBody();
+    }
+  }).catch(function(){});
+}
+
+function openAlerts(){
+  document.getElementById('alerts-modal').classList.add('open');
+  renderAlertsBody();
+}
+function closeAlerts(){ document.getElementById('alerts-modal').classList.remove('open'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeAlerts(); });
+
+function renderAlertsBody(){
+  var body=document.getElementById('am-body');
+  if(!alertSessionValid()){
+    body.innerHTML='<div class="am-gate">Sign in (top-right) to create email alerts.<br><br>'
+      +'You\'ll get an email when an index crosses your chosen valuation level.</div>';
+    return;
+  }
+  var idxOpts=ALERT_INDICES.map(function(p){return '<option value="'+p[0]+'">'+p[1]+'</option>';}).join('');
+  body.innerHTML=
+    '<div class="am-field"><label>Index</label><select id="al-index">'+idxOpts+'</select></div>'
+    +'<div class="am-field"><label>Metric</label><select id="al-metric" onchange="alMetricChange()">'
+      +'<option value="pe">P/E (% of reference)</option>'
+      +'<option value="pb">P/B (% of reference)</option>'
+      +'<option value="level">Index level</option></select></div>'
+    +'<div class="am-field"><label>Condition</label><select id="al-dir">'
+      +'<option value="below">At or below</option><option value="above">At or above</option></select></div>'
+    +'<div class="am-field"><label>Threshold</label><div class="am-thr-wrap">'
+      +'<input id="al-threshold" type="number" step="any" min="0" value="90">'
+      +'<span class="am-thr-suffix" id="al-thr-suffix">% of ref</span></div></div>'
+    +'<div class="am-hint" id="al-hint"></div>'
+    +'<button class="am-save" id="al-save" onclick="saveAlert()">Set alert</button>'
+    +'<div class="am-fb" id="al-fb"></div>'
+    +'<div class="am-list"><div class="am-list-ttl">Your alerts</div><div id="al-list"><div class="am-empty">Loading&hellip;</div></div></div>';
+  alMetricChange();
+  loadAlertsList();
+}
+
+function alMetricChange(){
+  var m=document.getElementById('al-metric').value;
+  var suffix=document.getElementById('al-thr-suffix');
+  var thr=document.getElementById('al-threshold');
+  var hint=document.getElementById('al-hint');
+  if(m==='level'){
+    suffix.textContent='index pts';
+    if(parseFloat(thr.value)<=200) thr.value='';
+    hint.textContent='Email when the index value crosses this number (e.g. Nifty 50 below 22000).';
+  }else{
+    suffix.textContent='% of ref';
+    if(!thr.value) thr.value='90';
+    hint.textContent='“% of reference” is the primary band the cards show. Below 90% ≈ cheap, above 120% ≈ expensive. Checked twice daily (9am / 7pm IST).';
+  }
+}
+
+function alFb(msg,type){ var el=document.getElementById('al-fb'); if(el){ el.textContent=msg; el.className='am-fb '+(type||''); } }
+
+function saveAlert(){
+  if(!alertSessionValid()){ alFb('Please sign in again.','err'); return; }
+  var index=document.getElementById('al-index').value;
+  var metric=document.getElementById('al-metric').value;
+  var direction=document.getElementById('al-dir').value;
+  var threshold=parseFloat(document.getElementById('al-threshold').value);
+  if(!(threshold>0)){ alFb('Enter a threshold above 0.','err'); return; }
+  var btn=document.getElementById('al-save'); btn.disabled=true;
+  fetch(ALERTS_API+'/alerts',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+ALERT_SESSION.sessionToken},
+    body:JSON.stringify({index:index,metric:metric,direction:direction,threshold:threshold})
+  }).then(function(r){
+    if(r.status===409){ alFb('Max 2 alerts per index. Remove one first.','err'); return null; }
+    if(!r.ok) throw new Error('save failed');
+    return r.json();
+  }).then(function(d){
+    if(d){ alFb('✓ Alert set — we\'ll email '+ALERT_SESSION.email,'ok'); loadAlertsList(); }
+  }).catch(function(){ alFb('Could not save alert. Try again.','err'); })
+    .finally(function(){ btn.disabled=false; });
+}
+
+function alLabel(a){
+  var name=(ALERT_INDICES.find(function(p){return p[0]===a.index;})||[a.index,a.index])[1];
+  var cmp=a.direction==='above'?'≥':'≤';
+  if(a.metric==='level') return name+' level '+cmp+' '+a.threshold;
+  return name+' '+(a.metric==='pe'?'P/E':'P/B')+' '+cmp+' '+a.threshold+'% of ref';
+}
+
+function loadAlertsList(){
+  var list=document.getElementById('al-list');
+  if(!list||!alertSessionValid()) return;
+  fetch(ALERTS_API+'/alerts/all',{headers:{'Authorization':'Bearer '+ALERT_SESSION.sessionToken}})
+    .then(function(r){ return r.ok?r.json():{alerts:[]}; })
+    .then(function(d){
+      var alerts=(d&&d.alerts)||[];
+      if(!alerts.length){ list.innerHTML='<div class="am-empty">No alerts yet.</div>'; return; }
+      list.innerHTML=alerts.map(function(a){
+        return '<div class="am-item"><span>'+alLabel(a)+'</span>'
+          +'<button class="am-item-del" onclick="deleteAlert(\''+a.index+'\',\''+a.id+'\')">Remove</button></div>';
+      }).join('');
+    }).catch(function(){ list.innerHTML='<div class="am-empty">Could not load alerts.</div>'; });
+}
+
+function deleteAlert(index,id){
+  if(!alertSessionValid()) return;
+  fetch(ALERTS_API+'/alerts?index='+encodeURIComponent(index)+'&id='+encodeURIComponent(id),{
+    method:'DELETE', headers:{'Authorization':'Bearer '+ALERT_SESSION.sessionToken}
+  }).then(function(){ loadAlertsList(); }).catch(function(){});
+}
 </script>
 </body>
 </html>
