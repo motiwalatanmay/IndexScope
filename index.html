@@ -1295,6 +1295,7 @@ body.light .hp-formula .k{color:#4f46e5}
         <a onclick="scrollToSection('h-limits')">7 · Limits &amp; caveats</a>
         <a onclick="scrollToSection('h-buffett')">8 · Buffett Indicator (mcap/GDP)</a>
         <a onclick="scrollToSection('h-crossasset')">9 · Cross-asset &amp; relative</a>
+        <a onclick="scrollToSection('h-alerts')">10 · Email alerts</a>
       </div>
     </div>
 
@@ -1598,6 +1599,23 @@ body.light .hp-formula .k{color:#4f46e5}
         <div class="hp-p" style="margin-bottom:0">The index cards can each say "expensive" at the same time, leaving you no steer on <em>where</em> to lean. The relative ratio is what tells you whether the froth is concentrated down the cap curve — the single most useful input for a large-vs-small tilt that the absolute bands cannot give you.</div>
       </div>
       <div class="hp-note" style="margin-top:10px">Both panels share the same percentile/band engine as the cards. The G-Sec series is refreshed daily; if that feed is briefly unavailable the panel falls back to the last embedded value, so the yield can lag by a day at worst.</div>
+    </div>
+
+    <!-- ══ 10. EMAIL ALERTS ══ -->
+    <div class="hp-sec" id="h-alerts">
+      <div class="hp-sec-h">10 · Email alerts</div>
+      <div class="hp-p">Don't want to check the dashboard every day? Set an <strong>email alert</strong> and IndexScope will notify you when an index crosses a valuation level you care about. Click the <strong>🔔 Alerts</strong> button in the header (sign in first), pick an index, a metric, a condition, and a threshold.</div>
+
+      <div class="hp-sub-h">What you can alert on</div>
+      <div class="hp-p">Three trigger types, each <em>at or below</em> / <em>at or above</em> your threshold:</div>
+      <div class="hp-card info">
+        <div class="hp-p"><strong>P/E or P/B — % of reference.</strong> Fires when the index's P/E (or P/B) as a percentage of its weighted historical reference crosses your level. This is the same <em>% of ref</em> the cards show — below ~90% is cheap, above ~120% is expensive. Example: "alert me when Nifty 50 P/E is at or below 85% of ref."</div>
+        <div class="hp-p" style="margin-bottom:0"><strong>Index level.</strong> Fires on the raw index value. Example: "alert me when Nifty 50 is at or below 22,000."</div>
+      </div>
+
+      <div class="hp-sub-h">How it works</div>
+      <div class="hp-p">Alerts are checked <strong>twice daily, at ~9am and ~7pm IST</strong>, right after the index data refreshes. You'll get one email <em>per crossing</em> — when a condition first becomes true — not a repeat every run while it stays true. Up to <strong>2 alerts per index</strong>; manage or remove them anytime from the same 🔔 Alerts panel.</div>
+      <div class="hp-note" style="margin-top:10px">Emails come from <strong>alerts@indexscope.in</strong>. Because alerts run on the twice-daily schedule, a fast intraday move that reverses before the next check may not trigger — these are valuation alerts for patient positioning, not real-time price tickers. Your email is only used to send the alerts you create.</div>
     </div>
 
   </div>
