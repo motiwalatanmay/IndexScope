@@ -1005,6 +1005,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <span class="det-title" id="detTitle">&mdash;</span>
       <span class="det-title-sub" id="detTitleSub">&mdash;</span>
     </div>
+    <button class="btn btn-icon-only" style="margin-left:auto" onclick="openAlerts(DETAILS_INDEX)" title="Set an email alert for this index">🔔<span class="btn-lbl">Set alert</span></button>
   </div>
   <div class="subnav">
     <div class="subnav-tab active" onclick="showSub('overview',this)"><svg class="ico"><use href="#i-layers"/></svg>Details</div>
@@ -4948,14 +4949,14 @@ function alertsExchangeSession(googleCredential){
   }).catch(function(){});
 }
 
-function openAlerts(){
+function openAlerts(preIndex){
   document.getElementById('alerts-modal').classList.add('open');
-  renderAlertsBody();
+  renderAlertsBody(preIndex);
 }
 function closeAlerts(){ document.getElementById('alerts-modal').classList.remove('open'); }
 document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeAlerts(); });
 
-function renderAlertsBody(){
+function renderAlertsBody(preIndex){
   var body=document.getElementById('am-body');
   if(!alertSessionValid()){
     body.innerHTML='<div class="am-gate">Sign in (top-right) to create email alerts.<br><br>'
@@ -4978,6 +4979,7 @@ function renderAlertsBody(){
     +'<button class="am-save" id="al-save" onclick="saveAlert()">Set alert</button>'
     +'<div class="am-fb" id="al-fb"></div>'
     +'<div class="am-list"><div class="am-list-ttl">Your alerts</div><div id="al-list"><div class="am-empty">Loading&hellip;</div></div></div>';
+  if(preIndex){ var sel=document.getElementById('al-index'); if(sel) sel.value=preIndex; }
   alMetricChange();
   loadAlertsList();
 }
