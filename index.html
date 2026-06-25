@@ -343,6 +343,27 @@ body.light .bt-mode-opt.active{box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .bt-stat-val{font-family:var(--mono);font-size:1.3rem;font-weight:700;color:var(--txt);letter-spacing:-.01em;line-height:1}
 .bt-stat-sub{font-family:var(--mono);font-size:.5rem;color:var(--ghost);margin-top:3px;letter-spacing:.3px}
 
+/* ===== Projections ===== */
+.pj-disc{background:var(--bg2);border:1px solid var(--bdr);border-left:3px solid var(--acc2,#eab308);border-radius:10px;padding:10px 14px;font-size:.72rem;line-height:1.5;color:var(--sub);margin-bottom:18px}
+.pj-headline{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:6px 0 4px}
+.pj-headline .pj-price{font-family:var(--mono);font-size:2.1rem;font-weight:800;color:var(--txt);line-height:1}
+.pj-headline .pj-price .cur{font-size:1.1rem;color:var(--sub);font-weight:600;margin-right:2px}
+.pj-up{font-family:var(--mono);font-size:1.05rem;font-weight:700}
+.pj-up.pos{color:var(--vc-c)}.pj-up.neg{color:var(--e-c)}
+.pj-formula{font-family:var(--mono);font-size:.62rem;color:var(--ghost);margin-bottom:18px;letter-spacing:.2px}
+.pj-chart-wrap{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:14px 14px 6px;margin-bottom:18px}
+.pj-chart-title{font-family:var(--mono);font-size:.55rem;font-weight:700;color:var(--txt);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.pj-chart-title span{color:var(--ghost);font-weight:400;text-transform:none;letter-spacing:0}
+.pj-matrix{width:100%;border-collapse:separate;border-spacing:6px;font-family:var(--mono)}
+.pj-matrix caption{caption-side:top;text-align:left;font-size:.55rem;font-weight:700;color:var(--txt);text-transform:uppercase;letter-spacing:.8px;padding-bottom:10px}
+.pj-matrix th{font-size:.58rem;color:var(--sub);font-weight:600;padding:6px;text-transform:uppercase;letter-spacing:.5px}
+.pj-matrix td{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:10px 8px;text-align:center}
+.pj-matrix td.base{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}
+.pj-cell-px{font-size:.92rem;font-weight:700;color:var(--txt);line-height:1.1}
+.pj-cell-up{font-size:.62rem;font-weight:700;margin-top:3px}
+.pj-cell-up.pos{color:var(--vc-c)}.pj-cell-up.neg{color:var(--e-c)}
+@media(max-width:640px){.pj-headline .pj-price{font-size:1.6rem}.pj-matrix td{padding:7px 4px}.pj-cell-px{font-size:.78rem}}
+
 .bt-table-wrap{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;overflow:auto;max-height:520px}
 .bt-table{width:100%;border-collapse:collapse;min-width:700px;font-family:var(--mono)}
 .bt-table th{font-size:.52rem;color:var(--ghost);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--bdr);background:var(--bg3);text-align:right;text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;white-space:nowrap}
@@ -667,6 +688,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <button class="ptab active" onclick="showMainView('dashboard',this)">Dashboard</button>
     <button class="ptab" onclick="showMainView('buffett',this)">Buffett</button>
     <button class="ptab" onclick="showMainView('global',this)">Global</button>
+    <button class="ptab" onclick="showMainView('projections',this)">Projections</button>
     <button class="ptab" onclick="showMainView('help',this)">Help</button>
   </div>
   <div class="hdr-right">
@@ -992,6 +1014,49 @@ body.light .hp-formula .k{color:#4f46e5}
       cheap/fair/rich read, refreshed periodically.
     </div>
     <div id="glValGrid" class="gl-val-grid"></div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- VIEW: PROJECTIONS                                                 -->
+<!-- ================================================================ -->
+<div id="view-projections" class="view">
+  <div class="dash-wrap">
+  <div class="gl-section-title" style="margin-bottom:6px">Index Price Projections</div>
+  <p class="hp-p" style="margin-top:0">Estimates where an index could trade if its valuation multiple reverts to its weighted historical median and earnings (or book value) recover to their historical peak. The headline is that base case; the chart and matrix flex each lever &mdash; multiple at 90&nbsp;/&nbsp;100&nbsp;/&nbsp;110% of median, fundamental at 90&nbsp;/&nbsp;100&nbsp;/&nbsp;110% of peak.</p>
+  <div class="pj-disc">⚠ <strong>Educational use only &mdash; not investment advice.</strong> These are mechanical what-if estimates, not forecasts or price targets. Real prices depend on growth, interest rates, sentiment and other factors not modelled here. Past medians and peaks may never repeat. Do your own research.</div>
+
+  <div class="bt-controls" style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px">
+    <div class="bt-field">
+      <label>Index</label>
+      <select id="pjIndex" onchange="pjOnChange()"></select>
+    </div>
+    <div class="bt-field">
+      <label>Valuation metric</label>
+      <div class="bt-metric-group">
+        <button class="bt-metric-btn active" id="pjMetricPE" onclick="pjSetMetric('pe',this)">P / E</button>
+        <button class="bt-metric-btn" id="pjMetricPB" onclick="pjSetMetric('pb',this)">P / B</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pjBody" style="display:none">
+    <div class="bt-summary" id="pjStats"></div>
+
+    <div class="pj-headline">
+      <span class="pj-price" id="pjProjPrice">&mdash;</span>
+      <span class="pj-up" id="pjUpside">&mdash;</span>
+      <span style="font-family:var(--mono);font-size:.62rem;color:var(--ghost)">projected · base case</span>
+    </div>
+    <div class="pj-formula" id="pjFormula">&mdash;</div>
+
+    <div class="pj-chart-wrap">
+      <div class="pj-chart-title">Projection Paths <span>· solid = last 1Y actual · dotted = 9 scenario targets · time-to-target unknown</span></div>
+      <div id="pjChart"></div>
+    </div>
+
+    <table class="pj-matrix" id="pjMatrix"></table>
+  </div>
   </div>
 </div>
 
@@ -3058,6 +3123,13 @@ function showMainView(target, el) {
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Global Indices';
     try { renderGlobal(); } catch (e) {}
+  } else if (target === 'projections') {
+    document.getElementById('view-projections').classList.add('active');
+    CURRENT_VIEW = 'projections';
+    DETAILS_INDEX = null;
+    document.title = 'IndexScope \u2014 Projections';
+    try { pjEnter(); } catch (e) {}
+    setStatus('ok', INDEX_ORDER.length + ' indices loaded');
   } else {
     // 'dashboard' — also leaves any open details view
     document.getElementById('view-dashboard').classList.add('active');
@@ -3290,6 +3362,207 @@ function computeStats() {
     epsYoY, epsVsPeak, epsTurning,
     peTrend, pbTrend
   };
+}
+
+// ============================================================
+// PROJECTIONS
+// Reuses computeStats() (same weighted-median engine the dashboard
+// uses) by temporarily pointing HISTORY at the chosen index.
+// Projected price = (weighted-median multiple × multM) × (peak fundamental × multF).
+// ============================================================
+var PJ_MULTS = [0.9, 1.0, 1.1];
+var pjState = { key: '', mode: 'pe', data: null };
+
+function initPjOptions() {
+  var sel = document.getElementById('pjIndex');
+  if (!sel || sel.dataset.ready === '1') return;
+  INDEX_ORDER.forEach(function (k) {
+    var o = document.createElement('option');
+    o.value = k; o.textContent = INDICES[k].name;
+    sel.appendChild(o);
+  });
+  sel.dataset.ready = '1';
+}
+
+function pjCompute(key) {
+  var prev = HISTORY;
+  HISTORY = HISTORIES[key];
+  var s;
+  try { s = computeStats(); } finally { HISTORY = prev; }
+  if (!s) return null;
+  var rows = HISTORIES[key], maxEPS = 0, maxBV = 0;
+  for (var i = 0; i < rows.length; i++) {
+    var px = rows[i][1], pe = rows[i][2], pb = rows[i][3];
+    if (px > 0 && pe > 0) { var e = px / pe; if (e > maxEPS) maxEPS = e; }
+    if (px > 0 && pb > 0) { var b = px / pb; if (b > maxBV) maxBV = b; }
+  }
+  var from = dateAddDays(s.curDate, -365);
+  var series = rows.filter(function (r) { return r[0] >= from && r[1] > 0; })
+                   .map(function (r) { return { d: r[0], p: r[1] }; });
+  return { s: s, maxEPS: maxEPS, maxBV: maxBV, series: series };
+}
+
+function pjProj(c, multM, multF) {
+  var pe = pjState.mode === 'pe';
+  var refMult = pe ? c.s.peRef : c.s.pbRef;
+  var peakFund = pe ? c.maxEPS : c.maxBV;
+  var cur = c.s.curIndex;
+  if (!refMult || refMult <= 0 || !peakFund || peakFund <= 0) return { price: NaN, upside: NaN };
+  var price = (refMult * multM) * (peakFund * multF);
+  var upside = (cur > 0) ? (price / cur - 1) : NaN;
+  return { price: price, upside: upside };
+}
+
+function pjSetMetric(m, el) {
+  pjState.mode = m;
+  document.getElementById('pjMetricPE').classList.toggle('active', m === 'pe');
+  document.getElementById('pjMetricPB').classList.toggle('active', m === 'pb');
+  pjRender();
+}
+
+function pjOnChange() {
+  var sel = document.getElementById('pjIndex');
+  pjState.key = sel ? sel.value : '';
+  pjRender();
+}
+
+function pjEnter() {
+  initPjOptions();
+  if (!pjState.key) {
+    var sel = document.getElementById('pjIndex');
+    pjState.key = sel && sel.value ? sel.value : INDEX_ORDER[0];
+    if (sel) sel.value = pjState.key;
+  }
+  pjRender();
+}
+
+function pjINR(v) { return isNaN(v) ? '—' : Math.round(v).toLocaleString('en-IN'); }
+
+function pjRender() {
+  var body = document.getElementById('pjBody');
+  if (!pjState.key) { if (body) body.style.display = 'none'; return; }
+  var c = pjCompute(pjState.key);
+  if (!c) { if (body) body.style.display = 'none'; return; }
+  pjState.data = c;
+  if (body) body.style.display = 'block';
+
+  var pe = pjState.mode === 'pe';
+  var multLbl = pe ? 'P/E' : 'P/B';
+  var fundLbl = pe ? 'EPS' : 'BVPS';
+  var curMult = pe ? c.s.curPE : c.s.curPB;
+  var refMult = pe ? c.s.peRef : c.s.pbRef;
+  var curFund = pe ? c.s.curEPS : (c.s.curPB > 0 ? c.s.curIndex / c.s.curPB : NaN);
+  var peakFund = pe ? c.maxEPS : c.maxBV;
+
+  document.getElementById('pjStats').innerHTML =
+      pjStat('Current ' + multLbl, fmt(curMult), '—')
+    + pjStat('Weighted median ' + multLbl, fmt(refMult), '30%·3y + 60%·5y + 10%·10y')
+    + pjStat('Current ' + fundLbl, pjINR(curFund), '—')
+    + pjStat('Peak ' + fundLbl, pjINR(peakFund), 'full-history max');
+
+  var base = pjProj(c, 1.0, 1.0);
+  document.getElementById('pjProjPrice').innerHTML =
+    isNaN(base.price) ? '—' : '<span class="cur">₹</span>' + pjINR(base.price);
+  var upEl = document.getElementById('pjUpside');
+  upEl.className = 'pj-up ' + (base.upside >= 0 ? 'pos' : 'neg');
+  upEl.textContent = isNaN(base.upside) ? '—' : (base.upside >= 0 ? '+' : '') + (base.upside * 100).toFixed(1) + '% vs current';
+
+  document.getElementById('pjFormula').innerHTML =
+    'Projected = weighted-median ' + multLbl + ' × peak ' + fundLbl + '  =  '
+    + fmt(refMult) + ' × ' + pjINR(peakFund) + '  =  ₹' + pjINR(base.price)
+    + '  ·  current ₹' + pjINR(c.s.curIndex);
+
+  document.getElementById('pjChart').innerHTML = pjChart(c);
+  document.getElementById('pjMatrix').innerHTML = pjMatrix(c);
+}
+
+function pjStat(label, val, sub) {
+  return '<div class="bt-stat"><div class="bt-stat-label">' + label + '</div>'
+       + '<div class="bt-stat-val">' + val + '</div>'
+       + '<div class="bt-stat-sub">' + sub + '</div></div>';
+}
+
+function pjMatrix(c) {
+  var pe = pjState.mode === 'pe';
+  var multLbl = pe ? 'P/E' : 'P/B', fundLbl = pe ? 'EPS' : 'BVPS';
+  var html = '<caption>Scenario matrix · projected price (' + multLbl + ' across · ' + fundLbl + ' down · upside vs current below each)</caption>';
+  html += '<tr><th></th><th>' + multLbl + ' 90%</th><th>' + multLbl + ' MEDIAN</th><th>' + multLbl + ' 110%</th></tr>';
+  var fLab = ['90%', 'PEAK', '110%'];
+  PJ_MULTS.forEach(function (mF, fi) {
+    html += '<tr><th>' + fundLbl + ' ' + fLab[fi] + '</th>';
+    PJ_MULTS.forEach(function (mM) {
+      var r = pjProj(c, mM, mF);
+      var isBase = (mF === 1.0 && mM === 1.0);
+      var cls = r.upside >= 0 ? 'pos' : 'neg';
+      html += '<td class="' + (isBase ? 'base' : '') + '">'
+            + '<div class="pj-cell-px">₹' + pjINR(r.price) + '</div>'
+            + '<div class="pj-cell-up ' + cls + '">' + (r.upside >= 0 ? '+' : '') + (r.upside * 100).toFixed(1) + '%</div></td>';
+    });
+    html += '</tr>';
+  });
+  return html;
+}
+
+function pjChart(c) {
+  var series = c.series;
+  if (!series.length) return '';
+  var W = 720, H = 280, padL = 52, padR = 50, padT = 14, padB = 26;
+  var cur = c.s.curIndex;
+  var projs = [];
+  PJ_MULTS.forEach(function (mF, fi) {
+    PJ_MULTS.forEach(function (mM) {
+      var r = pjProj(c, mM, mF);
+      if (!isNaN(r.price)) projs.push({ price: r.price, up: r.upside, tier: fi });
+    });
+  });
+  var all = series.map(function (s) { return s.p; }).concat(projs.map(function (p) { return p.price; })).concat([cur]);
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+  var pad = (hi - lo) * 0.06 || 1; lo -= pad; hi += pad;
+  var actW = W * 0.6;
+  function x(i) { return padL + (series.length > 1 ? (i / (series.length - 1)) * (actW - padL) : 0); }
+  function y(v) { return padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB); }
+  var x0 = x(series.length - 1), y0 = y(cur), xEnd = W - padR;
+
+  // gridlines + price labels
+  var grid = '';
+  for (var g = 0; g <= 4; g++) {
+    var val = lo + (hi - lo) * g / 4, yy = y(val);
+    grid += '<line x1="' + padL + '" y1="' + yy.toFixed(1) + '" x2="' + xEnd + '" y2="' + yy.toFixed(1) + '" stroke="var(--bdr)" stroke-width="0.6" opacity="0.5"/>'
+          + '<text x="' + (padL - 6) + '" y="' + (yy + 3).toFixed(1) + '" text-anchor="end" font-size="9" fill="var(--ghost)" font-family="monospace">₹' + pjShortNum(val) + '</text>';
+  }
+  // actual price line
+  var d = series.map(function (s, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(s.p).toFixed(1); }).join(' ');
+  // today divider
+  var divider = '<line x1="' + x0.toFixed(1) + '" y1="' + padT + '" x2="' + x0.toFixed(1) + '" y2="' + (H - padB) + '" stroke="var(--ghost)" stroke-width="0.7" stroke-dasharray="2 3" opacity="0.6"/>';
+  // projection fan
+  var ops = [0.35, 0.65, 1.0];
+  var fan = '';
+  projs.forEach(function (p) {
+    var yy = y(p.price), col = p.up >= 0 ? 'var(--vc-c)' : 'var(--e-c)', op = ops[p.tier];
+    fan += '<line x1="' + x0.toFixed(1) + '" y1="' + y0.toFixed(1) + '" x2="' + xEnd.toFixed(1) + '" y2="' + yy.toFixed(1) + '" stroke="' + col + '" stroke-width="1.3" stroke-dasharray="3 3" opacity="' + op + '"/>'
+         + '<circle cx="' + xEnd.toFixed(1) + '" cy="' + yy.toFixed(1) + '" r="2.6" fill="' + col + '" opacity="' + op + '"/>';
+  });
+  // x labels
+  var xl = '<text x="' + padL + '" y="' + (H - 8) + '" font-size="9" fill="var(--ghost)" font-family="monospace">1Y ago</text>'
+         + '<text x="' + x0.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9" fill="var(--sub)" font-family="monospace">today</text>'
+         + '<text x="' + xEnd + '" y="' + (H - 8) + '" text-anchor="end" font-size="9" fill="var(--ghost)" font-family="monospace">projected →</text>';
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">'
+       + grid + divider
+       + '<path d="' + d + '" fill="none" stroke="var(--brand)" stroke-width="1.8"/>'
+       + '<circle cx="' + x0.toFixed(1) + '" cy="' + y0.toFixed(1) + '" r="3" fill="var(--brand)"/>'
+       + fan + xl
+       + '</svg>'
+       + '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-family:var(--mono);font-size:.55rem;color:var(--ghost)">'
+       + '<span style="color:var(--brand)">— Actual (1Y)</span>'
+       + '<span style="color:var(--vc-c)">┄ Projected · upside</span>'
+       + '<span style="color:var(--e-c)">┄ Projected · downside</span>'
+       + '<span>lighter→darker = ' + (pjState.mode === 'pe' ? 'EPS' : 'BVPS') + ' 90% → peak → 110%</span></div>';
+}
+
+function pjShortNum(v) {
+  if (v >= 100000) return (v / 1000).toFixed(0) + 'k';
+  if (v >= 1000) return (v / 1000).toFixed(1) + 'k';
+  return Math.round(v).toString();
 }
 
 // ============================================================
@@ -4251,6 +4524,10 @@ function refreshCurrent() {
     fetchAllLive()
       .then(function(){ return fetchLiveOverlay(); })
       .then(function(){ renderCards(); });
+  } else if (CURRENT_VIEW === 'projections') {
+    fetchAllLive()
+      .then(function(){ return fetchLiveOverlay(); })
+      .then(function(){ try { pjRender(); } catch(e){} });
   } else if (CURRENT_VIEW === 'details' && DETAILS_INDEX) {
     setStatus('loading', 'Fetching ' + INDICES[DETAILS_INDEX].name + '\u2026');
     fetchLiveFor(DETAILS_INDEX).then(function(r){
@@ -4871,6 +5148,7 @@ function initAuth(){
     .then(function(){ return fetchLiveOverlay(); })
     .then(function(liveResp){
       if (CURRENT_VIEW === 'dashboard') renderCards();
+      if (CURRENT_VIEW === 'projections') { try { pjRender(); } catch(e){} }
       if (CURRENT_VIEW === 'details' && DETAILS_INDEX) {
         try { renderDashboard(); } catch(e){}
         if (CURRENT_SUB === 'medians') { try { renderMedians(); } catch(e){} }
