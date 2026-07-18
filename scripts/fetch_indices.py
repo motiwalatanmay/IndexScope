@@ -29,17 +29,41 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
 
-TIMEOUT = 30          # per-request; NSE stalls on datacenter IPs, 15s was too tight
-ATTEMPTS = 5          # whole-session attempts (fresh cookies each time)
+TIMEOUT = 25          # per-request
+ATTEMPTS = 3          # attempts per source before moving on
+
+# The IndexScope Cloudflare Worker proxies NSE /api/allIndices from Cloudflare's
+# edge. That egress reaches NSE even when NSE tarpits GitHub's datacenter IPs
+# (the failure mode that started 2026-07-18), so it is the PRIMARY source here;
+# a direct NSE hit is the fallback for when the worker itself is down.
+WORKER_URL = "https://indexscope-live.motiwalatanmay0.workers.dev/"
 
 
-def _fetch_once() -> dict:
-    """One full attempt: fresh session, cookie warmup, then /api/allIndices.
+def _fetch_worker() -> dict:
+    """Fetch via the Cloudflare worker; normalise to the NSE /api/allIndices shape."""
+    r = requests.get(WORKER_URL, headers={"User-Agent": UA}, timeout=TIMEOUT)
+    r.raise_for_status()
+    prices = (r.json() or {}).get("prices") or {}
+    if not prices:
+        raise RuntimeError("worker returned no prices")
+    data = []
+    for key, nse_name in INDICES.items():
+        v = prices.get(key)
+        if not v:
+            continue
+        row = dict(v)
+        row["index"] = nse_name          # so extract()/to_row() work unchanged
+        data.append(row)
+    if not data:
+        raise RuntimeError("worker prices had none of the tracked indices")
+    return {"data": data}
 
-    NSE blocks /api/* without a prior page hit, and it periodically stalls on
-    GitHub's datacenter IPs — so the ENTIRE warmup+fetch flow (not just the API
-    call) must be retryable with fresh cookies. Any step timing out raises and
-    lets the outer loop retry.
+
+def _fetch_direct() -> dict:
+    """One full direct attempt: fresh session, cookie warmup, then /api/allIndices.
+
+    NSE blocks /api/* without a prior page hit, so the ENTIRE warmup+fetch flow
+    (not just the API call) is retried with fresh cookies by the caller.
     """
     s = requests.Session()
     s.headers.update({
@@ -57,17 +81,22 @@ def _fetch_once() -> dict:
 
 
 def fetch_all_indices() -> dict:
+    """Worker first (datacenter-IP safe), direct NSE as fallback; each retried."""
     last_err = None
-    for attempt in range(ATTEMPTS):
-        try:
-            return _fetch_once()
-        except Exception as e:
-            last_err = e
-            print(f"NSE fetch attempt {attempt + 1}/{ATTEMPTS} failed: "
-                  f"{type(e).__name__}: {e}", file=sys.stderr)
-            if attempt < ATTEMPTS - 1:
-                time.sleep(min(2 ** attempt, 30))  # 1,2,4,8,16s backoff
-    raise RuntimeError(f"NSE fetch failed after {ATTEMPTS} attempts: {last_err}")
+    for label, fn in (("worker", _fetch_worker), ("nse-direct", _fetch_direct)):
+        for attempt in range(ATTEMPTS):
+            try:
+                payload = fn()
+                if label != "worker" or attempt:
+                    print(f"NSE data via {label} (attempt {attempt + 1})", file=sys.stderr)
+                return payload
+            except Exception as e:
+                last_err = e
+                print(f"{label} attempt {attempt + 1}/{ATTEMPTS} failed: "
+                      f"{type(e).__name__}: {e}", file=sys.stderr)
+                if attempt < ATTEMPTS - 1:
+                    time.sleep(min(2 ** attempt, 8))
+    raise RuntimeError(f"NSE fetch failed via all sources: {last_err}")
 
 
 def extract(payload: dict, nse_name: str) -> dict | None:
