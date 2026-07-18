@@ -5116,9 +5116,14 @@ function initAuth(){
       callback: authHandleCredential,
       auto_select: true,
       cancel_on_tap_outside: true,
+      use_fedcm_for_prompt: true,   // Chrome requires FedCM for One Tap; without
+                                    // this GIS throws "FedCM ... NetworkError" 4x/load
     });
     authRender();
-    if(!IS_USER){ try{ google.accounts.id.prompt(); }catch(e){} }   // One Tap on first visit
+    // One Tap on first visit. Under FedCM a missing/ineligible Google session is a
+    // normal outcome (prompt just doesn't show) — never surface it as an error; the
+    // rendered "Sign in" button remains the reliable path.
+    if(!IS_USER){ try{ google.accounts.id.prompt(); }catch(e){} }
   }).catch(function(){ /* network issue — header just shows no sign-in control */ });
 }
 
