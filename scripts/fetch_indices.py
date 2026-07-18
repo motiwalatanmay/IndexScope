@@ -29,7 +29,18 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
 
-def fetch_all_indices() -> dict:
+TIMEOUT = 30          # per-request; NSE stalls on datacenter IPs, 15s was too tight
+ATTEMPTS = 5          # whole-session attempts (fresh cookies each time)
+
+
+def _fetch_once() -> dict:
+    """One full attempt: fresh session, cookie warmup, then /api/allIndices.
+
+    NSE blocks /api/* without a prior page hit, and it periodically stalls on
+    GitHub's datacenter IPs — so the ENTIRE warmup+fetch flow (not just the API
+    call) must be retryable with fresh cookies. Any step timing out raises and
+    lets the outer loop retry.
+    """
     s = requests.Session()
     s.headers.update({
         "User-Agent": UA,
@@ -38,18 +49,25 @@ def fetch_all_indices() -> dict:
         "Referer": "https://www.nseindia.com/",
     })
     # Cookie warmup — NSE blocks /api/* without a prior page hit.
-    s.get("https://www.nseindia.com/", timeout=15)
-    s.get("https://www.nseindia.com/market-data/live-equity-market", timeout=15)
+    s.get("https://www.nseindia.com/", timeout=TIMEOUT)
+    s.get("https://www.nseindia.com/market-data/live-equity-market", timeout=TIMEOUT)
+    r = s.get("https://www.nseindia.com/api/allIndices", timeout=TIMEOUT)
+    r.raise_for_status()
+    return r.json()
+
+
+def fetch_all_indices() -> dict:
     last_err = None
-    for attempt in range(3):
+    for attempt in range(ATTEMPTS):
         try:
-            r = s.get("https://www.nseindia.com/api/allIndices", timeout=15)
-            r.raise_for_status()
-            return r.json()
+            return _fetch_once()
         except Exception as e:
             last_err = e
-            time.sleep(2 ** attempt)
-    raise RuntimeError(f"NSE fetch failed after retries: {last_err}")
+            print(f"NSE fetch attempt {attempt + 1}/{ATTEMPTS} failed: "
+                  f"{type(e).__name__}: {e}", file=sys.stderr)
+            if attempt < ATTEMPTS - 1:
+                time.sleep(min(2 ** attempt, 30))  # 1,2,4,8,16s backoff
+    raise RuntimeError(f"NSE fetch failed after {ATTEMPTS} attempts: {last_err}")
 
 
 def extract(payload: dict, nse_name: str) -> dict | None:
