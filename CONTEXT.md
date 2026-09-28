@@ -30,7 +30,7 @@ Public-facing — a push to `main` can redeploy the live site (`[[project_indexs
 - G-Sec fetch MUST send `Referer: https://sectorscope.in/` / `Origin: https://sectorscope.in` (`scripts/fetch_gsec.py:28`) — SectorScope's worker is Referer-gated; no header, no data.
 - `worker/wrangler.toml:1-14` — `GOOGLE_CLIENT_ID` var + `ALERTS` KV binding are non-secret and CLI-deployed; `JWT_SECRET`/`ADMIN_KEY` are `wrangler secret put` only, never in the toml (wrangler.toml:16-18 comment).
 - Buffett indicator denominator is always the LATEST REPORTED ACTUAL GDP, never a forecast — hand-maintained constants documented inline in `scripts/fetch_buffett.py` (`[[project_indexscope]]`, "Buffett Indicator tab").
-- GH Action concurrency group `update-indices`, `cancel-in-progress: false` (update-indices.yml:11-13).
+- GH Action concurrency group `update-indices`, `cancel-in-progress: false` (update-indices.yml:13-15; shifted from 11-13 after the 2026-09 `checkout@v5`/`setup-python@v6` bump).
 
 ## Known failure modes
 - **G-Sec dependency risk (design-flagged):** if Prashant's SectorScope worker changes or blocks, the daily G-Sec refresh breaks silently; the embedded static fallback series holds but the live yield goes stale (`[[project_indexscope]]`, "DEPENDENCY RISK"). No alerting exists on this — inferred gap.
