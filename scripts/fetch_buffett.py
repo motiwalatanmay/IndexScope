@@ -7,7 +7,8 @@ MarketCapital endpoint. The denominator (nominal GDP) is not a live series —
 it is released annually/quarterly by MOSPI — so it lives as the constants below
 and is reconciled into data/buffett.json on every run.
 
-Runs from GitHub Actions twice daily alongside fetch_indices.py.
+Runs from the Mac (Jerry launchd com.jerry.indexscopebuffett): BSE returns 403 to
+GitHub runner and Cloudflare IPs (2026-10-06), so the Action no longer calls it.
 
 To update GDP when a new MOSPI/Budget print lands, edit GDP_FY25_ACTUAL /
 GDP_FY26_ESTIMATE below (₹ lakh crore) — they are the single source of truth.

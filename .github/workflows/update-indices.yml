@@ -39,10 +39,11 @@ jobs:
         continue-on-error: true
         run: python scripts/fetch_global_val.py
 
-      - name: Fetch BSE total market cap and recompute Buffett indicator
-        # Non-fatal: a BSE hiccup must not block the NSE index refresh.
-        continue-on-error: true
-        run: python scripts/fetch_buffett.py
+      # Buffett indicator: NOT fetched here. BSE's MarketCapital API returns 403 to
+      # GitHub runner IPs and to Cloudflare egress (2026-10-06), which froze
+      # data/buffett.json at 2026-09-23 behind continue-on-error. Jerry's Mac job
+      # com.jerry.indexscopebuffett (system/bin/indexscope_buffett_push.py) runs
+      # scripts/fetch_buffett.py from a residential IP and pushes buffett.json only.
 
       - name: Refresh India 10Y G-Sec series (EY-BY panel)
         # Non-fatal: frontend has an embedded fallback series.
@@ -69,6 +70,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "data: refresh NSE indices + Buffett indicator ($(date -u +%Y-%m-%dT%H:%MZ))"
-            git push
+            git commit -m "data: refresh NSE indices ($(date -u +%Y-%m-%dT%H:%MZ))"
+            # The Mac Buffett job may have pushed meanwhile; it only writes buffett.json.
+            for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep $((i*5)); done
           fi
