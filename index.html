@@ -695,6 +695,8 @@ body.light .hp-formula .k{color:#4f46e5}
 /* global detail */
 .gl-vcard{cursor:pointer}
 .gl-vcard.sel{outline:2px solid var(--txt);outline-offset:1px}
+.gl-vc-x{font-size:11px;line-height:1.4;color:var(--sub);margin-top:6px}
+.gl-vc-tag+.gl-vc-open{margin-left:8px}
 .gl-vc-open{margin-top:8px;padding:5px 9px;min-height:32px;border:1px solid var(--bdr);border-radius:6px;background:transparent;color:var(--txt);font-size:.72rem;cursor:pointer}
 .gl-vc-open:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .gl-vcard.nopx .gl-vc-pe small{font-size:.6rem}
@@ -812,6 +814,10 @@ body.light .hp-formula .k{color:#4f46e5}
   .bf-gauge-seg:last-child{border-radius:0 6px 6px 0}
   .bf-gauge-marker{position:absolute;top:-5px;width:3px;height:36px;background:var(--txt);border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,.6);z-index:2;transform:translateX(-1.5px)}
   .bf-gauge-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--sub);margin-top:4px}
+  .bf-gauge-scale.lin{display:block;position:relative;height:16px;font-size:11px}
+  .bf-gauge-scale.lin span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+  .bf-gauge-scale.lin span:first-child{transform:none}
+  .bf-gauge-scale.lin span:last-child{transform:translateX(-100%)}
   .bf-verdict-pill{display:inline-flex;font-family:var(--mono);font-size:.74rem;font-weight:700;padding:5px 14px;border-radius:14px;border:1px solid;letter-spacing:.4px;text-transform:uppercase}
   .bf-chart{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:16px 18px;margin:16px 0}
   .bf-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem}
@@ -864,7 +870,7 @@ body.light .hp-formula .k{color:#4f46e5}
         <div class="bf-gauge-seg" style="flex:35;background:var(--ve-c)"></div>
         <div class="bf-gauge-marker" id="bfGaugeMarker" style="left:50%"></div>
       </div>
-      <div class="bf-gauge-scale"><span>40%</span><span>70%</span><span>85%</span><span>100%</span><span>115%</span><span>150%</span></div>
+      <div class="bf-gauge-scale lin" aria-hidden="true"><span style="left:0">40%</span><span style="left:27.27%">70%</span><span style="left:40.91%">85%</span><span style="left:54.55%">100%</span><span style="left:68.18%">115%</span><span style="left:100%">150%</span></div>
     </div>
 
     <div class="bf-grid">
@@ -1559,7 +1565,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <div class="hp-sec" id="h-quickstart">
       <div class="hp-sec-h">1 · Quick start</div>
       <div class="hp-p">IndexScope answers one question: <strong>are India's major equity indices cheap or expensive right now, relative to their own history?</strong> It doesn't pick stocks — it tells you whether the index as a whole is trading at an unusual valuation vs where it has historically traded.</div>
-      <div class="hp-p">Four indices are tracked: <strong>Nifty 50, Nifty Next 50, Nifty Midcap 150, Nifty Smallcap 250</strong>. Each gets a card on the Dashboard. <span class="hp-inline-pill green">Green</span> = cheap vs history. <span class="hp-inline-pill amber">Yellow</span> = neutral. <span class="hp-inline-pill red">Red</span> = expensive.</div>
+      <div class="hp-p">The indices tracked are <strong id="hpIdxList">Nifty 50, Nifty Next 50, Nifty Midcap 150, Nifty Smallcap 250, Nifty 500</strong>. Each gets a card on the Dashboard. <span class="hp-inline-pill green">Green</span> = cheap vs history. <span class="hp-inline-pill amber">Yellow</span> = neutral. <span class="hp-inline-pill red">Red</span> = expensive.</div>
 
       <div class="hp-card tip">
         <div class="hp-card-ttl">Three-step workflow</div>
@@ -1586,7 +1592,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <!-- ══ 2. DASHBOARD / READING A CARD ══ -->
     <div class="hp-sec" id="h-dashboard">
       <div class="hp-sec-h">2 · The index Dashboard</div>
-      <div class="hp-p">The Dashboard is the home screen. All four indices are visible at once. Each card is colored by its P/E band — the card <em>border, top stripe, and background tint</em> all reflect the verdict.</div>
+      <div class="hp-p">The Dashboard is the home screen. Every tracked index is visible at once. Each card is colored by its P/E band — the card <em>border, top stripe, and background tint</em> all reflect the verdict.</div>
 
       <div class="hp-mock-outer">
         <div>
@@ -2866,6 +2872,8 @@ var HISTORIES = {
   n500: N500_HISTORY
 };
 var INDEX_ORDER = ['n50', 'nn50', 'nmid150', 'sc250', 'n500'];
+// Help lists the tracked indices from INDEX_ORDER, so the list never goes stale.
+try { var _hpIdx = document.getElementById('hpIdxList'); if (_hpIdx) _hpIdx.textContent = INDEX_ORDER.map(function(k){ return INDICES[k] ? INDICES[k].name : k; }).join(', '); } catch (e) {}
 HISTORY = HISTORIES[ACTIVE_INDEX];
 
 // Current view: 'dashboard' or 'details'
@@ -3056,6 +3064,7 @@ function eybyCardHTML() {
   var curEY = curPE > 0 ? 100 / curPE : null;
   var curBY = GSEC_HISTORY.length ? GSEC_HISTORY[GSEC_HISTORY.length-1][1] : null;
   var curSpread = (curEY != null && curBY != null) ? curEY - curBY : null;
+  var gapK = curSpread != null ? dpAddUp('-', curEY, curBY, curSpread, 2, 2, function(v){ return (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(2); }) : 0;
   // Trailing 10yr window: keeps the percentile within today's rate regime
   // (India's 2000s 9-11% yields are a different world and would skew a full-history rank).
   var cutoff = dateAddYears(h[h.length-1][0], -10);
@@ -3080,7 +3089,7 @@ function eybyCardHTML() {
     + '<div class="xa-card-ttl">Earnings Yield &minus; Bond Yield · Nifty 50</div>'
     + '<div class="xa-card-q">Are equities cheap versus the 10Y government bond? Higher gap = cheaper.</div>'
     + '<div class="xa-row"><div><div class="xa-big">' + (curSpread!=null ? (curSpread>=0?'+':'\u2212') + fmt(Math.abs(curSpread),2) + ' pp' : '—') + '</div>'
-    + '<div class="xa-big-sub">EY ' + (curEY!=null?fmt(curEY,2)+'%':'—') + ' &minus; 10Y ' + (curBY!=null?fmt(curBY,2)+'%':'—') + ' = ' + (curSpread!=null ? (curSpread>=0?'+':'&minus;') + fmt(Math.abs(curSpread),2) + ' pp' : '—') + '</div>'
+    + '<div class="xa-big-sub">EY ' + (curEY!=null?fmt(curEY,2+gapK)+'%':'—') + ' &minus; 10Y ' + (curBY!=null?fmt(curBY,2+gapK)+'%':'—') + ' = ' + (curSpread!=null ? (curSpread>=0?'+':'&minus;') + fmt(Math.abs(curSpread),2) + ' pp' : '—') + '</div>'
     + '<div class="xa-big-sub">' + gsecFreshnessHTML() + '</div></div>'
     + '<span class="xa-pill band-' + band + '">' + interp + '</span></div>'
     + '<div class="xa-pbar-lbl"><span>Cheap vs bonds</span><span>Rich vs bonds</span></div>'
@@ -3504,6 +3513,16 @@ function getBand(pct) {
 function bandLabel(b) {
   return {vcheap:'Very Cheap',cheap:'Cheap',neutral:'Neutral',expensive:'Expensive',vexpensive:'Very Expensive'}[b]||b;
 }
+// Display only: the fewest extra decimals that make the shown inputs reproduce the shown result
+// (e.g. "EY 5.258% - 10Y 7.245% = -1.99 pp"). op is '*' or '-'; show() is the result's own formatter.
+function dpAddUp(op, a, b, res, aDp, bDp, show) {
+  if (typeof a !== 'number' || typeof b !== 'number' || typeof res !== 'number' || !isFinite(a) || !isFinite(b) || !isFinite(res)) return 0;
+  for (var k = 0; k < 5; k++) {
+    var A = +a.toFixed(aDp + k), B = +b.toFixed(bDp + k);
+    if (show(op === '*' ? A * B : A - B) === show(res)) return k;
+  }
+  return 4;
+}
 function fmt(v, dp) {
   if (v == null || isNaN(v)) return '\u2014';
   return v.toFixed(dp != null ? dp : 2);
@@ -3714,6 +3733,7 @@ function pjEnter() {
 }
 
 function pjINR(v) { return isNaN(v) ? '—' : Math.round(v).toLocaleString('en-IN'); }
+function pjINRd(v, d) { return isNaN(v) ? '—' : (d ? v.toLocaleString('en-IN', {minimumFractionDigits: d, maximumFractionDigits: d}) : pjINR(v)); }
 
 function pjRender() {
   var body = document.getElementById('pjBody');
@@ -3744,9 +3764,10 @@ function pjRender() {
   upEl.className = 'pj-up ' + (base.upside >= 0 ? 'pos' : 'neg');
   upEl.textContent = isNaN(base.upside) ? '—' : (base.upside >= 0 ? '+' : '') + (base.upside * 100).toFixed(1) + '% vs current';
 
+  var pjK = isNaN(base.price) ? 0 : dpAddUp('*', refMult, peakFund, base.price, 2, 0, pjINR);
   document.getElementById('pjFormula').innerHTML =
     'Projected = weighted-median ' + multLbl + ' × peak ' + fundLbl + '  =  '
-    + fmt(refMult) + ' × ' + pjINR(peakFund) + '  =  ₹' + pjINR(base.price)
+    + fmt(refMult, 2 + pjK) + ' × ' + pjINRd(peakFund, pjK) + '  =  ₹' + pjINR(base.price)
     + '  ·  current ₹' + pjINR(c.s.curIndex);
 
   document.getElementById('pjChart').innerHTML = pjChart(c);
@@ -3903,9 +3924,9 @@ function renderDashboard() {
   document.getElementById('dyVal').textContent = s.curDY ? fmt(s.curDY)+'%' : '\u2014';
   document.getElementById('dySubtext').textContent = s.dy5m ? '5yr median: '+fmt(s.dy5m)+'%' : '';
   document.getElementById('dyTable').innerHTML = buildMedianTable([
-    ['3yr Median', s.dy3m, null, '%'],
-    ['5yr Median', s.dy5m, null, '%'],
-    ['10yr Median', s.dy10m, null, '%']
+    ['3yr Median', s.dy3m, s.curDY || null, '%', 'inv'],
+    ['5yr Median', s.dy5m, s.curDY || null, '%', 'inv'],
+    ['10yr Median', s.dy10m, s.curDY || null, '%', 'inv']
   ]);
 
   // EPS
@@ -3937,9 +3958,10 @@ function buildMedianTable(rows) {
   rows.forEach(function(r,i){
     var label=r[0], med=r[1], cur=r[2], unit=r[3]||'';
     var isRef = label==='Weighted Ref';
-    var delta = (cur!=null&&med!=null) ? ((cur/med)-1)*100 : null;
-    var dClass = delta==null?'' : delta<-5?'delta-pos':delta>5?'delta-neg':'delta-neu';
-    var dText = delta!=null ? fmtPct(delta,1) : '';
+    var delta = (cur!=null&&med!=null&&med!==0) ? ((cur/med)-1)*100 : null, inv = r[4] === 'inv';
+    var dClass = delta==null?'' : delta<-5?(inv?'delta-neg':'delta-pos'):delta>5?(inv?'delta-pos':'delta-neg'):'delta-neu';
+    var dWord = delta==null ? '' : Math.abs(delta)<=5 ? ' \u00b7 near median' : (delta<0)===!inv ? ' \u00b7 cheaper' : ' \u00b7 dearer';
+    var dText = delta!=null ? fmtPct(delta,1)+dWord : '';
     h += '<tr'+(isRef?' class="ref-row"':'')+'>'
        + '<td>'+(isRef?'\u2299 ':'')+label+'</td>'
        + '<td>'+(med!=null?fmt(med)+unit:'\u2014')+'</td>'
@@ -4016,11 +4038,11 @@ function renderSparkline(stats) {
     var yr = r[0].slice(0,4);
     if(!years[yr]){years[yr]=i;}
   });
-  var lastX = -999, MIN_X_GAP = 42;
-  Object.keys(years).sort().forEach(function(yr){
+  var lastX = Infinity, MIN_X_GAP = 42;
+  Object.keys(years).sort().reverse().forEach(function(yr){
     var i=years[yr], x=xp(i);
-    if (x - lastX >= MIN_X_GAP) {
-      xLabels+='<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
+    if (lastX - x >= MIN_X_GAP) {
+      xLabels='<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--sub)" font-size="11">'+yr+'</text>'+xLabels;
       lastX = x;
     }
   });
@@ -5014,7 +5036,7 @@ function renderBuffett() {
     // (no hardcoded "small-caps"). Identifies the cheap cushion and the froth pocket.
     var segLine = '';
     try {
-      var SEG = [['n50','Nifty 50'],['nn50','Nifty Next 50'],['nmid150','Nifty Midcap 150'],['sc250','Nifty Smallcap 250']];
+      var SEG = INDEX_ORDER.map(function(k){ return [k, INDICES[k] ? INDICES[k].name : k]; });
       var segs = SEG.map(function(x){
         var st = computeStatsFor(x[0]);
         return st ? {name: x[1], band: st.peBand, epsYoY: st.epsYoY} : null;
@@ -5869,7 +5891,8 @@ function setGlobalLines(mode){
 
 function renderGlobalChart(d, si, cutoffStr, localMode){
   var svg = document.getElementById('glChart');
-  var W=900, H=340, pad={l:40,r:14,t:14,b:24};
+  // Real pixel size (viewBox 1:1), so 11px labels stay 11px on a phone; falls back to 900x340 if hidden.
+  var W=Math.round(svg.clientWidth)||900, H=Math.round(svg.clientHeight)||340, pad={l:40,r:14,t:14,b:24};
   var iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
   // allLines = everything with data in range (drives the legend/ticks);
   // lines    = the subset the user has left ticked (drives the chart).
@@ -5908,11 +5931,12 @@ function renderGlobalChart(d, si, cutoffStr, localMode){
   var grid='';
   for(var i=0;i<=4;i++){ var v=minV+vRange*i/4, y=yp(v);
     grid+='<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
-    grid+='<text x="'+(pad.l-5)+'" y="'+(y+3)+'" text-anchor="end" fill="var(--txt3)" font-size="10">'+v.toFixed(0)+'</text>';
+    grid+='<text x="'+(pad.l-5)+'" y="'+(y+4)+'" text-anchor="end" fill="var(--sub)" font-size="11">'+v.toFixed(0)+'</text>';
   }
   if(100>=minV&&100<=maxV){ var y100=yp(100); grid+='<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y100+'" y2="'+y100+'" stroke="var(--txt3)" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>'; }
   var xl='', prevYr='', lastX=-999;
-  lines[0].reb.forEach(function(p){ var yr=p[0].slice(0,4); if(yr!==prevYr){ var x=xp(p[0]); if(x-lastX>=46){ xl+='<text x="'+x+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>'; lastX=x; } prevYr=yr; } });
+  var glTk=[]; lines[0].reb.forEach(function(p){ var yr=p[0].slice(0,4); if(yr!==prevYr){ glTk.push([xp(p[0]),yr]); prevYr=yr; } });
+  lastX=Infinity; glTk.reverse().forEach(function(t){ if(lastX-t[0]>=40){ xl='<text x="'+t[0]+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--sub)" font-size="11">'+t[1]+'</text>'+xl; lastX=t[0]; } });
   function poly(L){
     var pts=L.reb.map(function(p){ return xp(p[0]).toFixed(1)+','+yp(p[1]).toFixed(1); }).join(' ');
     var col=GL_COLORS[L.key]||'#888';
@@ -6009,6 +6033,16 @@ function renderGlobalVerdict(d, localMode){
   el.innerHTML = mcMinus(el.innerHTML); // true minus sign for negative returns
 }
 
+// Week to date: chgWk in scripts/fetch_global.py = last weekly close / previous weekly close - 1 (local).
+// USD mode applies the same rule to the stored USD series ([date, local, usd]); if that series is missing
+// or the local check does not reproduce chgWk, it shows the local figure marked "(local)".
+function glWtd(ix, localMode){
+  if (localMode) return glFmtPct(ix.chgWk);
+  var s = ix.series || [], a = s[s.length - 2], b = s[s.length - 1];
+  var ok = a && b && miOk(a[1]) && miOk(b[1]) && a[1] > 0 && miOk(ix.chgWk) && Math.abs(Math.round((b[1] / a[1] - 1) * 10000) / 100 - ix.chgWk) < 0.006;
+  if (ok && miOk(a[2]) && miOk(b[2]) && a[2] > 0) return glFmtPct(Math.round((b[2] / a[2] - 1) * 10000) / 100);
+  return glFmtPct(ix.chgWk) + ' <small>(local)</small>';
+}
 function renderGlobalTable(d, localMode){
   var key=GL_RANGE;
   var rows=d.indices.slice().sort(function(a,b){
@@ -6019,7 +6053,7 @@ function renderGlobalTable(d, localMode){
     var r=localMode?ix.ret:(ix.retUsd||ix.ret); r=r||{};
     return '<tr class="'+(ix.highlight?'ind-row':'')+'">'
       +'<td>'+ix.name+' <span class="gl-rank">'+ix.region+'</span></td>'
-      +'<td>'+glFmtPct(ix.chgWk)+'</td>'
+      +'<td>'+glWtd(ix, localMode)+'</td>'
       +'<td>'+glFmtPct(r.ytd)+'</td>'+'<td>'+glFmtPct(r['1y'])+'</td>'
       +'<td>'+glFmtPct(r['3y'])+'</td>'+'<td>'+glFmtPct(r['5y'])+'</td>'
       +'<td>'+glFmtPct(r['10y'])+'</td></tr>';
@@ -6050,7 +6084,8 @@ function renderGlobalVal(){
     return '<div class="gl-vcard '+vd+(GL_DET.key===ix.key?' sel':'')+'" data-gl="'+ix.key+'" onclick="glOpenDetail(\''+ix.key+'\')">'+head
       +'<div class="gl-vc-pe">'+it.pe.toFixed(1)+' <small>P/E</small>'+src+'</div>'
       +'<div class="gl-vc-band">'+miEsc(it.bandNote||'band')+(vd==='insufficient'?' '+glFR(it):' &middot; fair range '+glFR(it))+'</div>'
-      +'<span class="gl-vc-tag '+vd+'">'+(it.verdict in SH?SH[vd]:'?')+' '+miEsc(vt)+'</span>'+cape+open
+      +'<span class="gl-vc-tag '+vd+'">'+(it.verdict in SH?SH[vd]:'?')+' '+miEsc(vt)+'</span>'+cape
+      +(ix.key==='nifty'?'<div class="gl-vc-x">The Dashboard rates Nifty 50 against its own weighted history, so its word can differ.</div>':'')+open
       +'</div>';
   }).join('')
   + '<div style="grid-column:1/-1;font-family:var(--mono);font-size:.55rem;color:var(--ghost);margin-top:2px">P/E source: '+miEsc(v&&v.source||'unavailable')+' &middot; as of '+miEsc(v&&v.asOf||'unavailable')+' &middot; shapes: ▼ cheap, ● fair, ▲ expensive, ◌ insufficient history on current basis</div>';
@@ -6184,8 +6219,9 @@ var MI_TEXT = {
   },
   eyby: function(){
     var h = HISTORIES.n50, L = miLast(h), g = miLast(GSEC_HISTORY), pe = L ? L[2] : null, ey = miOk(pe) && pe > 0 ? 100 / pe : null, by = g ? g[1] : null;
+    var gk = miOk(ey) && miOk(by) ? dpAddUp('-', ey, by, ey - by, 2, 2, function(v){ return miF(v); }) : 0;
     return miDoc({what: 'Nifty 50 earnings yield minus the 10-year government bond yield.',
-      formula: 'Gap = 100 ÷ P/E − 10Y yield. Now: 100 ÷ ' + miF(pe) + ' = ' + miF(ey) + '% − ' + miF(by) + '% = ' + (miOk(ey) && miOk(by) ? miF(ey - by) + ' pp.' : 'unavailable.'),
+      formula: 'Gap = 100 ÷ P/E − 10Y yield. Now: 100 ÷ ' + miF(pe) + ' = ' + miF(ey, 2 + gk) + '% − ' + miF(by, 2 + gk) + '% = ' + (miOk(ey) && miOk(by) ? miF(ey - by) + ' pp.' : 'unavailable.'),
       source: 'NSE P/E. 10Y yield from a third-party relay (a SectorScope web worker; original source not stated), fetched by scripts/fetch_gsec.py in ' + MI_ACT + '.',
       rule: 'Ranked over 10 years: ' + bandRuleTxt('widest', 'narrowest') + '. A negative gap is never cheap; it shows Neutral.',
       not: 'Where rates go; not a tested forecast.',
@@ -6230,7 +6266,8 @@ var MI_TEXT = {
       formula: 'Year-end BSE market cap ÷ that year’s nominal GDP × 100. Latest row: ' + (L ? miEsc(L[0]) + ' ₹' + miF(L[2]) + ' ÷ ₹' + miF(L[3]) + ' L cr = ' + miF(L[4], 1) + '%.' : 'unavailable.'),
       source: 'SEBI/BSE tables and BSE year-end data; rows marked "est." are estimates. Updated by hand.',
       rule: 'None; this is history. The median of these rows is the reference on the tiles.',
-      not: 'Intra-year swings; one point per year.', asof: L ? L[1] : null});
+      not: 'Intra-year swings; one point per year.',
+      asof: L ? 'FY-end rows to ' + miEsc(L[0]) + ' (' + miEsc(L[1]) + (function(){ var r = (d && d.schedule || []).filter(function(x){ return x && /FY-end mcap/.test(x.item || ''); })[0]; return r && r.updated ? '; row last set ' + miEsc(r.updated) : ''; })() + ')' + (d && d.live && d.live.date ? '; "Now" point ' + miEsc(d.live.date) : '') : null});
   },
   glperf: function(){
     var d = GLOBAL_DATA, n = null; if (d && d.indices) d.indices.forEach(function(ix){ if (ix.key === 'nifty') n = ix; });
@@ -6252,7 +6289,7 @@ var MI_TEXT = {
         formula: 'Index price ÷ trailing earnings, published by NSE. Now ' + miF(it.pe) + '.',
         source: 'NSE (niftyindices), refreshed by ' + MI_ACT + '.',
         rule: 'Fair range ' + glFR(it) + ', a fixed long-run reference band, not a percentile band: below = cheap, above = expensive, else fair. Raw 25th–75th of the last 10 years: ' + glRawQ(st) + '. Separately, ' + (st ? miPw(st.pctile) + ' percentile of the last 10 years (n = ' + st.n.toLocaleString('en-IN') + ').' : 'percentile unavailable.'),
-        not: 'Earnings direction; the earnings basis may have changed around 2021, so older years compare loosely.', asof: v.asOf});
+        not: 'Earnings direction; the earnings basis may have changed around 2021, so older years compare loosely. The Dashboard rates Nifty 50 against its own weighted history, so its word can differ.', asof: v.asOf});
     }
     var BK = v.bandStats ? v.bandStats[key] : null, bb = glBasis(BK), insuf = it.verdict === 'insufficient';
     st = BK ? (BK.current || BK.all) : null;
@@ -6284,8 +6321,9 @@ var MI_TEXT = {
   },
   pj: function(){
     var c = pjState && pjState.data, s = c ? c.s : null, pe = pjState && pjState.mode === 'pe', ref = s ? (pe ? s.peRef : s.pbRef) : null, pk = c ? (pe ? c.maxEPS : c.maxBV) : null;
+    var pjK = miOk(ref) && miOk(pk) ? dpAddUp('*', ref, pk, ref * pk, 2, 0, function(v){ return miF(v, 0); }) : 0;
     return miDoc({what: 'A mechanical what-if price, not a forecast.',
-      formula: 'Weighted median ' + (pe ? 'P/E' : 'P/B') + ' × peak ' + (pe ? 'EPS' : 'book value per share') + '. Now: ' + (s ? miF(ref) + ' × ' + miF(pk, 0) + ' = ' + miF(ref * pk, 0) + '.' : 'pick an index.'),
+      formula: 'Weighted median ' + (pe ? 'P/E' : 'P/B') + ' × peak ' + (pe ? 'EPS' : 'book value per share') + '. Now: ' + (s ? miF(ref, 2 + pjK) + ' × ' + miF(pk, pjK) + ' = ' + miF(ref * pk, 0) + '.' : 'pick an index.'),
       source: 'NSE index history, refreshed by ' + MI_ACT + '.',
       rule: 'Upside = projected ÷ current price − 1. The matrix flexes each lever to 90/100/110%.',
       not: 'When, or whether, the price gets there.', asof: s ? s.curDate : null});
@@ -6338,6 +6376,14 @@ document.addEventListener('click', function(ev){
   if (c) { ev.stopPropagation(); var id = c.getAttribute('data-mi-close'), ob = document.querySelector('.mi-btn[aria-controls="' + id + '"]'); if (ob) { miToggle(ob); ob.focus(); } return; }
   if (t.closest('.mi-panel')) ev.stopPropagation();
 }, true);
+// Escape closes every open "How this is measured" panel and returns focus to its button.
+document.addEventListener('keydown', function(ev){
+  if (ev.key !== 'Escape') return;
+  var open = Array.prototype.slice.call(document.querySelectorAll('.mi-btn[aria-expanded="true"]'));
+  if (!open.length) return;
+  open.forEach(function(b){ miToggle(b); });
+  var last = open[open.length - 1]; if (last && last.focus && last.offsetParent) last.focus();
+});
 // Decorate re-rendered hosts. [container selector, item selector, key fn, label fn, button-into selector, panel-into selector]
 var MI_HOSTS = [
   ['#dashGrid', '.idx-card[data-key]', function(el){ return ['idx', el.getAttribute('data-key')]; }, '.idx-name', '.idx-front'],
