@@ -129,6 +129,9 @@ body.light .idx-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.10)}
 /* Today's % change pill — sits inline next to the price */
 .idx-price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .idx-price-row .idx-price{margin-bottom:0}
+.idx-card.is-snap .idx-price,.idx-card.is-snap .idx-change{opacity:.45}
+.band-rule{font-size:.62rem;color:var(--muted,#6b7280);margin-top:3px;line-height:1.35}
+.idx-snap{font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:.4px;padding:3px 8px;border-radius:14px;border:1px dashed currentColor;color:var(--muted,#6b7280);white-space:nowrap}
 .idx-change{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:14px;letter-spacing:.3px;border:1px solid;line-height:1}
 .idx-change.up{background:var(--vc-tl);color:var(--vc-c);border-color:var(--vc-bd)}
 .idx-change.dn{background:var(--e-tl);color:var(--e-c);border-color:var(--e-bd)}
@@ -688,6 +691,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <button class="ptab active" onclick="showMainView('dashboard',this)">Dashboard</button>
     <button class="ptab" onclick="showMainView('buffett',this)">Buffett</button>
     <button class="ptab" onclick="showMainView('global',this)">Global</button>
+    <button class="ptab" data-view="macro" onclick="showMainView('macro',this)">Macro</button>
     <button class="ptab" onclick="showMainView('projections',this)">Projections</button>
     <button class="ptab" onclick="showMainView('help',this)">Help</button>
   </div>
@@ -714,6 +718,7 @@ body.light .hp-formula .k{color:#4f46e5}
       Click any card for full details, historical medians, and backtests.
     </div>
     <div id="dashUpdated" class="dash-updated" style="font-size:12px;color:var(--muted,#6b7280);margin:4px 0 10px;">Last updated: &mdash;</div>
+    <div id="macroChips" class="mc-chips" aria-label="Macro context"></div>
     <div class="dash-sort">
       <span class="dash-sort-lbl">Sort by</span>
       <div class="sort-pills">
@@ -998,7 +1003,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <div class="gl-table-wrap">
       <table class="data-table" id="glRetTable">
         <thead><tr>
-          <th>Index</th><th>Wk %</th><th>YTD</th><th>1Y</th><th>3Y</th><th>5Y</th><th>10Y</th>
+          <th>Index</th><th>Week to date %</th><th>YTD</th><th>1Y</th><th>3Y</th><th>5Y</th><th>10Y</th>
         </tr></thead>
         <tbody id="glRetBody"></tbody>
       </table>
@@ -1014,6 +1019,73 @@ body.light .hp-formula .k{color:#4f46e5}
       cheap/fair/rich read, refreshed periodically.
     </div>
     <div id="glValGrid" class="gl-val-grid"></div>
+  </div>
+</div>
+
+<!-- VIEW: MACRO (USD/INR, Brent, FII) -->
+<div id="view-macro" class="view">
+  <style>
+    .mc-chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:2px 0 14px}
+    .mc-chip{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:11px 14px;cursor:pointer;text-align:left;font-family:var(--body);color:var(--txt)}
+    .mc-chip:hover{border-color:var(--sub)}
+    .mc-chip-t{font-family:var(--mono);font-size:.56rem;letter-spacing:.6px;text-transform:uppercase;color:var(--sub);font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px}
+    .mc-chip-v{font-family:var(--mono);font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums}
+    .mc-chip-s{font-family:var(--mono);font-size:.62rem;color:var(--sub);margin-top:3px;line-height:1.45}
+    .mc-chips-note{grid-column:1/-1;font-size:.66rem;color:var(--txt3);margin-top:-2px}
+    .mc-pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.56rem;font-weight:700;padding:2px 9px;border-radius:12px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;border:1px solid var(--sub);color:var(--txt)}
+    .mc-pill.mc-headwind{border:2px solid var(--e-c);color:var(--e-c)}
+    .mc-pill.mc-tailwind{border:2px dashed var(--vc-c);color:var(--vc-c)}
+    .mc-pill.mc-neutral{border:1px solid var(--sub);color:var(--sub)}
+    .mc-pill.mc-unknown{border:1px dotted var(--sub);color:var(--sub)}
+    .mc-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 14px 10px;position:relative}
+    .mc-svg{width:100%;display:block;overflow:visible;touch-action:pan-y}
+    .mc-cap{font-size:.76rem;line-height:1.5;color:var(--sub);margin:8px 2px 2px}
+    .mc-cap strong{color:var(--txt)}
+    .mc-tip{position:absolute;z-index:6;pointer-events:none;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:7px 10px;min-width:150px;font-size:.7rem;line-height:1.6;display:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+    .mc-tip-d{font-family:var(--mono);font-size:.56rem;color:var(--ghost);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--bdr)}
+    .mc-key{display:flex;flex-wrap:wrap;gap:6px 16px;margin:2px 2px 8px;font-family:var(--mono);font-size:.62rem;color:var(--sub)}
+    .mc-key svg{vertical-align:middle;margin-right:5px}
+    .mc-tbl{width:100%;border-collapse:collapse;font-size:.74rem}
+    .mc-tbl th{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.5px;color:var(--ghost);text-align:left;padding:6px 8px;border-bottom:1px solid var(--bdr)}
+    .mc-tbl td{padding:7px 8px;border-bottom:1px solid var(--bdr);vertical-align:top;color:var(--sub)}
+    .mc-tbl td:first-child{color:var(--txt);font-weight:600;white-space:nowrap}
+    .mc-tblwrap{overflow-x:auto}
+    @media(max-width:680px){.mc-chip-v{font-size:1.05rem}}
+  </style>
+  <div class="gl-wrap">
+    <div class="gl-intro">
+      Three outside forces that sit behind Indian equity prices: the <strong>rupee</strong> (USD/INR), <strong>crude oil</strong> (Brent) and <strong>foreign investor flows</strong> (FII net equity).
+      This tab is context. It feeds no valuation band and no card on the Dashboard.
+    </div>
+    <div id="mcUpdated" class="gl-updated">Loading&hellip;</div>
+    <div id="mcVerdict" class="gl-verdict"></div>
+
+    <div class="gl-section-title">Chart range</div>
+    <div class="gl-pillrow" id="mcRangeRow">
+      <button class="gl-pill" data-range="3Y" onclick="setMacroRange('3Y')">3Y</button>
+      <button class="gl-pill active" data-range="5Y" onclick="setMacroRange('5Y')">5Y</button>
+      <button class="gl-pill" data-range="10Y" onclick="setMacroRange('10Y')">10Y</button>
+    </div>
+
+    <div class="gl-section-title">1 &middot; Rupee: USD/INR and Nifty in rupees vs dollars</div>
+    <div class="mc-card"><div id="mcKeyFx" class="mc-key"></div><svg id="mcFx" class="mc-svg" role="img" aria-label="USD/INR with Nifty in rupees and dollars, rebased to 100"></svg><div id="mcFxTip" class="mc-tip"></div></div>
+    <div id="mcFxCap" class="mc-cap"></div>
+
+    <div class="gl-section-title">2 &middot; Crude: Brent futures vs Nifty</div>
+    <div class="mc-card"><div id="mcKeyBr" class="mc-key"></div><svg id="mcBr" class="mc-svg" role="img" aria-label="Brent futures and Nifty rebased to 100"></svg><div id="mcBrTip" class="mc-tip"></div></div>
+    <div id="mcBrCap" class="mc-cap"></div>
+
+    <div class="gl-section-title">3 &middot; Foreign investor flows (FII net equity)</div>
+    <div class="mc-card"><div id="mcKeyFii" class="mc-key"></div><svg id="mcFiiBars" class="mc-svg" role="img" aria-label="Daily FII net equity flow, last 60 reporting dates"></svg><div id="mcFiiBarsTip" class="mc-tip"></div></div>
+    <div class="mc-card" style="margin-top:12px"><div id="mcKeyFiiSum" class="mc-key"></div><svg id="mcFiiSum" class="mc-svg" role="img" aria-label="FII net equity flow, rolling 20 reporting dates"></svg><div id="mcFiiSumTip" class="mc-tip"></div></div>
+    <div id="mcFiiCap" class="mc-cap"></div>
+
+    <div class="gl-section-title">4 &middot; How closely Nifty moves with each series</div>
+    <div class="mc-card"><div id="mcKeyCo" class="mc-key"></div><svg id="mcCo" class="mc-svg" role="img" aria-label="Rolling 52-week correlation of weekly Nifty returns with USD/INR and Brent"></svg><div id="mcCoTip" class="mc-tip"></div></div>
+    <div id="mcCoCap" class="mc-cap"></div>
+
+    <div class="gl-section-title">Sources, definitions and freshness</div>
+    <div class="mc-card"><div class="mc-tblwrap" id="mcSources"></div></div>
   </div>
 </div>
 
@@ -1046,7 +1118,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <div class="pj-headline">
       <span class="pj-price" id="pjProjPrice">&mdash;</span>
       <span class="pj-up" id="pjUpside">&mdash;</span>
-      <span style="font-family:var(--mono);font-size:.62rem;color:var(--ghost)">projected · base case</span>
+      <span style="font-family:var(--mono);font-size:.62rem;color:var(--ghost)">what-if · base case · no time horizon</span>
     </div>
     <div class="pj-formula" id="pjFormula">&mdash;</div>
 
@@ -1366,6 +1438,7 @@ body.light .hp-formula .k{color:#4f46e5}
         <a onclick="scrollToSection('h-buffett')">8 · Buffett Indicator (mcap/GDP)</a>
         <a onclick="scrollToSection('h-crossasset')">9 · Cross-asset &amp; relative</a>
         <a onclick="scrollToSection('h-alerts')">10 · Email alerts</a>
+        <a onclick="scrollToSection('h-macro')">11 · Macro tab (rupee, crude, FII)</a>
       </div>
     </div>
 
@@ -1659,11 +1732,11 @@ body.light .hp-formula .k{color:#4f46e5}
 <span class="k">gap</span> = (100 / Nifty50_PE) &minus; india_10Y_gsec_yield
 
 <span class="c">// Ranked vs the last 10 years (current rate regime)</span>
-<span class="k">band</span>: high gap = Cheap vs bonds · low/negative gap = Rich vs bonds</div>
-      <div class="hp-p">The percentile uses a <strong>trailing 10-year window</strong>, not full history — India's 2000s 9–11% yields were a different regime that would distort the rank. A wide, high-percentile gap has historically preceded strong equity returns; a gap that turns deeply negative (earnings yield well below the bond yield) is a classic late-cycle caution. Read it <em>alongside</em> the P/E bands: "cheap on its own history <em>and</em> cheap vs bonds" is a stronger setup than either alone.</div>
+<span class="k">band</span>: high gap = Cheap vs bonds, but only when EY is above the bond yield · low/negative gap = Rich vs bonds</div>
+      <div class="hp-p">The percentile uses a <strong>trailing 10-year window</strong>, not full history — India's 2000s 9–11% yields were a different regime that would distort the rank. A wide, high-percentile gap is conventionally read as equities being cheap versus bonds; a gap that turns deeply negative (earnings yield well below the bond yield) is conventionally read as a late-cycle caution. IndexScope has not tested whether either reading predicted returns. Read it <em>alongside</em> the P/E bands: "cheap on its own history <em>and</em> cheap vs bonds" is a stronger setup than either alone.</div>
 
       <div class="hp-sub-h">Large vs small — relative P/E</div>
-      <div class="hp-p">This panel divides the <strong>Midcap 150</strong> and <strong>Smallcap 250</strong> P/E by the <strong>Nifty 50</strong> P/E, then percentile-ranks each ratio against its own history. A <em>high</em> ratio means small/mid caps trade at an unusual premium to large caps — historically a late-cycle froth signal that favours rotating toward large caps. A <em>low</em> ratio is the reverse: small/mid caps unusually cheap relative to large.</div>
+      <div class="hp-p">This panel divides the <strong>Midcap 150</strong> and <strong>Smallcap 250</strong> P/E by the <strong>Nifty 50</strong> P/E, then percentile-ranks each ratio against its own history. A <em>high</em> ratio means small/mid caps trade at an unusual premium to large caps — which some investors read as a late-cycle froth signal. A <em>low</em> ratio is the reverse: small/mid caps unusually cheap relative to large. This panel shows the premium only; it does not test whether it predicts relative returns.</div>
       <div class="hp-card info">
         <div class="hp-card-ttl">Why this matters for allocation</div>
         <div class="hp-p" style="margin-bottom:0">The index cards can each say "expensive" at the same time, leaving you no steer on <em>where</em> to lean. The relative ratio is what tells you whether the froth is concentrated down the cap curve — the single most useful input for a large-vs-small tilt that the absolute bands cannot give you.</div>
@@ -1672,6 +1745,16 @@ body.light .hp-formula .k{color:#4f46e5}
     </div>
 
     <!-- ══ 10. EMAIL ALERTS ══ -->
+    <div class="hp-sec" id="h-macro">
+      <div class="hp-sec-h">11 · Macro tab (rupee, crude, FII)</div>
+      <div class="hp-p">The Macro tab shows three outside forces next to the valuation work: the <strong>rupee</strong> (USD/INR), <strong>Brent crude</strong> and <strong>foreign investor flows</strong> (FII net equity). It is context only. <strong>No macro number feeds any valuation band, card or alert.</strong></div>
+      <div class="hp-sub-h">The state words</div>
+      <div class="hp-p">Each reading carries one word and one shape: <strong>◆ HEADWIND</strong>, <strong>● NEUTRAL</strong>, <strong>▲ TAILWIND</strong>. For USD/INR and Brent, the page takes the latest 12-month change and ranks it against every rolling 12-month change in the last 10 years. The top quarter is a headwind (a weaker rupee or dearer oil hurts an economy that imports oil and relies on portfolio inflows). The bottom quarter is a tailwind. For FII, the page ranks the sum of the last 5 reporting dates against all rolling 5-date sums since 2014. The direction flips: heavy selling is the headwind.</div>
+      <div class="hp-card info"><div class="hp-p" style="margin-bottom:0">A headwind describes how extreme the move is against history. It is not a forecast. The correlation panel shows why. It measures how weekly Nifty returns and each series moved in the same week. A negative value means they moved in opposite directions; a value between −0.1 and +0.1 is near zero. The caption names the sign and size of each figure, including the one-week-lead figures, and none of them is a forecast.</div></div>
+      <div class="hp-sub-h">What to know about each source</div>
+      <div class="hp-p"><strong>Brent</strong> is front-month futures from Yahoo (BZ=F), not spot. It rolls monthly and can differ from a spot quote by a few percent. <strong>FII</strong> comes from NSDL, the depository, and covers equity only. Each NSDL date is the reporting date and carries the <em>previous</em> trading day’s trades. A few rows combine several trading days; the chart marks rows that look that way with †. The NSE same-day figure is provisional and is shown as text, not added to the chart. If a source is older than 4 days, the page says STALE with the age in days.</div>
+    </div>
+
     <div class="hp-sec" id="h-alerts">
       <div class="hp-sec-h">10 · Email alerts</div>
       <div class="hp-p">Don't want to check the dashboard every day? Set an <strong>email alert</strong> and IndexScope will notify you when an index crosses a valuation level you care about. Click the <strong>🔔 Alerts</strong> button in the header (sign in first), pick an index, a metric, a condition, and a threshold.</div>
@@ -2674,6 +2757,8 @@ HISTORY = HISTORIES[ACTIVE_INDEX];
 
 // Current view: 'dashboard' or 'details'
 var CURRENT_VIEW = 'dashboard';
+var LIVE_OK = {};            // index key -> true once the live fetch confirmed it (T03: snapshot flag)
+var LAST_LIVE_STATUS = null; // [type,msg] of the last fetchAllLive result, re-applied on tab switch (T09)
 // When in details view, which index is being shown
 var DETAILS_INDEX = null;
 // When in details view, which sub-tab is active
@@ -2833,6 +2918,16 @@ function pbarHTML(pos) {
        + '<div class="xa-pmark" style="left:' + pos.toFixed(1) + '%"></div></div>';
 }
 
+// Freshness of the 10Y G-Sec series. Weekends plus a holiday can legitimately make it
+// 4 days old; anything older is flagged STALE in words (not colour alone).
+function gsecFreshnessHTML() {
+  if (!GSEC_HISTORY.length) return '10Y yield: no data';
+  var d = GSEC_HISTORY[GSEC_HISTORY.length-1][0];
+  var age = Math.floor((Date.now() - new Date(d + 'T00:00:00Z').getTime()) / 86400000);
+  var stale = age > 4;
+  return '10Y yield as of ' + d + (stale ? ' \u00b7 <strong>STALE (' + age + ' days old)</strong>' : '');
+}
+
 function eybyCardHTML() {
   var h = HISTORIES.n50;
   if (!h || !h.length) return '';
@@ -2849,19 +2944,29 @@ function eybyCardHTML() {
   var band = bandFromPctile(p, true);
   var pos = valPos(p, true);
   var widerThan = p != null ? p : null; // spread wider than `p`% of history
-  var interp = (band === 'vcheap' || band === 'cheap') ? 'Equities cheap vs bonds'
+  var maxGap = series.reduce(function(m, v){ return (v != null && !isNaN(v) && (m == null || v > m)) ? v : m; }, null);
+  var neverPos = maxGap != null && maxGap < 0;
+  // Sign guard: a negative gap means equities yield LESS than the 10Y bond. The
+  // history percentile can still rank that as "wide", but the pill must not say CHEAP.
+  var belowBond = curSpread != null && curSpread < 0;
+  var capped = belowBond && (band === 'vcheap' || band === 'cheap');
+  if (capped) band = 'neutral';
+  var interp = capped ? 'Equities yield less than bonds'
+             : (band === 'vcheap' || band === 'cheap') ? 'Equities cheap vs bonds'
              : (band === 'expensive' || band === 'vexpensive') ? 'Equities rich vs bonds'
+             : belowBond ? 'Equities yield less than bonds'
              : 'Fairly valued vs bonds';
   return '<div class="xa-card">'
     + '<div class="xa-card-ttl">Earnings Yield &minus; Bond Yield · Nifty 50</div>'
     + '<div class="xa-card-q">Are equities cheap versus the 10Y government bond? Higher gap = cheaper.</div>'
     + '<div class="xa-row"><div><div class="xa-big">' + (curSpread!=null ? (curSpread>=0?'+':'') + fmt(curSpread,1) + ' pp' : '—') + '</div>'
-    + '<div class="xa-big-sub">EY ' + (curEY!=null?fmt(curEY,1)+'%':'—') + ' &minus; 10Y ' + (curBY!=null?fmt(curBY,1)+'%':'—') + '</div></div>'
+    + '<div class="xa-big-sub">EY ' + (curEY!=null?fmt(curEY,1)+'%':'—') + ' &minus; 10Y ' + (curBY!=null?fmt(curBY,1)+'%':'—') + '</div>'
+    + '<div class="xa-big-sub">' + gsecFreshnessHTML() + '</div></div>'
     + '<span class="xa-pill band-' + band + '">' + interp + '</span></div>'
     + '<div class="xa-pbar-lbl"><span>Cheap vs bonds</span><span>Rich vs bonds</span></div>'
     + pbarHTML(pos)
-    + '<div class="xa-pval">' + (widerThan!=null ? 'Gap is wider than ' + fmt(widerThan,0) + '% of the last 10 years (' + bandLabel(band) + ')' : 'Insufficient data') + '</div>'
-    + '<div class="xa-note">A positive, high-percentile gap historically preceded strong equity returns; a negative gap (EY below the bond yield) is a classic late-cycle caution. Complements the per-index P/E bands, which are blind to rates.</div>'
+    + '<div class="xa-pval">' + (widerThan!=null ? 'Gap is wider than ' + fmt(widerThan,0) + '% of the last 10 years' + (capped ? ' \u2014 but the gap is negative (earnings yield below the 10Y yield), so the label is held at ' + bandLabel(band) : ' (' + bandLabel(band) + ')') + (neverPos ? '. In the last 10 years the gap has never been positive (max ' + fmt(maxGap,1) + ' pp), so this reading cannot reach Cheap.' : '') : 'Insufficient data') + '</div>'
+    + '<div class="xa-note">A positive, high-percentile gap is conventionally read as cheap equities; a negative gap (EY below the bond yield) as a late-cycle caution. This is a reading convention, not a tested forecast. Complements the per-index P/E bands, which are blind to rates.</div>'
     + '</div>';
 }
 
@@ -2884,7 +2989,7 @@ function relCardHTML(pairs) {
     + '<div class="xa-card-ttl">Large vs Small &mdash; Relative P/E</div>'
     + '<div class="xa-card-q">Are mid/small caps richly priced versus large caps? Ratio vs its own history.</div>'
     + '<div class="xa-mini">' + rows + '</div>'
-    + '<div class="xa-note">A high P/E ratio means small/mid caps trade at an unusual premium to large caps &mdash; historically a late-cycle froth signal that favours rotating toward large caps. A low ratio is the reverse.</div>'
+    + '<div class="xa-note">A high P/E ratio means small/mid caps trade at an unusual premium to large caps &mdash; which some investors read as a late-cycle froth signal. A low ratio is the reverse. The panel shows the premium only; it does not test whether it predicts returns.</div>'
     + '</div>';
 }
 
@@ -2933,6 +3038,9 @@ function renderCards() {
 
       // % change pill
       var chg = computeChangePct(key);
+      var isSnap = !LIVE_OK[key];
+      var snapDate = (HISTORIES[key] && HISTORIES[key].length) ? HISTORIES[key][HISTORIES[key].length-1][0] : '';
+      var snapHTML = isSnap ? '<span class="idx-snap" title="Embedded snapshot; live data not yet confirmed">SNAPSHOT'+(snapDate?' \u00b7 '+snapDate:'')+'</span>' : '';
       var chgHTML = '';
       if (chg != null) {
         var cls = chg > 0.05 ? 'up' : chg < -0.05 ? 'dn' : 'flat';
@@ -2955,7 +3063,7 @@ function renderCards() {
                        : (lvl==='HIGH'&&falling) ? 'bear'
                        : 'flat';
           var arrowIco = rising ? 'i-trending-up' : falling ? 'i-trending-down' : 'i-clock';
-          trendHTML = '<span class="idx-eps-trend '+trendCls+'"><svg class="ico"><use href="#'+arrowIco+'"/></svg>'+lvl+' · '+dir+' · '+(s.epsYoY>=0?'+':'')+fmt(s.epsYoY,1)+'% YoY</span>';
+          trendHTML = '<span class="idx-eps-trend '+trendCls+'"><svg class="ico"><use href="#'+arrowIco+'"/></svg>EPS '+lvl+' vs peak · '+dir+' · '+(s.epsYoY>=0?'+':'')+fmt(s.epsYoY,1)+'% YoY</span>';
         }
         epsHTML = ''
           + '<div class="idx-eps-strip">'
@@ -2994,11 +3102,11 @@ function renderCards() {
         + '</div>';
 
       return ''
-        + '<div class="idx-card band-'+s.peBand+'" data-key="'+key+'" onclick="openDetails(\''+key+'\')">'
+        + '<div class="idx-card band-'+s.peBand+(isSnap?' is-snap':'')+'" data-key="'+key+'" onclick="openDetails(\''+key+'\')">'
         +   '<button class="idx-flip-btn" title="Flip card" onclick="toggleFlip(event, \''+key+'\')"><svg class="ico"><use href="#i-refresh"/></svg></button>'
         +   '<div class="idx-front">'
         +     '<div class="idx-name"><span>'+name+'</span><svg class="ico idx-chevron"><use href="#i-chevron-right"/></svg></div>'
-        +     '<div class="idx-price-row"><div class="idx-price">'+price+'</div>'+chgHTML+'</div>'
+        +     '<div class="idx-price-row"><div class="idx-price">'+price+'</div>'+chgHTML+snapHTML+'</div>'
         +     pePill
         +     warnHTML
         +     '<div class="idx-metrics">'
@@ -3026,6 +3134,34 @@ function cardErrorHTML(key, msg) {
     + '<div class="idx-price">'+msg+'</div>'
     + '</div>';
 }
+
+// ---------- Deep links (hash routes: #/buffett, #/index/n50 ...) ----------
+var ROUTING = false; // true while applyRoute drives the views, so it does not push history again
+function setRoute(path) {
+  if (ROUTING) return;
+  var h = '#/' + path;
+  try { if (location.hash !== h) history.pushState(null, '', h); } catch(e) {}
+}
+function applyRoute() {
+  var parts = (location.hash || '').replace(/^#\/?/, '').split('/');
+  var target = parts[0] || 'dashboard';
+  ROUTING = true;
+  try {
+    if (target === 'index' && parts[1] && INDICES[parts[1]]) {
+      openDetails(parts[1]);
+    } else {
+      var known = ['dashboard','buffett','global','projections','help','macro'];
+      if (known.indexOf(target) < 0) target = 'dashboard';
+      var btn = null;
+      document.querySelectorAll('.ptab').forEach(function(b){
+        if ((b.getAttribute('onclick') || '').indexOf("'" + target + "'") >= 0) btn = b;
+      });
+      if (target === 'macro' && !btn) target = 'dashboard';
+      showMainView(target, btn);
+    }
+  } finally { ROUTING = false; }
+}
+window.addEventListener('popstate', applyRoute);
 
 // ---------- View switching ----------
 function openDetails(key) {
@@ -3080,6 +3216,7 @@ function openDetails(key) {
   // Render overview
   try { renderDashboard(); } catch(e){ console.warn('renderDashboard', e); }
   try { updateBacktestDefaults(); } catch(e){}
+  setRoute('index/' + key);
   window.scrollTo(0, 0);
 }
 
@@ -3091,7 +3228,8 @@ function closeDetails() {
   document.title = 'IndexScope \u2014 Indian Indices Valuation Tracker';
   // Re-render cards in case data changed
   renderCards();
-  setStatus('ok', '4 indices loaded');
+  restoreStatus();
+  setRoute('dashboard');
   window.scrollTo(0, 0);
   // Make sure the header tab reflects dashboard selection
   document.querySelectorAll('.ptab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
@@ -3110,26 +3248,35 @@ function showMainView(target, el) {
     CURRENT_VIEW = 'help';
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Help';
-    setStatus('ok', INDEX_ORDER.length + ' indices loaded');
+    restoreStatus();
   } else if (target === 'buffett') {
     document.getElementById('view-buffett').classList.add('active');
     CURRENT_VIEW = 'buffett';
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Buffett Indicator';
     try { renderBuffett(); } catch (e) {}
+    restoreStatus();
   } else if (target === 'global') {
     document.getElementById('view-global').classList.add('active');
     CURRENT_VIEW = 'global';
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Global Indices';
     try { renderGlobal(); } catch (e) {}
+    restoreStatus();
+  } else if (target === 'macro') {
+    document.getElementById('view-macro').classList.add('active');
+    CURRENT_VIEW = 'macro';
+    DETAILS_INDEX = null;
+    document.title = 'IndexScope \u2014 Macro';
+    try { renderMacro(); } catch (e) { console.warn('renderMacro', e); }
+    restoreStatus();
   } else if (target === 'projections') {
     document.getElementById('view-projections').classList.add('active');
     CURRENT_VIEW = 'projections';
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Projections';
     try { pjEnter(); } catch (e) {}
-    setStatus('ok', INDEX_ORDER.length + ' indices loaded');
+    restoreStatus();
   } else {
     // 'dashboard' — also leaves any open details view
     document.getElementById('view-dashboard').classList.add('active');
@@ -3137,8 +3284,10 @@ function showMainView(target, el) {
     DETAILS_INDEX = null;
     document.title = 'IndexScope \u2014 Indian Indices Valuation Tracker';
     renderCards();
-    setStatus('ok', INDEX_ORDER.length + ' indices loaded');
+    try { renderMacroChips(); } catch (e) {}
+    restoreStatus();
   }
+  setRoute(target);
   window.scrollTo(0, 0);
 }
 
@@ -3588,7 +3737,7 @@ function renderDashboard() {
   var pePill = document.getElementById('pePill');
   pePill.className = 'mc-pct band-pill band-'+s.peBand;
   pePill.textContent = bandLabel(s.peBand);
-  document.getElementById('pePctText').textContent = s.pePct ? fmt(s.pePct,1)+'% of weighted reference ('+fmt(s.peRef)+')' : '\u2014';
+  document.getElementById('pePctText').innerHTML = s.pePct ? fmt(s.pePct,1)+'% of weighted reference ('+fmt(s.peRef)+')<div class="band-rule">'+bandRuleText()+'</div>' : '\u2014';
 
   document.getElementById('peTable').innerHTML = buildMedianTable([
     ['3yr Median', s.pe3m, s.curPE],
@@ -3609,7 +3758,7 @@ function renderDashboard() {
   var pbPill = document.getElementById('pbPill');
   pbPill.className = 'mc-pct band-pill band-'+s.pbBand;
   pbPill.textContent = bandLabel(s.pbBand);
-  document.getElementById('pbPctText').textContent = s.pbPct ? fmt(s.pbPct,1)+'% of weighted reference ('+fmt(s.pbRef)+')' : '\u2014';
+  document.getElementById('pbPctText').innerHTML = s.pbPct ? fmt(s.pbPct,1)+'% of weighted reference ('+fmt(s.pbRef)+')<div class="band-rule">'+bandRuleText()+'</div>' : '\u2014';
 
   document.getElementById('pbTable').innerHTML = buildMedianTable([
     ['3yr Median', s.pb3m, s.curPB],
@@ -3656,7 +3805,7 @@ function renderTrendBadge(elId, trend) {
 }
 
 function buildMedianTable(rows) {
-  var h = '<thead><tr><th>Horizon</th><th>Median</th><th>vs Current</th></tr></thead><tbody>';
+  var h = '<thead><tr><th>Horizon</th><th>Median</th><th>Current vs median</th></tr></thead><tbody>';
   rows.forEach(function(r,i){
     var label=r[0], med=r[1], cur=r[2], unit=r[3]||'';
     var isRef = label==='Weighted Ref';
@@ -3672,10 +3821,16 @@ function buildMedianTable(rows) {
   return h+'</tbody>';
 }
 
+// One-line statement of the band rule, shown under each ratio so the label and the
+// percentile bar are not read as the same signal.
+function bandRuleText() {
+  var b = CFG.bands;
+  return 'Band rule: \u2264' + b.vCheap + '% Very Cheap \u00b7 \u2264' + b.cheap + '% Cheap \u00b7 \u2264' + b.neutral + '% Neutral \u00b7 \u2264' + b.expensive + '% Expensive \u00b7 >' + b.expensive + '% Very Expensive';
+}
 function setPercentile(markerId, valId, pctile) {
   if (pctile==null) return;
   document.getElementById(markerId).style.left = pctile+'%';
-  document.getElementById(valId).textContent = fmt(pctile,1)+'th percentile (5yr, winsorised)';
+  document.getElementById(valId).textContent = ord(pctile)+' percentile (5yr, winsorised) \u00b7 separate from the band above';
 }
 
 function epsGrid(tiles) {
@@ -4165,7 +4320,7 @@ function recomputeBtSummary() {
     return '<div class="bt-stat"><div class="bt-stat-label">'+s.label+'</div>'
       +'<div class="bt-stat-val">'+s.val+'</div>'
       +'<div class="bt-stat-sub">'+s.sub+'</div></div>';
-  }).join('');
+  }).join('') + '<div class="bt-caveat" style="grid-column:1/-1;font-family:var(--mono);font-size:.58rem;color:var(--ghost);line-height:1.5">Read with care: '+(closed.length<15 ? 'with only '+closed.length+' closed trade'+(closed.length===1?'':'s')+', this is a small sample. ' : closed.length+' closed trades. ')+'Signals within a year of each other overlap, so they are not independent. The threshold is fixed in hindsight, and one strong trade can lift the average. Past signals do not show the next one will work.</div>';
 }
 
 function toggleBtTrade(idx, checked) {
@@ -4418,6 +4573,7 @@ function fetchLiveFor(key) {
           if (row[0] > lastEmbedded) { hist.push(row); added++; }
         });
         if (added) hist.sort(function(a,b){return a[0]<b[0]?-1:1;});
+        LIVE_OK[key] = true;
         return {key: key, ok: true, added: added, fetchedAt: resp.fetchedAt, lastDate: hist[hist.length-1][0]};
       }
       return {key: key, ok: false, embedded: true, lastDate: HISTORIES[key][HISTORIES[key].length-1][0]};
@@ -4465,6 +4621,7 @@ function fetchLiveOverlay() {
             live.dy != null ? live.dy : lastRow[4],
             live.perChange != null ? live.perChange : null]);
         }
+        LIVE_OK[key] = true;
       });
       return resp;
     })
@@ -4496,14 +4653,37 @@ function fetchAllLive() {
       }
     } catch(e) {}
     if (errCount > 0) {
-      setStatus('err', okCount + '/' + INDEX_ORDER.length + ' indices live, ' + errCount + ' failed \u00b7 using embedded fallback');
+      LAST_LIVE_STATUS = ['err', okCount + '/' + INDEX_ORDER.length + ' indices live, ' + errCount + ' failed \u00b7 using embedded fallback'];
     } else if (okCount === INDEX_ORDER.length) {
-      setStatus('ok', INDEX_ORDER.length + ' indices live' + (totalAdded ? ' (+'+totalAdded+' rows)' : ''));
+      LAST_LIVE_STATUS = ['ok', INDEX_ORDER.length + ' indices live' + (totalAdded ? ' (+'+totalAdded+' rows)' : '')];
     } else {
-      setStatus('stale', 'Embedded data only');
+      LAST_LIVE_STATUS = ['stale', 'Embedded data only'];
     }
+    setStatus(LAST_LIVE_STATUS[0], LAST_LIVE_STATUS[1]);
     return results;
   });
+}
+
+// Re-apply the last live-fetch status when the user changes tab, so the pill never
+// says "loaded" over a view that is in fact live (or the reverse). Falls back to
+// "embedded" before the first live fetch finishes.
+// After the live-price overlay: say "Live" only when every index fetch succeeded.
+// If any fetch failed, keep the error state (icon + words) and add the overlay time.
+function applyOverlayStatus(liveResp) {
+  if (!liveResp || !liveResp.fetchedAt) return;
+  var ts = new Date(liveResp.fetchedAt).toLocaleString('en-IN', {timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', hour12:true});
+  if (LAST_LIVE_STATUS && LAST_LIVE_STATUS[0] === 'err') {
+    var base = String(LAST_LIVE_STATUS[1]).replace(/ \u00b7 live prices .* IST$/, '');
+    LAST_LIVE_STATUS = ['err', base + ' \u00b7 live prices ' + ts + ' IST'];
+  } else {
+    LAST_LIVE_STATUS = ['ok', 'Live \u00b7 ' + ts + ' IST'];
+  }
+  setStatus(LAST_LIVE_STATUS[0], LAST_LIVE_STATUS[1]);
+}
+
+function restoreStatus() {
+  if (LAST_LIVE_STATUS) setStatus(LAST_LIVE_STATUS[0], LAST_LIVE_STATUS[1]);
+  else setStatus('stale', 'Loaded from embedded data');
 }
 
 function setStatus(type, msg) {
@@ -4554,6 +4734,7 @@ function toggleTheme() {
       : '<svg class="ico"><use href="#i-sun"/></svg><span class="btn-lbl" id="themeBtnLbl">Light</span>';
   }
   localStorage.setItem('nmid150-theme', isLight?'light':'dark');
+  if (CURRENT_VIEW === 'macro') { try { renderMacro(); } catch (e) {} } // re-pick chart colours for the theme
 }
 
 // ============================================================
@@ -4611,11 +4792,11 @@ function renderBuffett() {
 
   set('bfRatio', rT.toFixed(1) + '%');
   var dateStr = d.live.date ? new Date(d.live.date + 'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—';
-  set('bfRatioSub', 'vs ' + g.trailing_label + ' nominal GDP (latest reported) · as of ' + dateStr);
+  set('bfRatioSub', 'vs ' + g.trailing_label + ' nominal GDP, 2011-12 base (latest reported)' + (g.trailing_newbase ? ' · ≈' + (mcap / g.trailing_newbase * 100).toFixed(0) + '% on the 2022-23 base' : '') + ' · as of ' + dateStr);
 
   var vEl = document.getElementById('bfVerdict');
   if (vEl) vEl.innerHTML = '<span class="bf-verdict-pill" style="color:var('+band.c+');border-color:var('+band.bd+');background:var('+band.tl+')">'+band.label+'</span>';
-  set('bfPctRank', 'Richer than ' + below + ' of ' + n + ' years · ' + pct + 'th percentile (FY06–FY26)');
+  set('bfPctRank', (below===n ? 'Richer than all ' + n : 'Richer than ' + below + ' of ' + n) + ' fiscal year-end readings (FY06–FY26) · ' + ord(pct) + ' percentile');
 
   var marker = document.getElementById('bfGaugeMarker');
   if (marker) {
@@ -4645,7 +4826,7 @@ function renderBuffett() {
     set('bfProfitShare', ps.toFixed(1) + '%');
     set('bfProfitShareSub', 'profit share · ' + dc.profit_share_fy);
     set('bfMktPE', pe500 != null ? pe500.toFixed(1) + '×' : (pe50 != null ? pe50.toFixed(1) + '×' : '—'));
-    set('bfMktPESub', (pe500 != null ? 'Nifty 500' : 'Nifty 50') + (pe50 != null ? ' · Nifty 50 ' + pe50.toFixed(1) + '×' : '') + ' · live');
+    set('bfMktPESub', (pe500 != null ? 'Nifty 500' : 'Nifty 50') + (pe50 != null ? ' · Nifty 50 ' + pe50.toFixed(1) + '×' : '') + ' · NSE, read ' + (d.fetchedAt ? new Date(d.fetchedAt).toLocaleString('en-IN', {timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false}) + ' IST' : 'at last build') + '; the Dashboard P/E is read at another time, so the two can differ');
     set('bfPsLo', dc.trough + '% (' + dc.trough_fy + ')');
     set('bfPsHi', dc.peak + '% (' + dc.peak_fy + ')');
     var psPos = (ps - dc.trough) / (dc.peak - dc.trough);
@@ -4665,9 +4846,9 @@ function renderBuffett() {
       }
     }
 
-    var psWord = psPos > 0.8 ? 'near its ' + dc.peak_fy + ' high' : psPos > 0.5 ? 'above mid-range' : 'below mid-range';
+    var psWord = psPos >= 0.995 ? 'at its ' + dc.peak_fy + ' high' : psPos > 0.8 ? 'near its ' + dc.peak_fy + ' high' : psPos > 0.5 ? 'above mid-range' : 'below mid-range';
     var peWord = (pePctile == null) ? 'elevated' : pePctile >= 75 ? 'historically rich' : pePctile >= 45 ? 'around its 10-yr average' : 'below its 10-yr average';
-    set('bfDecRead', 'Two levers behind it: corporate profit-share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%), and the market P/E — ' + (pe500 != null ? 'Nifty 500 ' + pe500.toFixed(1) + '×' : '') + (pe50 != null ? ', Nifty 50 ' + pe50.toFixed(1) + '×' + (pePctile != null ? ' (≈' + pePctile + 'th pctile, ' + peWord + ')' : '') : '') + '. Profit-share: Motilal Oswal Nifty-500 series.');
+    set('bfDecRead', 'Two levers behind it: corporate profit-share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%), and the market P/E — ' + (pe500 != null ? 'Nifty 500 ' + pe500.toFixed(1) + '×' : '') + (pe50 != null ? ', Nifty 50 ' + pe50.toFixed(1) + '×' + (pePctile != null ? ' (≈' + ord(pePctile) + ' percentile, ' + peWord + ')' : '') : '') + '. Profit-share: Motilal Oswal Nifty-500 series.');
 
     // Interpretation quadrant — profit-share × the actual market multiple
     var psHigh = psPos >= 0.66;
@@ -4809,6 +4990,348 @@ var GL_COLORS = {
 };
 // Equity indices only — gold & DXY are excluded from the leadership ranking.
 var GL_EQUITY = ['nifty','spx','ndx','em','csi300','hsi','nikkei','kospi','taiex','estoxx','ftse'];
+
+// ---------- Macro tab: USD/INR, Brent futures, FII net equity ----------
+var MACRO = null, FII = null, MC_RANGE = '5Y', MC_YEARS = {'3Y':3,'5Y':5,'10Y':10}, MC_CH = {};
+var MC_SHAPE = {HEADWIND:'◆', NEUTRAL:'●', TAILWIND:'▲', UNKNOWN:'?'};
+var MC_FRESH_DAYS = 4; // weekend + one holiday; older is flagged STALE in words
+var MACRO_LOADING = true; // true until fetchMacro() settles, so the tab says "Loading" not "unavailable"
+function mcNum(v){ return typeof v === 'number' && isFinite(v); }
+// Accept macro.json only when the fields the page reads are present and typed.
+function mcValidMacro(m) {
+  try {
+    if (!m || !m.series || !m.weekly || !Array.isArray(m.weekly.rows) || m.weekly.rows.length < 2) return false;
+    var rowsOk = m.weekly.rows.every(function(r){ return Array.isArray(r) && typeof r[0] === 'string' && mcNum(r[1]) && mcNum(r[2]) && mcNum(r[3]); });
+    var serOk = ['usdinr','brent','nifty'].every(function(k){
+      var x = m.series[k];
+      if (!x || !mcNum(x.last) || typeof x.lastDailyBar !== 'string') return false;
+      if (k === 'nifty') return true;
+      return mcNum(x.chg12m) && mcNum(x.chg12mPctile) && MC_SHAPE.hasOwnProperty(x.state);
+    });
+    return rowsOk && serOk;
+  } catch (e) { return false; }
+}
+// Correlation block is checked on its own; a bad block drops only the correlation chart.
+// Values may be null where the rolling window is undefined.
+function mcValidCorr(c) {
+  try {
+    function nn(v){ return v === null || mcNum(v); }
+    return !!(c && mcNum(c.window_weeks) && Array.isArray(c.rolling) && c.full && c.latest
+      && c.rolling.every(function(r){ return Array.isArray(r) && typeof r[0] === 'string' && nn(r[1]) && nn(r[2]); })
+      && ['usdinr','brent','lead1w_usdinr','lead1w_brent'].every(function(k){ return nn(c.full[k]); })
+      && ['usdinr','brent'].every(function(k){ return nn(c.latest[k]); }));
+  } catch (e) { return false; }
+}
+function mcValidFii(f) {
+  try {
+    return !!(f && Array.isArray(f.rows) && f.rows.length && typeof f.lastReportDate === 'string'
+      && f.rows.every(function(r){ return Array.isArray(r) && typeof r[0] === 'string' && mcNum(r[1]); }));
+  } catch (e) { return false; }
+}
+// Chart colours: darker tokens on the light theme. Colour is never the only cue; every line also has a dash pattern and a name label.
+function mcC(k) {
+  var L = document.body.classList.contains('light');
+  return ({amber: L ? '#b45309' : '#fbbf24', blue: L ? '#1d4ed8' : '#60a5fa', violet: L ? '#6d28d9' : '#a78bfa', green: L ? '#047857' : '#34d399'})[k];
+}
+function mcR(v){ return mcNum(v) ? v.toFixed(2) : 'n/a'; }
+// Words for a correlation: sign gives direction, size gives strength.
+function mcCorrWord(v) {
+  if (!mcNum(v)) return 'not available';
+  var a = Math.abs(v);
+  if (a < 0.1) return 'near zero';
+  return (v < 0 ? 'moved opposite' : 'moved together') + ', ' + (a >= 0.5 ? 'strong' : (a >= 0.3 ? 'moderate' : 'weak'));
+}
+
+function fetchMacro() {
+  function get(u){ return fetch(u + '?t=' + Date.now()).then(function(r){ if(!r.ok) throw new Error(u); return r.json(); }).catch(function(){ return null; }); }
+  Promise.all([get('./data/macro.json'), get('./data/fii.json')]).then(function(res){
+    MACRO_LOADING = false;
+    MACRO = mcValidMacro(res[0]) ? res[0] : null;
+    if (res[0] && !MACRO) console.warn('macro.json failed validation; ignoring it');
+    if (MACRO && !mcValidCorr(MACRO.correlation)) { console.warn('macro.json correlation block failed validation'); MACRO.correlation = null; }
+    FII = mcValidFii(res[1]) ? res[1] : null;
+    if (res[1] && !FII) console.warn('fii.json failed validation; ignoring it');
+    try { renderMacroChips(); } catch (e) { console.warn('macro chips', e); }
+    if (CURRENT_VIEW === 'macro') { try { renderMacro(); } catch (e) { console.warn('macro', e); } }
+  });
+}
+function setMacroRange(r){ MC_RANGE = r; document.querySelectorAll('#mcRangeRow .gl-pill').forEach(function(b){ b.classList.toggle('active', b.dataset.range === r); }); renderMacro(); }
+
+function mcAge(d){ return Math.floor((Date.now() - new Date(d + 'T00:00:00Z').getTime()) / 86400000); }
+function mcAsOf(d, label){
+  var a = mcAge(d);
+  return label + ' as of ' + d + (a > MC_FRESH_DAYS ? ' · <strong>STALE (' + a + ' days old)</strong>' : '');
+}
+function mcSigned(v, dp, pre, suf){ return (v < 0 ? '−' : '+') + (pre || '') + Math.abs(v).toLocaleString('en-IN', {minimumFractionDigits:dp, maximumFractionDigits:dp}) + (suf || ''); }
+function mcPill(st){ return '<span class="mc-pill mc-' + st.toLowerCase() + '">' + MC_SHAPE[st] + ' ' + st + '</span>'; }
+
+// FII state: sum of the last 5 reporting dates, ranked against every rolling 5-date sum since 2014.
+// Heavy selling (low percentile) is the headwind; heavy buying is the tailwind.
+function fiiStat() {
+  if (!FII || FII.rows.length < 260) return null;
+  var r = FII.rows, n = r.length, sums = [];
+  for (var i = 4; i < n; i++) { var t = 0; for (var k = i - 4; k <= i; k++) t += r[k][1]; sums.push(t); }
+  var cur = sums[sums.length - 1];
+  var le = sums.filter(function(v){ return v <= cur; }).length;
+  var pct = Math.round(1000 * le / sums.length) / 10;
+  var win = r.slice(-5);
+  return { sum: cur, pct: pct, state: pct <= 25 ? 'HEADWIND' : (pct >= 75 ? 'TAILWIND' : 'NEUTRAL'),
+           first: win[0][0], last: r[n-1][0], catchup: win.some(function(x){ return x[4]; }), nWin: sums.length };
+}
+function mcStates() {
+  var out = {};
+  out.usdinr = MACRO ? MACRO.series.usdinr.state : 'UNKNOWN';
+  out.brent = MACRO ? MACRO.series.brent.state : 'UNKNOWN';
+  var f = fiiStat(); out.fii = f ? f.state : 'UNKNOWN';
+  return out;
+}
+
+function renderMacroChips() {
+  var el = document.getElementById('macroChips'); if (!el) return;
+  if (!MACRO && !FII) { el.innerHTML = '<div class="mc-chips-note">' + (MACRO_LOADING ? '\u25cc Loading macro context (USD/INR, Brent, FII)\u2026' : 'Macro context unavailable: data/macro.json and data/fii.json did not load.') + '</div>'; return; }
+  var h = '';
+  if (MACRO) {
+    var u = MACRO.series.usdinr, b = MACRO.series.brent;
+    h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>USD/INR</span>' + mcPill(u.state) + '</div>'
+      + '<div class="mc-chip-v">₹' + u.last.toFixed(2) + '</div>'
+      + '<div class="mc-chip-s">' + mcSigned(u.chg12m, 1, '', '%') + ' over 12M · ' + ord(Math.round(u.chg12mPctile)) + ' percentile<br>' + mcAsOf(u.lastDailyBar, 'last quote') + '</div></button>';
+    h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>Brent futures</span>' + mcPill(b.state) + '</div>'
+      + '<div class="mc-chip-v">$' + b.last.toFixed(2) + '</div>'
+      + '<div class="mc-chip-s">' + mcSigned(b.chg12m, 1, '', '%') + ' over 12M · ' + ord(Math.round(b.chg12mPctile)) + ' percentile<br>' + mcAsOf(b.lastDailyBar, 'last quote') + '</div></button>';
+  }
+  var f = fiiStat();
+  if (f) {
+    h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>FII net, 5 report dates</span>' + mcPill(f.state) + '</div>'
+      + '<div class="mc-chip-v">' + mcSigned(f.sum, 0, '₹', ' cr') + '</div>'
+      + '<div class="mc-chip-s">' + ord(Math.round(f.pct)) + ' percentile of rolling 5-date sums since 2014' + (f.catchup ? '<br>\u2020 includes a row flagged as a likely catch-up' : '') + '<br>' + mcAsOf(f.last, 'NSDL report') + '</div></button>';
+  }
+  var st = mcStates(), hw = ['usdinr','brent','fii'].filter(function(k){ return st[k] === 'HEADWIND'; }).length;
+  var unkC = ['usdinr','brent','fii'].filter(function(k){ return st[k] === 'UNKNOWN'; });
+  var nmC = {usdinr:'USD/INR', brent:'Brent', fii:'FII flows'};
+  h += '<div class="mc-chips-note">Macro context: ' + hw + ' of 3 readings are headwinds'
+    + (unkC.length ? '; ' + unkC.length + ' unavailable (' + unkC.map(function(k){ return nmC[k]; }).join(', ') + ')' : '')
+    + '. It does not change any valuation band. Open the Macro tab for sources and charts.</div>';
+  el.innerHTML = h;
+}
+function openMacro() { showMainView('macro', document.querySelector('.ptab[data-view="macro"]')); }
+
+function mcRows(rows, cutoff){ return rows.filter(function(r){ return r[0] >= cutoff; }); }
+function mcCutoff(lastDate){ var c = new Date(lastDate + 'T00:00:00Z'); c.setUTCFullYear(c.getUTCFullYear() - MC_YEARS[MC_RANGE]); return c.toISOString().slice(0, 10); }
+function mcFmt(v){ return Math.abs(v) >= 1000 ? v.toLocaleString('en-IN', {maximumFractionDigits:0}) : (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2)); }
+
+// Generic line chart. series: [{name, pts:[[date,val]], dash, col, w, fmt}]. opts: {yMin,yMax,zero,base100,unit}
+function mcLine(id, series, opts) {
+  opts = opts || {};
+  var svg = document.getElementById(id), wrap = svg.parentNode;
+  var W = Math.max(300, wrap.clientWidth - 28), H = 270, pad = {l:46, r:W < 520 ? 70 : 118, t:12, b:24};
+  var labW = 0;
+  series.forEach(function(S){ S.ok = S.pts.filter(function(p){ return p[1] != null && !isNaN(p[1]); }); });
+  series.forEach(function(S){ if (!S.ok.length) return; var lv = S.ok[S.ok.length - 1][1]; labW = Math.max(labW, (S.name + ' ' + (S.fmt ? S.fmt(lv) : mcFmt(lv))).length * 5.9 + 12); });
+  pad.r = Math.max(pad.r, Math.ceil(labW));
+  var iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+  var all = [], tMin = Infinity, tMax = -Infinity;
+  series.forEach(function(S){ S.ok.forEach(function(p){ all.push(p[1]); var t = +new Date(p[0]); if (t < tMin) tMin = t; if (t > tMax) tMax = t; }); });
+  if (!all.length) { svg.innerHTML = ''; return; }
+  var lo = opts.yMin != null ? opts.yMin : Math.min.apply(null, all), hi = opts.yMax != null ? opts.yMax : Math.max.apply(null, all);
+  if (opts.yMin == null) { var pv = (hi - lo) * 0.06 || 1; lo -= pv; hi += pv; }
+  var vR = hi - lo || 1, tR = tMax - tMin || 1;
+  function xp(d){ return pad.l + (+new Date(d) - tMin) / tR * iW; }
+  function yp(v){ return pad.t + iH - (v - lo) / vR * iH; }
+  var g = '';
+  for (var i = 0; i <= 4; i++) { var v = lo + vR * i / 4, y = yp(v);
+    g += '<line x1="' + pad.l + '" x2="' + (pad.l + iW) + '" y1="' + y + '" y2="' + y + '" stroke="var(--bdr)" stroke-width="0.5"/>'
+      + '<text x="' + (pad.l - 5) + '" y="' + (y + 3) + '" text-anchor="end" fill="var(--txt3)" font-size="10">' + (opts.axisFmt ? opts.axisFmt(v) : mcFmt(v)) + '</text>'; }
+  var ref = opts.base100 ? 100 : (opts.zero ? 0 : null);
+  if (ref != null && ref >= lo && ref <= hi) g += '<line x1="' + pad.l + '" x2="' + (pad.l + iW) + '" y1="' + yp(ref) + '" y2="' + yp(ref) + '" stroke="var(--txt3)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>';
+  var prevYr = '', lastX = -999, ref0 = series[0].pts;
+  ref0.forEach(function(p){ var yr = p[0].slice(0, 4); if (yr !== prevYr) { var x = xp(p[0]); if (x - lastX >= 44) { g += '<text x="' + x + '" y="' + (H - 6) + '" text-anchor="middle" fill="var(--txt3)" font-size="10">' + yr + '</text>'; lastX = x; } prevYr = yr; } });
+  var body = '', ends = [];
+  series.forEach(function(S){
+    if (!S.ok.length) return;
+    // Break the line at null values instead of joining across the gap.
+    var segs = [], cur = [];
+    S.pts.forEach(function(p){ if (p[1] == null || isNaN(p[1])) { if (cur.length) segs.push(cur); cur = []; } else cur.push(xp(p[0]).toFixed(1) + ',' + yp(p[1]).toFixed(1)); });
+    if (cur.length) segs.push(cur);
+    segs.forEach(function(sg){
+      if (sg.length === 1) { var xy = sg[0].split(','); body += '<circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="1.6" fill="' + S.col + '"/>'; return; }
+      body += '<polyline points="' + sg.join(' ') + '" fill="none" stroke="' + S.col + '" stroke-width="' + (S.w || 2) + '" stroke-linejoin="round" stroke-linecap="round"' + (S.dash ? ' stroke-dasharray="' + S.dash + '"' : '') + '/>';
+    });
+    var lp = S.ok[S.ok.length - 1]; ends.push({y: yp(lp[1]), name: S.name, v: lp[1], col: S.col, fmt: S.fmt});
+  });
+  ends.sort(function(a, b){ return a.y - b.y; });
+  for (var k = 1; k < ends.length; k++) if (ends[k].y - ends[k-1].y < 13) ends[k].y = ends[k-1].y + 13;
+  ends.forEach(function(e){ body += '<text x="' + (pad.l + iW + 6) + '" y="' + (e.y + 3) + '" fill="' + e.col + '" font-size="10.5" font-weight="700">' + e.name + ' ' + (e.fmt ? e.fmt(e.v) : mcFmt(e.v)) + '</text>'; });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H); svg.setAttribute('width', W);
+  svg.innerHTML = g + body + '<line id="' + id + 'X" x1="0" x2="0" y1="' + pad.t + '" y2="' + (pad.t + iH) + '" stroke="var(--txt3)" stroke-width="1" style="display:none"/>';
+  MC_CH[id] = {W: W, H: H, pad: pad, iW: iW, tMin: tMin, tR: tR, series: series};
+  mcHover(id);
+}
+function mcHover(id) {
+  var svg = document.getElementById(id), tip = document.getElementById(id + 'Tip'), cx = document.getElementById(id + 'X');
+  function hide(){ tip.style.display = 'none'; if (cx) cx.style.display = 'none'; }
+  svg.onpointerleave = hide;
+  svg.onpointermove = function(ev){
+    var C = MC_CH[id]; if (!C) return;
+    var r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * (C.W / r.width);
+    if (px < C.pad.l || px > C.pad.l + C.iW) { hide(); return; }
+    var t = C.tMin + (px - C.pad.l) / C.iW * C.tR, best = null, rows = [];
+    C.series.forEach(function(S){
+      var P = S.ok || S.pts; if (!P.length) return;
+      var bi = 0, bd = Infinity;
+      P.forEach(function(p, i){ var d = Math.abs(+new Date(p[0]) - t); if (d < bd) { bd = d; bi = i; } });
+      if (best == null) best = P[bi][0];
+      rows.push('<div><span style="color:' + S.col + ';font-weight:700">' + S.name + '</span> ' + (S.fmt ? S.fmt(P[bi][1]) : mcFmt(P[bi][1])) + '</div>');
+    });
+    if (best == null) { hide(); return; }
+    var x = C.pad.l + (+new Date(best) - C.tMin) / C.tR * C.iW;
+    cx.setAttribute('x1', x); cx.setAttribute('x2', x); cx.style.display = '';
+    tip.innerHTML = '<div class="mc-tip-d">' + best + '</div>' + rows.join('');
+    tip.style.display = 'block';
+    var left = x * (r.width / C.W) + 14 + svg.parentNode.firstElementChild.offsetLeft;
+    tip.style.left = Math.min(left, svg.parentNode.clientWidth - 170) + 'px'; tip.style.top = '36px';
+  };
+}
+function mcKey(id, items) {
+  document.getElementById(id).innerHTML = items.map(function(it){
+    return '<span><svg width="30" height="8"><line x1="0" x2="30" y1="4" y2="4" stroke="' + it.col + '" stroke-width="2.5"' + (it.dash ? ' stroke-dasharray="' + it.dash + '"' : '') + '/></svg>' + it.name + '</span>';
+  }).join('');
+}
+
+function renderMacro() {
+  var upd = document.getElementById('mcUpdated');
+  if (!MACRO && !FII) {
+    upd.textContent = MACRO_LOADING ? '\u25cc Loading macro data\u2026' : 'Macro data unavailable (data/macro.json and data/fii.json did not load).';
+    document.getElementById('mcVerdict').innerHTML = MACRO_LOADING ? '\u25cc Loading\u2026' : '';
+    return;
+  }
+  // Each section draws in its own try, so one bad block does not blank the rest of the tab.
+  function sect(name, capId, fn) {
+    try { fn(); } catch (e) {
+      console.warn('renderMacro ' + name, e);
+      var ce = capId && document.getElementById(capId);
+      if (ce) ce.textContent = '\u26a0 This section could not be drawn from the data file (' + (e && e.message ? e.message : 'error') + ').';
+    }
+  }
+  sect('verdict', 'mcVerdict', function(){
+  var st = mcStates(), names = {usdinr:'USD/INR', brent:'Brent', fii:'FII flows'};
+  var hw = Object.keys(st).filter(function(k){ return st[k] === 'HEADWIND'; });
+  var tw = Object.keys(st).filter(function(k){ return st[k] === 'TAILWIND'; });
+  var unk = Object.keys(st).filter(function(k){ return st[k] === 'UNKNOWN'; });
+  document.getElementById('mcVerdict').innerHTML = '<b>' + hw.length + ' of 3</b> readings are headwinds'
+    + (hw.length ? ' (' + hw.map(function(k){ return names[k]; }).join(', ') + ')' : '') + '; ' + tw.length + ' tailwind'
+    + (unk.length ? '; ' + unk.length + ' unreadable (' + unk.map(function(k){ return names[k]; }).join(', ') + ')' : '') + '. '
+    + 'Each reading ranks the latest 12-month change (or 5-date FII sum) against its own history. '
+    + 'A headwind says the move is in the top quarter of what India has seen in the unfavourable direction. It does not say Nifty will fall.'
+    + '<div style="margin-top:8px">' + ['usdinr','brent','fii'].map(function(k){ return names[k] + ' ' + mcPill(st[k]); }).join(' &nbsp; ') + '</div>';
+  var asof = [];
+  if (MACRO) asof.push(mcAsOf(MACRO.series.usdinr.lastDailyBar, 'USD/INR and Nifty last quote') , mcAsOf(MACRO.series.brent.lastDailyBar, 'Brent last quote'));
+  if (FII) asof.push(mcAsOf(FII.lastReportDate, 'FII (NSDL report date)'));
+  upd.innerHTML = asof.join(' &middot; ') + ' &middot; weekly closes for the price charts';
+  });
+
+  if (MACRO) {
+    var W = MACRO.weekly.rows, last = W[W.length - 1][0], cut = mcCutoff(last), rows = mcRows(W, cut), b = rows[0];
+    var nI, f1 = function(v){ return v.toFixed(0); };
+    sect('usdinr chart', 'mcFxCap', function(){
+    var fx = rows.map(function(r){ return [r[0], r[1] / b[1] * 100]; });
+    nI = rows.map(function(r){ return [r[0], r[3] / b[3] * 100]; });
+    var nU = rows.map(function(r){ return [r[0], (r[3] / r[1]) / (b[3] / b[1]) * 100]; });
+    var sFx = [{name:'Nifty in ₹', pts:nI, col:mcC('amber'), w:2.6, fmt:f1}, {name:'Nifty in $', pts:nU, col:mcC('amber'), dash:'7 4', w:2.2, fmt:f1}, {name:'USD/INR', pts:fx, col:mcC('blue'), dash:'2 3', w:2.4, fmt:f1}];
+    mcKey('mcKeyFx', sFx); mcLine('mcFx', sFx, {base100:true, axisFmt:f1});
+    var uI = nI[nI.length-1][1] - 100, uU = nU[nU.length-1][1] - 100, rr = fx[fx.length-1][1] - 100;
+    document.getElementById('mcFxCap').innerHTML = 'Rebased to 100 at ' + b[0] + '. Over the range, Nifty is <strong>' + mcSigned(uI, 1, '', '%') + ' in rupees</strong> and <strong>' + mcSigned(uU, 1, '', '%') + ' in dollars</strong>; USD/INR is ' + mcSigned(rr, 1, '', '%') + ' (a rise means a weaker rupee). The gap between the two Nifty lines is the rupee’s move. A foreign investor earns the dollar line.';
+    });
+    sect('brent chart', 'mcBrCap', function(){
+    if (!nI) nI = rows.map(function(r){ return [r[0], r[3] / b[3] * 100]; });
+    var br = rows.map(function(r){ return [r[0], r[2] / b[2] * 100]; });
+    var sBr = [{name:'Nifty', pts:nI, col:mcC('amber'), w:2.6, fmt:f1}, {name:'Brent futures', pts:br, col:mcC('violet'), dash:'7 3 1 3', w:2.4, fmt:f1}];
+    mcKey('mcKeyBr', sBr); mcLine('mcBr', sBr, {base100:true, axisFmt:f1});
+    var bs = MACRO.series.brent;
+    document.getElementById('mcBrCap').innerHTML = 'Rebased to 100 at ' + b[0] + '. <strong>Brent here is front-month futures, not spot.</strong> It rolls monthly, so it can differ from a spot quote by a few percent. India imports most of its crude, so a sharp rise raises the import bill and inflation risk. Latest 12-month change: <strong>' + mcSigned(bs.chg12m, 1, '', '%') + '</strong> (' + ord(Math.round(bs.chg12mPctile)) + ' percentile of its own 10-year history).';
+    });
+    sect('correlation chart', 'mcCoCap', function(){
+    var C = MACRO.correlation;
+    if (!C) { document.getElementById('mcCo').innerHTML = ''; document.getElementById('mcKeyCo').innerHTML = ''; document.getElementById('mcCoCap').textContent = '\u26a0 The correlation block in macro.json is missing or malformed, so this chart is empty.'; return; }
+    var cr = mcRows(C.rolling, cut);
+    var f2 = function(v){ return v.toFixed(2); };
+    var sCo = [{name:'Nifty vs USD/INR', pts:cr.map(function(r){ return [r[0], r[1]]; }), col:mcC('blue'), dash:'2 3', w:2.4, fmt:f2},
+               {name:'Nifty vs Brent', pts:cr.map(function(r){ return [r[0], r[2]]; }), col:mcC('violet'), dash:'7 3 1 3', w:2.4, fmt:f2}];
+    mcKey('mcKeyCo', sCo); mcLine('mcCo', sCo, {yMin:-1, yMax:1, zero:true, axisFmt:function(v){ return v.toFixed(1); }});
+    function cw(v){ return '<strong>' + mcR(v) + '</strong> (' + mcCorrWord(v) + ')'; }
+    var leadNear = [C.full.lead1w_usdinr, C.full.lead1w_brent].every(function(v){ return !mcNum(v) || Math.abs(v) < 0.1; });
+    document.getElementById('mcCoCap').innerHTML = 'Correlation of <strong>weekly returns</strong>, rolling over ' + C.window_weeks + ' weeks (n = ' + (C.latest.n != null ? C.latest.n : C.window_weeks) + ' per point; gaps in a line are weeks with too little data). '
+      + 'A negative value means Nifty tended to move the <em>opposite</em> way to the series in the same week; a value between −0.1 and +0.1 is near zero. '
+      + 'Latest: USD/INR ' + cw(C.latest.usdinr) + ', Brent ' + cw(C.latest.brent) + '. '
+      + 'Full sample (n = ' + C.full.n + ' weeks): USD/INR ' + cw(C.full.usdinr) + ', Brent ' + cw(C.full.brent) + '. '
+      + 'With the macro move one week <em>earlier</em>: USD/INR ' + cw(C.full.lead1w_usdinr) + ', Brent ' + cw(C.full.lead1w_brent) + (leadNear ? ', so these series show no usable lead. ' : '. A one-week lead of this size is still weak and is not a forecast. ')
+      + '<strong>Coincident, not predictive:</strong> these numbers describe how the same weeks moved. They do not say one caused the other, and they do not forecast Nifty.';
+    });
+  } else {
+    ['mcFx','mcBr','mcCo'].forEach(function(i){ document.getElementById(i).innerHTML = ''; });
+    ['mcFxCap','mcBrCap','mcCoCap'].forEach(function(i){ document.getElementById(i).textContent = 'macro.json did not load, so this chart is empty.'; });
+  }
+  sect('fii', 'mcFiiCap', renderMacroFii);
+  sect('sources', null, renderMacroSources);
+}
+
+function renderMacroFii() {
+  var capEl = document.getElementById('mcFiiCap');
+  if (!FII) { ['mcFiiBars','mcFiiSum'].forEach(function(i){ document.getElementById(i).innerHTML = ''; }); capEl.textContent = 'fii.json did not load, so FII charts are empty. The Mac job that builds it may be behind.'; return; }
+  var R = FII.rows, n = R.length, svg = document.getElementById('mcFiiBars'), wrap = svg.parentNode;
+  var bars = R.slice(-60), W = Math.max(300, wrap.clientWidth - 28), H = 250, pad = {l:52, r:10, t:12, b:30};
+  var iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+  var mx = Math.max.apply(null, bars.map(function(r){ return Math.abs(r[1]); })) * 1.08, bw = iW / bars.length;
+  function yp(v){ return pad.t + iH / 2 - v / mx * (iH / 2); }
+  var g = '';
+  [-1, -0.5, 0, 0.5, 1].forEach(function(f){ var y = yp(f * mx);
+    g += '<line x1="' + pad.l + '" x2="' + (W - pad.r) + '" y1="' + y + '" y2="' + y + '" stroke="var(--bdr)" stroke-width="' + (f === 0 ? 1.2 : 0.5) + '"/>'
+      + '<text x="' + (pad.l - 5) + '" y="' + (y + 3) + '" text-anchor="end" fill="var(--txt3)" font-size="10">' + (f * mx / 1000).toFixed(0) + 'k</text>'; });
+  var b = '';
+  bars.forEach(function(r, i){
+    var x = pad.l + i * bw + bw * 0.12, w = Math.max(1.5, bw * 0.76), v = r[1], y0 = yp(0), y1 = yp(v);
+    var top = Math.min(y0, y1), h = Math.max(1, Math.abs(y1 - y0));
+    var isCU = r[4] === 1;
+    b += '<rect x="' + x.toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '"'
+      + (v >= 0 ? ' fill="var(--vc-c)" opacity=".85"' : ' fill="var(--ve-c)" opacity=".85"')
+      + (isCU ? ' stroke="var(--txt)" stroke-width="1.4" stroke-dasharray="3 2"' : '') + '><title>' + r[0] + ': ' + mcSigned(v, 0, '₹', ' cr') + (isCU ? ' (likely multi-day catch-up)' : '') + '</title></rect>';
+    if (isCU) b += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (v >= 0 ? top - 3 : top + h + 11).toFixed(1) + '" text-anchor="middle" fill="var(--txt)" font-size="11" font-weight="700">†</text>';
+    if (i % 10 === 0 || i === bars.length - 1) b += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" fill="var(--txt3)" font-size="9.5">' + r[0].slice(5) + '</text>';
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H); svg.setAttribute('width', W);
+  svg.innerHTML = g + b;
+  svg.onpointermove = null;
+  document.getElementById('mcKeyFii').innerHTML = '<span><svg width="14" height="12"><rect width="14" height="12" fill="var(--vc-c)"/></svg>net buying (bar above zero line)</span>'
+    + '<span><svg width="14" height="12"><rect width="14" height="12" fill="var(--ve-c)"/></svg>net selling (bar below zero line)</span>'
+    + '<span><svg width="14" height="12"><rect x="1" y="1" width="12" height="10" fill="none" stroke="var(--txt)" stroke-width="1.4" stroke-dasharray="3 2"/></svg>† likely multi-day catch-up</span>'
+    + '<span>₹ crore, last 60 NSDL reporting dates</span>';
+  // rolling 20-date sum over the chosen range
+  var cut = mcCutoff(R[n - 1][0]), sum = [], acc = 0;
+  for (var i = 0; i < n; i++) { acc += R[i][1]; if (i >= 20) acc -= R[i - 20][1]; if (i >= 19 && R[i][0] >= cut) sum.push([R[i][0], acc]); }
+  var sS = [{name:'20-date sum', pts:sum, col:mcC('green'), w:2.4, fmt:function(v){ return mcSigned(v / 1000, 1, '', 'k'); }}];
+  mcKey('mcKeyFiiSum', sS); mcLine('mcFiiSum', sS, {zero:true, axisFmt:function(v){ return (v / 1000).toFixed(0) + 'k'; }});
+  var f = fiiStat(), nse = FII.nseToday;
+  capEl.innerHTML = '<strong>Source: NSDL FPI Monitor</strong> (depository-confirmed, equity, Stock Exchange route; ₹ crore). <strong>Each date is the NSDL reporting date and carries the previous trading day’s trades.</strong> '
+    + 'History starts 2014-06-02 (' + n + ' rows, newest ' + FII.lastReportDate + '). Rows marked † are flagged by size (turnover above 1.8 times the recent median) and may combine several trading days; the flag is a caution, not proof. '
+    + (f ? 'Last 5 report dates (' + f.first + ' to ' + f.last + '): <strong>' + mcSigned(f.sum, 0, '₹', ' cr') + '</strong>, ' + ord(Math.round(f.pct)) + ' percentile. ' : '')
+    + (nse ? '<br>NSE same-day figure, <strong>provisional</strong>, cash market, for ' + nse.date + ': ' + mcSigned(nse.net, 0, '₹', ' cr') + ' (buy ' + nse.buy.toLocaleString('en-IN', {maximumFractionDigits:0}) + ', sell ' + nse.sell.toLocaleString('en-IN', {maximumFractionDigits:0}) + '). It is a different trading day from the NSDL row with the same date, so it is not added to the chart.' : '')
+    + '<br>DII flows are not shown: no depository-confirmed daily DII source is wired in yet.';
+}
+
+function renderMacroSources() {
+  var rows = [];
+  if (MACRO) ['usdinr','brent','nifty'].forEach(function(k){
+    var s = MACRO.series[k], nm = {usdinr:'USD/INR', brent:'Brent futures', nifty:'Nifty 50'}[k];
+    rows.push([nm, s.definition, s.source + ' (' + s.sym + ')', mcAsOf(s.lastDailyBar, 'last quote')]);
+  });
+  if (FII) {
+    rows.push(['FII net equity', FII.definition, FII.source, mcAsOf(FII.lastReportDate, 'last report date') + ' · file built ' + FII.fetchedAt.slice(0, 16).replace('T', ' ') + ' UTC']);
+    if (FII.nseToday) rows.push(['FII, same day (provisional)', 'Cash-market FII/FPI net, first print of the day. Can be revised.', FII.nseToday.source, 'for ' + FII.nseToday.date]);
+  }
+  rows.push(['State words', (MACRO ? MACRO.rule : 'HEADWIND if in the top quarter of its own history, TAILWIND in the bottom quarter, else NEUTRAL.') + ' For FII the direction flips: heavy selling is the headwind.', 'IndexScope percentile rule', 'Computed in the page']);
+  document.getElementById('mcSources').innerHTML = '<table class="mc-tbl"><thead><tr><th>Item</th><th>Definition</th><th>Source</th><th>Freshness</th></tr></thead><tbody>'
+    + rows.map(function(r){ return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td></tr>'; }).join('') + '</tbody></table>';
+}
+window.addEventListener('resize', function(){ if (CURRENT_VIEW === 'macro') { try { renderMacro(); } catch (e) {} } });
 
 function fetchGlobal() {
   Promise.all([
@@ -4983,7 +5506,7 @@ function renderGlobalVerdict(d, localMode){
     var tail = below.length ? ('ahead of only '+below.join(', ')) : 'the weakest of the set';
     var lagging = rank > n/2;
     el.innerHTML = 'Over <b>'+GL_RANGE.toUpperCase()+'</b> in '+ccyTxt+' terms, <b>India</b> ('
-      +(india.v>=0?'+':'')+india.v.toFixed(0)+'%) ranks <b>#'+rank+' of '+n+'</b> major equity markets'
+      +(india.v>=0?'+':'')+india.v.toFixed(0)+'%) ranks <b>#'+rank+' of '+n+'</b> equity indices tracked here (gold and the dollar index are not ranked)'
       + (lagging ? ' — <span class="hi">'+tail+'</span>. ' : '. ')
       + top.name+' (<span class="lo">+'+top.v.toFixed(0)+'%</span>) led; '+bot.name+' (<span class="'+(bot.v<0?'hi':'lo')+'">'
       +(bot.v>=0?'+':'')+bot.v.toFixed(0)+'%</span>) lagged.';
@@ -5138,12 +5661,16 @@ function initAuth(){
   // Render cards immediately from embedded data
   renderCards();
   setStatus('stale', 'Loaded from embedded data');
+  if (location.hash && location.hash !== '#/dashboard') { try { applyRoute(); } catch(e) {} }
 
   // Buffett indicator loads its own data file in the background.
   fetchBuffett();
 
   // Global indices tab loads its own data files in the background.
   fetchGlobal();
+
+  // Macro tab + dashboard chips (USD/INR, Brent, FII) load their own data files.
+  fetchMacro();
 
   // Refresh the 10Y G-Sec series (for the EY-BY yield-gap panel) in the background.
   loadGsec();
@@ -5158,10 +5685,7 @@ function initAuth(){
         try { renderDashboard(); } catch(e){}
         if (CURRENT_SUB === 'medians') { try { renderMedians(); } catch(e){} }
       }
-      if (liveResp && liveResp.fetchedAt) {
-        var ts = new Date(liveResp.fetchedAt).toLocaleString('en-IN', {timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', hour12:true});
-        setStatus('ok', 'Live · ' + ts + ' IST');
-      }
+      applyOverlayStatus(liveResp);
     });
 })();
 </script>
