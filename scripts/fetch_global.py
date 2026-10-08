@@ -32,7 +32,7 @@ INDICES = [
     ("spx",    "S&P 500",         "US",          "^GSPC",     "USD", False),
     ("ndx",    "Nasdaq 100",      "US",          "^NDX",      "USD", False),
     ("em",     "MSCI EM (EEM)",   "Emerging",    "EEM",       "USD", False),
-    ("csi300", "CSI 300",         "China",       "000300.SS", "CNY", False),
+    ("csi300", "CSI 300 (ETF)",   "China",       "510300.SS", "CNY", False),  # Yahoo serves only 1 day for ^000300.SS; 510300 ETF tracks it in CNY
     ("hsi",    "Hang Seng",       "Hong Kong",   "^HSI",      "HKD", False),
     ("nikkei", "Nikkei 225",      "Japan",       "^N225",     "JPY", False),
     ("kospi",  "KOSPI",           "South Korea", "^KS11",     "KRW", False),
@@ -65,7 +65,15 @@ def weekly_close(sym: str):
         return {}
     s = h["Close"].dropna()
     s = s.resample("W-FRI").last().dropna()
-    return {d.strftime("%Y-%m-%d"): round(float(v), 4) for d, v in s.items()}
+    out = {d.strftime("%Y-%m-%d"): round(float(v), 4) for d, v in s.items()}
+    # The in-progress week resamples to a future Friday. Stamp it with today's
+    # IST date so no point is dated in the future (all series share this label).
+    cap = datetime.now(timezone.utc).astimezone(IST).strftime("%Y-%m-%d")
+    if out:
+        last = max(out)
+        if last > cap:
+            out[cap] = out.pop(last)
+    return out
 
 
 def usd_per_local_series(ccy: str):
