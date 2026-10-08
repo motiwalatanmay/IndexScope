@@ -1113,6 +1113,8 @@ body.light .hp-formula .k{color:#4f46e5}
     .mc-fwin{margin:0 0 6px}
     .mc-fwin-t{font-size:.76rem;color:var(--sub);margin:0 2px 8px;line-height:1.5}
     .mc-fwin-t strong{color:var(--txt)}
+    .mc-nse{font-size:.8rem;line-height:1.5;color:var(--sub);margin:0 0 10px;padding:8px 12px;border:1px solid var(--bdr);border-left:4px solid var(--sub);border-radius:8px;background:var(--sur)}
+    .mc-nse strong{color:var(--txt)}
     .mc-tbl{width:100%;border-collapse:collapse;font-size:.74rem}
     .mc-tbl th{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.5px;color:var(--ghost);text-align:left;padding:6px 8px;border-bottom:1px solid var(--bdr)}
     .mc-tbl td{padding:7px 8px;border-bottom:1px solid var(--bdr);vertical-align:top;color:var(--sub)}
@@ -1178,6 +1180,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <button type="button" class="gl-pill" data-fwin="1Y" aria-pressed="false" onclick="mcSetFwin('1Y')">1Y</button>
     </div>
     <div id="mcFiiWin" class="mc-fwin-t" aria-live="polite"></div>
+    <div id="mcFiiNse" class="mc-nse" style="display:none"></div>
     <div class="mc-card"><div id="mcKeyFii" class="mc-key"></div><svg id="mcFiiBars" class="mc-svg" tabindex="0" role="img" aria-label="Daily FII net equity flow by NSDL report date"></svg><div id="mcFiiBarsTip" class="mc-tip"></div></div>
     <div class="mc-card" style="margin-top:12px"><div id="mcKeyFiiSum" class="mc-key"></div><svg id="mcFiiSum" class="mc-svg" tabindex="0" role="img" aria-label="FII net equity flow, rolling 20 reporting dates"></svg><div id="mcFiiSumTip" class="mc-tip"></div></div>
     <details class="mc-more"><summary>More detail</summary><div id="mcFiiCap" class="mc-cap"></div></details>
@@ -5748,6 +5751,7 @@ function renderMacroFii() {
     ['mcFiiBars','mcFiiSum'].forEach(function(i){ document.getElementById(i).innerHTML = ''; });
     ['mcKeyFii','mcKeyFiiSum'].forEach(function(i){ document.getElementById(i).innerHTML = ''; });
     winEl.textContent = '';
+    var nseOff = document.getElementById('mcFiiNse'); if (nseOff) { nseOff.style.display = 'none'; nseOff.textContent = ''; }
     capEl.textContent = MACRO_LOADING ? '◌ Loading…' : 'fii.json did not load or failed validation, so the FII charts are empty. The daily data refresh may be behind. The rupee and crude charts above are unaffected.';
     return;
   }
@@ -5794,7 +5798,7 @@ function renderMacroFii() {
           + '<div class="mc-tip-r"><span>' + dir + '</span><b>' + mcSigned(v, 0, '₹', ' cr') + '</b></div>'
           + (mcNum(r[3]) ? '<div class="mc-tip-r"><span>Gross turnover</span><b>₹' + r[3].toLocaleString('en-IN', {maximumFractionDigits:0}) + ' cr</b></div>' : '')
           + '<div class="mc-tip-r"><span>Running total in window</span><b>' + mcSigned(cum[i], 0, '₹', ' cr') + '</b></div>'
-          + '<div class="mc-tip-c">Carries the previous trading day’s trades</div>'
+          + '<div class="mc-tip-c">Carries the previous trading day’s trades, not this date’s</div>'
           + (isCU ? '<div class="mc-tip-w">† Likely catch-up: may combine several trading days</div>' : '');
         var t = 'Report date ' + mcDL(r[0]) + '. ' + dir + ' ' + mcSigned(v, 0, '₹', ' crore') + '. Running total ' + mcSigned(cum[i], 0, '₹', ' crore') + (isCU ? '. Flagged as a likely catch-up row' : '');
         return {h:h, t:t};
@@ -5818,6 +5822,14 @@ function renderMacroFii() {
     tc: function(j){ var k = mcIdx12(DS, q0 + j); return '12M earlier ' + (k >= 0 ? mcSigned(sumAll[k][1], 0, '₹', ' cr') : 'n/a'); }}];
   mcKey('mcKeyFiiSum', sS); mcLine('mcFiiSum', sS, {zero:true, axisFmt:function(v){ return (v / 1000).toFixed(0) + 'k'; }, dateLabel:'Report date', empty:'No FII rows in this range.'});
   var f = fiiStat(), nse = FII.nseToday;
+  var nseEl = document.getElementById('mcFiiNse');
+  if (nseEl) {
+    if (nse && mcNum(nse.net) && /^\d{4}-\d{2}-\d{2}$/.test(nse.date || '')) {
+      nseEl.innerHTML = '<strong>' + (nse.net < 0 ? '\u25BC FII net selling ' : nse.net > 0 ? '\u25B2 FII net buying ' : '\u25AC FII net flat ') + mcSigned(nse.net, 0, '\u20B9', ' cr') + '</strong> on <strong>' + mcDL(nse.date) + '</strong> (National Stock Exchange, cash market' + (nse.provisional === false ? '' : ', <strong>provisional</strong>; it can be revised') + '). '
+        + 'The bars below come from NSDL, a different source. NSDL dates each bar one trading day after the trades it carries, so the newest bar (' + mcDL(FII.lastReportDate) + ') shows the trading day before it. Totals for the same day can also differ a little between NSE and NSDL.';
+      nseEl.style.display = '';
+    } else { nseEl.style.display = 'none'; nseEl.textContent = ''; }
+  }
   capEl.innerHTML = '<strong>Source: NSDL FPI Monitor</strong> (depository-confirmed, equity, Stock Exchange route; ₹ crore). <strong>Each date is the NSDL reporting date and carries the previous trading day’s trades.</strong> '
     + 'History starts ' + R[0][0] + ' (' + n.toLocaleString('en-IN') + ' rows, newest ' + FII.lastReportDate + '). Rows marked † are flagged by size (turnover above 1.8 times the recent median) and may combine several trading days; the flag is a caution, not proof. '
     + (f ? 'Last 5 report dates (' + f.first + ' to ' + f.last + '): <strong>' + mcSigned(f.sum, 0, '₹', ' cr') + '</strong>, ' + ord(Math.round(f.pct)) + ' percentile. ' : '')
