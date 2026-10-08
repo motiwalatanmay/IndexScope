@@ -1114,10 +1114,22 @@ body.light .hp-formula .k{color:#4f46e5}
     .mc-tblwrap{overflow-x:auto}
     @media (max-width:560px){.mc-tbl thead{display:none}.mc-tbl,.mc-tbl tbody,.mc-tbl tr,.mc-tbl td{display:block;width:100%}.mc-tbl tr{border-bottom:1px solid var(--bdr);padding:6px 0}.mc-tbl td{border:0;padding:3px 8px;white-space:normal}.mc-tbl td:first-child{white-space:normal}.mc-tbl td[data-l]:not(:first-child)::before{content:attr(data-l) ": ";font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ghost)}}
     @media(max-width:680px){.mc-chip-v{font-size:1.05rem}}
+    .mc-plain{background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:.84rem;line-height:1.55;color:var(--txt)}
+    .mc-plain p{margin:0 0 8px}
+    .mc-plain p:last-child{margin-bottom:0}
+    .mc-pl-l{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);font-weight:700;margin-bottom:1px}
+    .mc-more{margin:6px 2px 2px}
+    .mc-more>summary{cursor:pointer;color:var(--txt);font-family:var(--body);font-size:.76rem;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+    .mc-more>summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+    .mc-gloss{margin:0}
+    .mc-gloss dt{font-weight:700;color:var(--txt);font-size:.84rem;margin-top:10px}
+    .mc-gloss dt:first-child{margin-top:0}
+    .mc-gloss dd{margin:2px 0 0;font-size:.8rem;line-height:1.55;color:var(--sub)}
   </style>
   <div class="gl-wrap">
     <div class="gl-intro">
-      Three outside forces that sit behind Indian equity prices: the <strong>rupee</strong> (USD/INR), <strong>crude oil</strong> (Brent) and <strong>foreign investor flows</strong> (FII net equity).
+      Three outside forces sit behind Indian share prices. They are the <strong>rupee</strong> (USD/INR), <strong>crude oil</strong> (Brent) and <strong>foreign investor flows</strong>. FII flows are foreign investors&rsquo; net buying or selling of shares.
+      <strong>Nifty</strong> (the Nifty 50) is 50 of India&rsquo;s largest listed companies, tracked as one index.
       This tab is context. It feeds no valuation band and no card on the Dashboard.
     </div>
     <div id="mcUpdated" class="gl-updated">Loading&hellip;</div>
@@ -1138,18 +1150,21 @@ body.light .hp-formula .k{color:#4f46e5}
         <button type="button" class="gl-pill" data-ovl="off" aria-pressed="false" onclick="mcSetOvl(false)">Real values</button>
       </div>
     </div>
-    <div class="mc-note">Nifty is overlaid as coincident context, not predictive. Hover, tap or focus a chart and use the arrow keys to read dates and values.</div>
+    <div class="mc-note">Nifty is drawn on the same charts only to show what shares did in the same weeks. It does not predict anything. Hover, tap or focus a chart and use the arrow keys to read dates and values.</div>
     <div id="mcLive" class="mc-sr" aria-live="polite"></div>
 
     <div class="gl-section-title">1 &middot; Rupee: USD/INR and Nifty in rupees vs dollars <button type="button" class="mi-btn" data-mi="mcfx" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcfx" aria-label="How this is measured: rupee panel">i</button></div><div class="mi-panel" id="mi-mcfx" role="region" aria-label="Method" hidden></div>
+    <div id="mcPlainFx" class="mc-plain"></div>
     <div class="mc-card"><div id="mcIdxFx" class="mc-idx"></div><div id="mcKeyFx" class="mc-key"></div><svg id="mcFx" class="mc-svg" tabindex="0" role="img" aria-label="USD/INR with Nifty in rupees and dollars, indexed to 100 at the start of the range"></svg><div id="mcFxTip" class="mc-tip"></div></div>
-    <div id="mcFxCap" class="mc-cap"></div>
+    <details class="mc-more"><summary>More detail</summary><div id="mcFxCap" class="mc-cap"></div></details>
 
     <div class="gl-section-title">2 &middot; Crude: Brent futures vs Nifty <button type="button" class="mi-btn" data-mi="mcbr" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcbr" aria-label="How this is measured: crude panel">i</button></div><div class="mi-panel" id="mi-mcbr" role="region" aria-label="Method" hidden></div>
+    <div id="mcPlainBr" class="mc-plain"></div>
     <div class="mc-card"><div id="mcIdxBr" class="mc-idx"></div><div id="mcKeyBr" class="mc-key"></div><svg id="mcBr" class="mc-svg" tabindex="0" role="img" aria-label="Brent front-month futures and Nifty, indexed to 100 at the start of the range"></svg><div id="mcBrTip" class="mc-tip"></div></div>
-    <div id="mcBrCap" class="mc-cap"></div>
+    <details class="mc-more"><summary>More detail</summary><div id="mcBrCap" class="mc-cap"></div></details>
 
-    <div class="gl-section-title">3 &middot; Foreign investor flows (FII net equity) <button type="button" class="mi-btn" data-mi="mcfii" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcfii" aria-label="How this is measured: foreign investor flows">i</button></div><div class="mi-panel" id="mi-mcfii" role="region" aria-label="Method" hidden></div>
+    <div class="gl-section-title">3 &middot; Foreign investor flows (FII net buying or selling of shares) <button type="button" class="mi-btn" data-mi="mcfii" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcfii" aria-label="How this is measured: foreign investor flows">i</button></div><div class="mi-panel" id="mi-mcfii" role="region" aria-label="Method" hidden></div>
+    <div id="mcPlainFii" class="mc-plain"></div>
     <div class="gl-pillrow mc-fwin" id="mcFwinRow" role="group" aria-label="FII bar chart window">
       <button type="button" class="gl-pill" data-fwin="5D" aria-pressed="false" onclick="mcSetFwin('5D')">5 sessions</button>
       <button type="button" class="gl-pill" data-fwin="1M" aria-pressed="false" onclick="mcSetFwin('1M')">1M</button>
@@ -1159,11 +1174,28 @@ body.light .hp-formula .k{color:#4f46e5}
     <div id="mcFiiWin" class="mc-fwin-t" aria-live="polite"></div>
     <div class="mc-card"><div id="mcKeyFii" class="mc-key"></div><svg id="mcFiiBars" class="mc-svg" tabindex="0" role="img" aria-label="Daily FII net equity flow by NSDL report date"></svg><div id="mcFiiBarsTip" class="mc-tip"></div></div>
     <div class="mc-card" style="margin-top:12px"><div id="mcKeyFiiSum" class="mc-key"></div><svg id="mcFiiSum" class="mc-svg" tabindex="0" role="img" aria-label="FII net equity flow, rolling 20 reporting dates"></svg><div id="mcFiiSumTip" class="mc-tip"></div></div>
-    <div id="mcFiiCap" class="mc-cap"></div>
+    <details class="mc-more"><summary>More detail</summary><div id="mcFiiCap" class="mc-cap"></div></details>
 
     <div class="gl-section-title">4 &middot; How closely Nifty moves with each series <button type="button" class="mi-btn" data-mi="mcco" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcco" aria-label="How this is measured: correlation panel">i</button></div><div class="mi-panel" id="mi-mcco" role="region" aria-label="Method" hidden></div>
+    <div id="mcPlainCo" class="mc-plain"></div>
     <div class="mc-card"><div id="mcKeyCo" class="mc-key"></div><svg id="mcCo" class="mc-svg" tabindex="0" role="img" aria-label="Rolling 52-week correlation of weekly Nifty returns with USD/INR and Brent"></svg><div id="mcCoTip" class="mc-tip"></div></div>
-    <div id="mcCoCap" class="mc-cap"></div>
+    <details class="mc-more"><summary>More detail</summary><div id="mcCoCap" class="mc-cap"></div></details>
+
+    <div class="gl-section-title">Words used on this tab</div>
+    <div class="mc-card"><dl class="mc-gloss">
+      <dt>FII (foreign institutional investor)</dt>
+      <dd>Overseas funds that buy and sell Indian shares. &ldquo;Net&rdquo; means what they bought minus what they sold. Amounts are in &#8377; crore (1 crore = 10 million).</dd>
+      <dt>Indexed (start = 100)</dt>
+      <dd>Each line is rescaled so the first point in the chosen range is 100. A line at 120 is 20% above its start. This lets lines in different units share one chart.</dd>
+      <dt>Correlation (r)</dt>
+      <dd>A number from &minus;1 to +1 for how strongly two series moved together in the same weeks. Plus means they tended to move the same way; minus means opposite ways. Near 0 means no clear pattern. It is a strength measure, not a count of weeks. It never shows cause.</dd>
+      <dt>Percentile</dt>
+      <dd>Where today&rsquo;s value sits in its own past. The 80th percentile means about 80 in 100 past values were lower.</dd>
+      <dt>HEADWIND, NEUTRAL, TAILWIND</dt>
+      <dd>This page&rsquo;s labels. Each series&rsquo; latest 12-month change (for FII, its 5-date total) is ranked against its own past. &#9670; HEADWIND: the quarter of that past in the direction usually seen as bad for Indian shares. &#9679; NEUTRAL: the middle half. &#9650; TAILWIND: the quarter in the other direction. They rank the series itself, not share prices, and are not forecasts.</dd>
+      <dt>Front-month futures</dt>
+      <dd>The oil futures contract that expires soonest. Its price can differ from the cash (spot) price paid today.</dd>
+    </dl></div>
 
     <div class="gl-section-title">Sources, definitions and freshness</div>
     <div class="mc-card"><div class="mc-tblwrap" id="mcSources"></div></div>
@@ -5458,8 +5490,8 @@ function mcExplain(k) {
 }
 function mcExplainHTML(k) {
   var rule = 'Rule: 75th percentile or higher = <strong>◆ HEADWIND</strong>; 25th or lower = <strong>▲ TAILWIND</strong>; in between = <strong>● NEUTRAL</strong>.';
-  var tail = ' The word places the move in its own history. It is coincident, not predictive: it does not forecast Nifty.';
-  if (k === 'all') return '<strong>◆ HEADWIND</strong>: the latest move is in the top quarter of its own history in the direction that has hurt Indian equities (a weaker rupee, dearer oil, heavy FII selling). '
+  var tail = ' The word places the move in its own history. It describes what has already happened. It does not forecast Nifty.';
+  if (k === 'all') return '<strong>◆ HEADWIND</strong>: the latest move is in the top quarter of its own history in the direction that is usually bad for Indian shares (a weaker rupee, dearer oil, heavy selling by foreign investors). '
     + '<strong>● NEUTRAL</strong>: between the 25th and 75th percentile. <strong>▲ TAILWIND</strong>: the bottom quarter, the helpful direction. <strong>? UNKNOWN</strong>: the data is missing or too short to rank. '
     + '<br>USD/INR and Brent rank the latest 12-month change against rolling 12-month changes over 10 years. FII ranks the sum of the last 5 NSDL report dates against every rolling 5-date sum since 2014, with the direction flipped.' + tail;
   if (k === 'fii') {
@@ -5502,8 +5534,70 @@ function mcRenderVerdict() {
   upd.innerHTML = asof.join(' &middot; ') + (MACRO ? ' &middot; price charts use weekly closes' + (mcPW() ? '; the latest point (' + Wl + ') is the last quote of the current week (partial)' : '') : '');
 }
 
+// Plain-language card text: short sentences from the same values the captions and pills use.
+function mcPlainSet(id, what, why, today) {
+  var el = document.getElementById(id); if (!el) return;
+  el.innerHTML = '<p><span class="mc-pl-l">What this is</span>' + what + '</p>'
+    + '<p><span class="mc-pl-l">Why it matters to you</span>' + why + '</p>'
+    + '<p><span class="mc-pl-l">What the number says today</span>' + today + '</p>';
+}
+function mcPlainState(st, k) {
+  if (st !== 'HEADWIND' && st !== 'TAILWIND' && st !== 'NEUTRAL') return ' Reading: ' + mcPill('UNKNOWN') + ' unavailable.';
+  var fii = k === 'fii', top = fii ? st === 'TAILWIND' : st === 'HEADWIND';
+  var where = st === 'NEUTRAL' ? 'the middle half' : (top ? 'the top quarter' : 'the bottom quarter');
+  var of = fii ? ' of 5-date totals since 2014' + (st === 'NEUTRAL' ? '' : (top ? ' (the heaviest buying)' : ' (the heaviest selling)')) : ' of 12-month changes in the last 10 years';
+  var why = {usdinr: {HEADWIND: 'a fast-weakening rupee is usually seen as bad for Indian shares', TAILWIND: 'a steadier or stronger rupee is usually seen as good for Indian shares'},
+             brent: {HEADWIND: 'a fast rise in oil is usually seen as bad for Indian shares', TAILWIND: 'steadier or cheaper oil is usually seen as good for Indian shares'},
+             fii: {HEADWIND: 'heavy foreign selling is usually seen as bad for Indian shares', TAILWIND: 'heavy foreign buying is usually seen as good for Indian shares'}}[k] || {};
+  return ' Reading: ' + mcPill(st) + '. This ' + (fii ? 'total' : 'change') + ' is in ' + where + of + '.'
+    + (st === 'NEUTRAL' ? ' The page calls that neutral.' : ' The page calls that a ' + st.toLowerCase() + ': ' + why[st] + '.')
+    + ' It ranks the series itself, not share prices, and is not a forecast.';
+}
+function mcPlainAge(d) { var a = mcAge(d); return a > MC_FRESH_DAYS ? ' <strong>STALE: ' + a + ' business days old.</strong>' : ''; }
+function mcPlainMiss(file) { return MACRO_LOADING ? '◌ Loading…' : 'Unavailable today: ' + file + ' did not load.'; }
+// "to the week ending 2 Oct 2026" when the state uses the last complete week, else "to the last quote".
+function mcPlainTo(s) { var lc = mcLCW(); return lc && mcNum(s.chg12mComplete) ? 'the week ending ' + mcDL(lc) : 'the last quote (' + mcDL(s.lastDailyBar) + ')'; }
+function mcPlainRank(p) { return mcNum(p) ? ' About ' + Math.round(p) + ' in 100 of the 12-month changes in the last 10 years were lower.' : ' Its rank against past changes is unavailable.'; }
+function mcPlain() {
+  var u = mcSer('usdinr'), b = mcSer('brent'), f = fiiStat(), C = MACRO ? MACRO.correlation : null;
+  mcPlainSet('mcPlainFx',
+    'USD/INR is how many rupees one US dollar costs. A higher number means a weaker rupee. The chart also shows Nifty counted in rupees and in dollars.',
+    'A weaker rupee makes imports such as oil and electronics cost more. Foreign investors also earn less when they change rupees back to dollars.',
+    u && mcNum(u.last) ? 'One dollar costs <strong>₹' + u.last.toFixed(2) + '</strong> (last quote ' + mcDL(u.lastDailyBar) + ').' + mcPlainAge(u.lastDailyBar)
+      + (mcNum(mcStateChg(u).v) ? ' In the 12 months to ' + mcPlainTo(u) + ', the dollar ' + (Math.abs(mcStateChg(u).v) < 0.05 ? 'was flat against the rupee.' : (mcStateChg(u).v > 0 ? 'rose' : 'fell') + ' <strong>' + Math.abs(mcStateChg(u).v).toFixed(1) + '%</strong> against the rupee. So the rupee got ' + (mcStateChg(u).v > 0 ? 'weaker' : 'stronger') + '.') : '')
+      + mcPlainRank(u.chg12mPctile) + mcPlainState(u.state, 'usdinr')
+      : (MACRO ? 'The USD/INR reading is missing from the data file.' : mcPlainMiss('macro.json')));
+  mcPlainSet('mcPlainBr',
+    'Brent is the main world price for crude oil, in US dollars per barrel. This page uses the price of the futures contract that expires soonest.',
+    'India buys most of its oil from abroad. Dearer oil can push up fuel prices, inflation and costs for many companies.',
+    b && mcNum(b.last) ? 'Brent costs <strong>$' + b.last.toFixed(2) + '</strong> a barrel (last quote ' + mcDL(b.lastDailyBar) + ').' + mcPlainAge(b.lastDailyBar)
+      + (mcNum(mcStateChg(b).v) ? ' In the 12 months to ' + mcPlainTo(b) + ', it ' + (Math.abs(mcStateChg(b).v) < 0.05 ? 'was flat.' : (mcStateChg(b).v > 0 ? 'rose' : 'fell') + ' <strong>' + Math.abs(mcStateChg(b).v).toFixed(1) + '%</strong>.') : '')
+      + mcPlainRank(b.chg12mPctile) + mcPlainState(b.state, 'brent')
+      : (MACRO ? 'The Brent reading is missing from the data file.' : mcPlainMiss('macro.json')));
+  mcPlainSet('mcPlainFii',
+    'FII means foreign institutional investors, such as overseas funds. The bars show what they bought minus what they sold in Indian shares, in ₹ crore.',
+    'Foreign funds own a large part of the Indian market. Heavy selling by them can weigh on share prices for a while.',
+    f ? 'From ' + mcDL(f.first) + ' to ' + mcDL(f.last) + ', foreign funds ' + (f.sum < 0 ? 'sold' : 'bought') + ' a net <strong>₹'
+      + Math.round(Math.abs(f.sum)).toLocaleString('en-IN') + ' crore</strong> of Indian shares. That covers the last 5 report dates.' + mcPlainAge(f.last)
+      + ' Against every 5-date total since 2014, this is the <strong>' + ord(Math.round(f.pct)) + ' percentile</strong>. Here 0 is the heaviest selling and 100 the heaviest buying.'
+      + (f.catchup ? ' One of these dates may bundle several trading days (marked †).' : '') + mcPlainState(f.state, 'fii')
+      : (FII ? 'Too little FII history to rank today’s total.' : mcPlainMiss('fii.json')));
+  var cl = function(nm, v){
+    if (!mcNum(v)) return 'Nifty and ' + nm + ': unavailable.';
+    var a = Math.abs(v), how = a < 0.1 ? 'There was no clear pattern.' : 'In the same weeks, Nifty tended to move ' + (v < 0 ? 'opposite to ' : 'with ') + nm + '.';
+    return 'Nifty and ' + nm + ': <strong>r = ' + mcR(v) + '</strong> (' + mcCorrWord(v) + '). ' + how;
+  };
+  mcPlainSet('mcPlainCo',
+    'Correlation (r) is a number from −1 to +1. It measures how strongly Nifty and another series moved together, week by week. It is a strength measure, not a count of weeks.',
+    'It tells you whether the rupee or oil has lately moved with Indian shares. It describes the past only and is not a forecast.',
+    C && C.latest ? 'Over the last ' + (mcNum(C.latest.n) ? C.latest.n : C.window_weeks) + ' weeks' + (typeof C.asOf === 'string' ? ' (to ' + mcDL(C.asOf) + ')' : '') + ':<br>'
+      + cl('USD/INR', C.latest.usdinr) + '<br>' + cl('Brent', C.latest.brent)
+      + '<br>Neither number shows that one caused the other.'
+      : (MACRO ? 'The correlation block is missing from the data file.' : mcPlainMiss('macro.json')));
+}
 function renderMacro() {
   ['mcFx','mcBr','mcCo','mcFiiBars','mcFiiSum'].forEach(mcBind);
+  try { mcPlain(); } catch (e) { console.warn('renderMacro plain', e); }
   var upd = document.getElementById('mcUpdated');
   if (!MACRO && !FII) {
     var msgL = '◌ Loading…', msgE = 'Macro data unavailable (data/macro.json and data/fii.json did not load).';
