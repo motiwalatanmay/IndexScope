@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Fetch FPI (FII) daily net equity flows from NSDL -> data/fii.json.   RUN ON A MAC, NOT IN THE ACTION.
+"""Fetch FPI (FII) daily net equity flows from NSDL -> data/fii.json.
 
-NSDL's FPI Monitor (fpi.nsdl.co.in) resets connections from default user agents and,
-like NSE/BSE, is not reliable from GitHub runner IPs. Jerry's Mac job
-(system/bin/indexscope_fii_push.py) runs this from a residential IP and pushes fii.json only.
+Runs in the GitHub Action (.github/workflows/update-indices.yml, step "Fetch FII equity
+flows", continue-on-error). Tested from a runner on 2026-10-08: NSDL answered and the
+script parsed 26 rows. NSDL's FPI Monitor (fpi.nsdl.co.in) resets connections from
+default user agents, so the script sends a browser user agent. If runner IPs are ever
+blocked, the script exits 1 without writing and the last committed file stays; it can
+also be run from a Mac with the same command.
 
 Source: https://www.fpi.nsdl.co.in/web/Reports/Archive.aspx (ASP.NET form; one POST returns
 one calendar month of daily rows). Depository-confirmed, equity only.
