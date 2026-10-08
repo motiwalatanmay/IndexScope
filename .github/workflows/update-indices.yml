@@ -5,6 +5,8 @@ on:
     # 9:00 AM IST = 03:30 UTC, 7:00 PM IST = 13:30 UTC
     - cron: "30 3 * * *"
     - cron: "30 13 * * *"
+    # 10:30 PM IST: NSDL posts the day's FPI figures after the close
+    - cron: "0 17 * * *"
   workflow_dispatch:
 
 permissions:
@@ -45,8 +47,13 @@ jobs:
         continue-on-error: true
         run: python scripts/fetch_macro.py
 
-      # FII flows: NOT fetched here. NSDL/NSE are not reliable from runner IPs. Jerry's Mac job
-      # (system/bin/indexscope_fii_push.py) runs scripts/fetch_fii.py and pushes fii.json only.
+      - name: Fetch FII equity flows (NSDL FPI daily) -> data/fii.json
+        # Tested from a runner on 2026-10-08: NSDL answered and fetch_fii.py parsed 26 rows.
+        # Non-fatal: the script exits 1 without writing when it parses 0 rows or only rows
+        # older than 7 days, so a block leaves the last committed file. The page and
+        # indexscope_served_check.py both report the file's age.
+        continue-on-error: true
+        run: python scripts/fetch_fii.py
 
       # Buffett indicator: NOT fetched here. BSE's MarketCapital API returns 403 to
       # GitHub runner IPs and to Cloudflare egress (2026-10-06), which froze
@@ -80,6 +87,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "data: refresh NSE indices ($(date -u +%Y-%m-%dT%H:%MZ))"
-            # The Mac jobs may have pushed meanwhile; they only write buffett.json and fii.json.
+            # The Mac job may have pushed meanwhile; it only writes buffett.json.
             for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep $((i*5)); done
           fi
