@@ -6,8 +6,20 @@ workers_dev = true
 # Expected audience of Google ID tokens (the IndexScope OAuth client).
 [vars]
 GOOGLE_CLIENT_ID = "583500951310-6dapvdgbe6je6k6mi87qn2jt3ori90cj.apps.googleusercontent.com"
+# Admin tab: comma-separated Google accounts that may call /admin/users.
+ADMIN_EMAILS = "motiwalatanmay0@gmail.com"
+# "allow" = anyone may use signed-in features unless denied (deny-list mode).
+# "deny"  = only accounts an admin set to allow (allow-list mode).
+DEFAULT_POLICY = "allow"
+# Minimum seconds between /signin KV writes for one email (KV write quota).
+SIGNIN_MIN_INTERVAL_SEC = "600"
+# Jerry pass: max pass attempts (and /admin/health calls) per IP per minute.
+PASS_RATE_PER_MIN = "20"
+# /admin/health returns this file (published by the GitHub Action).
+STATUS_URL = "https://indexscope.in/data/status.json"
 
-# Alert + session storage. Create with:
+# Alert + session storage, plus admin-tab account records ("member:" and
+# "acl:" key prefixes; no separate USERS namespace is needed). Created with:
 #   wrangler kv namespace create ALERTS
 # then paste the returned id below.
 [[kv_namespaces]]
@@ -17,3 +29,6 @@ id = "a7164ba65a9e417c9cdbc5352ff3554c"
 # Secrets (NOT stored here — set once via wrangler):
 #   wrangler secret put JWT_SECRET     # any long random string, signs session tokens
 #   wrangler secret put ADMIN_KEY      # long random string, guards /admin/export
+#   wrangler secret put JERRY_TOKEN    # Jerry's read-only service pass (GET /admin/users,
+#                                      # GET /admin/health). Unset = pass disabled.
+#                                      # NEVER put its value in this file. See ADMIN_SETUP.md.
