@@ -189,6 +189,8 @@ body.light .det-hdr{background:rgba(238,241,248,.96)}
 
 /* Top-level page tabs (Dashboard / Help) */
 .page-tabs{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px;flex-shrink:0}
+.ptab-note{cursor:default;font-weight:500;font-style:italic}
+@media(max-width:600px){.page-tabs:has(.ptab-note){flex-wrap:wrap}.page-tabs .ptab-note{flex:1 1 100%;white-space:normal;min-width:0}}
 .ptab{padding:7px 16px;border-radius:7px;font-family:var(--body);font-size:.76rem;font-weight:600;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .18s;white-space:nowrap;letter-spacing:.2px}
 .ptab:hover{color:var(--txt)}
 .ptab.active{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
@@ -521,8 +523,8 @@ body.light .hp-formula .k{color:#4f46e5}
   .hdr-tagline{display:none}
   .hdr-right{gap:6px}
   /* Page-tabs wrap to their own row and span full width */
-  .page-tabs{order:3;flex:1 1 100%;justify-content:stretch}
-  .ptab{flex:1;text-align:center;padding:6px 10px;font-size:.72rem}
+  .page-tabs{order:3;flex:1 1 100%;justify-content:stretch;box-sizing:border-box;max-width:100%;min-width:0}
+  .ptab{flex:1 1 auto;min-width:0;text-align:center;padding:6px 4px;font-size:.72rem}
   .btn{padding:6px 10px;font-size:.72rem}
   /* Hide text label on buttons — icon only */
   .btn-icon-only .btn-lbl{display:none}
@@ -680,6 +682,35 @@ body.light .hp-formula .k{color:#4f46e5}
   @media(max-width:700px){.auth-chip .ac-em{display:none}}
 </style>
 
+<style>
+/* method ("i") buttons + panels */
+.mi-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;min-width:22px;margin-left:6px;padding:0;border:1.5px solid var(--txt3);border-radius:50%;background:transparent;color:var(--txt2,var(--txt));font:italic 700 12px/1 Georgia,serif;cursor:pointer;vertical-align:middle;text-transform:none;letter-spacing:0;position:relative}
+.mi-btn::after{content:"";position:absolute;inset:-11px}
+.mi-btn[aria-expanded="true"]{background:var(--txt);color:var(--sur);border-color:var(--txt)}
+.mi-btn:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.mi-panel{margin:8px 0;padding:10px 12px;border:1px solid var(--bdr);border-left:3px solid var(--txt3);border-radius:8px;background:var(--sur);color:var(--txt);font:400 .8rem/1.45 var(--sans,system-ui);text-transform:none;letter-spacing:0;text-align:left;white-space:normal;cursor:auto}
+.mi-panel p{margin:0 0 5px}
+.mi-panel b{font-weight:700}
+.mi-close{margin-top:4px;padding:4px 10px;border:1px solid var(--bdr);border-radius:6px;background:transparent;color:var(--txt);font-size:.75rem;cursor:pointer}
+/* global detail */
+.gl-vcard{cursor:pointer}
+.gl-vcard.sel{outline:2px solid var(--txt);outline-offset:1px}
+.gl-vc-open{margin-top:8px;padding:5px 9px;min-height:32px;border:1px solid var(--bdr);border-radius:6px;background:transparent;color:var(--txt);font-size:.72rem;cursor:pointer}
+.gl-vc-open:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.gl-vcard.nopx .gl-vc-pe small{font-size:.6rem}
+#glDetail{margin:14px 0 6px;padding:14px;border:1px solid var(--bdr);border-radius:12px;background:var(--sur)}
+.gl-det-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gl-det-head h3{margin:0;font-size:1.05rem}
+.gl-det-head h3 small{font-weight:400;color:var(--txt3);font-size:.75rem}
+.gl-det-sub{margin-top:8px;font-weight:700;font-size:.85rem}
+/* access + admin */
+.access-note{margin:8px auto;max-width:1200px;padding:8px 14px;border:1px solid var(--bdr);border-left:4px solid var(--txt3);border-radius:8px;font-size:.85rem}
+.access-note::before{content:"\26D4  "}
+.ad-st{font-weight:700;white-space:nowrap}
+.ad-msg{min-height:1.2em;margin:4px 0;font-size:.85rem}
+.ad-msg.ok,.ad-msg.err{font-weight:700}
+@media (max-width:560px){.mi-panel{font-size:.78rem}.gl-det-head h3{font-size:.95rem}}
+</style>
 <div class="hdr">
   <div class="hdr-title">
     <div class="hdr-wordmark-wrap">
@@ -746,6 +777,8 @@ body.light .hp-formula .k{color:#4f46e5}
     .xa-pbar-wrap{background:var(--bg3);border-radius:4px;height:7px;position:relative;overflow:hidden}
     .xa-pbar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--vc-c),var(--c-c),var(--n-c),var(--e-c),var(--ve-c));opacity:.75}
     .xa-pmark{position:absolute;top:-3px;width:2px;height:13px;background:var(--txt);border-radius:2px;box-shadow:0 0 4px rgba(0,0,0,.5)}
+    .xa-pmark.xa-pmark-hollow{top:0;width:7px;height:7px;margin-left:-3.5px;box-sizing:border-box;border:2px solid var(--txt3);background:var(--bg2);border-radius:50%;box-shadow:none}
+    .xa-pmark-note{font-family:var(--mono);font-size:.6rem;color:var(--sub);margin-top:4px}
     .xa-pval{font-family:var(--mono);font-size:.58rem;color:var(--sub);margin-top:6px;font-weight:600}
     .xa-mini{display:flex;flex-direction:column;gap:11px;margin-top:2px}
     .xa-mini-row .xa-mini-top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:.7rem;margin-bottom:4px}
@@ -806,12 +839,12 @@ body.light .hp-formula .k{color:#4f46e5}
   </style>
   <div class="bf-wrap">
     <div class="dash-intro">
-      The <strong>Buffett Indicator</strong> = total listed market value &divide; GDP &mdash; from Warren Buffett's 2001 definition, "probably the best single measure of where valuations stand at any given moment." This uses <strong>BSE total market capitalisation</strong> (all listed companies, refreshed daily) over India's <strong>latest reported nominal GDP</strong> &mdash; the actual figure, never a forecast, as Buffett intended. India structurally trades below the US, so the bands below are calibrated to India's <strong>own 20-year history</strong> rather than Buffett's original US zones (~80% attractive, ~200% "playing with fire").
+      The <strong>Buffett Indicator</strong> = total listed market value &divide; GDP &mdash; from Warren Buffett's 2001 definition, "probably the best single measure of where valuations stand at any given moment." This uses <strong>BSE total market capitalisation</strong> (all listed companies, fetched twice daily by a job on the owner's computer) over India's <strong>latest full-year actual nominal GDP</strong>, not a forecast. Buffett's own 2001 chart used GNP. India structurally trades below the US, so the bands below are calibrated to India's <strong>own 20-year history</strong> rather than Buffett's original US zones (~80% attractive, ~200% "playing with fire").
     </div>
 
     <div class="hero" style="align-items:flex-start">
       <div>
-        <div class="hero-index">Market Cap to GDP &middot; India</div>
+        <div class="hero-index">Market Cap to GDP &middot; India <button type="button" class="mi-btn" data-mi="bf" data-mi-arg="" aria-expanded="false" aria-controls="mi-bf" aria-label="How this is measured: Market cap to GDP">i</button></div><div class="mi-panel" id="mi-bf" role="region" aria-label="Method" hidden></div>
         <div class="hero-value" id="bfRatio">&mdash;</div>
         <div class="hero-date" id="bfRatioSub">&mdash;</div>
       </div>
@@ -842,7 +875,7 @@ body.light .hp-formula .k{color:#4f46e5}
     </div>
 
     <div class="bf-tile" style="margin-top:4px">
-      <div class="bf-tile-lbl">Why is it high?  <span style="text-transform:none;letter-spacing:0;color:var(--txt3);font-weight:400">two levers &mdash; corporate profitability &times; the market multiple</span></div>
+      <div class="bf-tile-lbl">Why is it high?  <span style="text-transform:none;letter-spacing:0;color:var(--txt3);font-weight:400">two levers &mdash; corporate profitability &times; the market multiple</span> <button type="button" class="mi-btn" data-mi="bfdec" data-mi-arg="" aria-expanded="false" aria-controls="mi-bfdec" aria-label="How this is measured: profit share and market P/E">i</button></div><div class="mi-panel" id="mi-bfdec" role="region" aria-label="Method" hidden></div>
       <div class="bf-decomp">
         <div class="bf-decomp-term"><div class="bf-tile-val" id="bfProfitShare">&mdash;</div><div class="bf-tile-sub" id="bfProfitShareSub">profit share (E/GDP)</div></div>
         <div class="bf-decomp-op">&times;</div>
@@ -870,12 +903,12 @@ body.light .hp-formula .k{color:#4f46e5}
     </div>
 
     <div class="bf-chart">
-      <div class="chart-title"><svg class="ico"><use href="#i-activity"/></svg>Market Cap / GDP &mdash; FY2006 to now</div>
+      <div class="chart-title"><svg class="ico"><use href="#i-activity"/></svg>Market Cap / GDP &mdash; FY2006 to now <button type="button" class="mi-btn" data-mi="bfhist" data-mi-arg="chart" aria-expanded="false" aria-controls="mi-bfhist-chart" aria-label="How this is measured: Market cap to GDP history chart">i</button></div><div class="mi-panel" id="mi-bfhist-chart" role="region" aria-label="Method" hidden></div>
       <svg id="bfChart" preserveAspectRatio="none" style="width:100%;height:260px;display:block"></svg>
     </div>
 
     <div class="bf-chart">
-      <div class="bf-tile-lbl" style="margin-bottom:10px">Annual history &mdash; fiscal year-end (BSE mcap &amp; nominal GDP, &#8377; lakh crore)</div>
+      <div class="bf-tile-lbl" style="margin-bottom:10px">Annual history &mdash; fiscal year-end (BSE mcap &amp; nominal GDP, &#8377; lakh crore) <button type="button" class="mi-btn" data-mi="bfhist" data-mi-arg="table" aria-expanded="false" aria-controls="mi-bfhist-table" aria-label="How this is measured: annual history table">i</button></div><div class="mi-panel" id="mi-bfhist-table" role="region" aria-label="Method" hidden></div>
       <table class="bf-tbl">
         <thead><tr><th>Fiscal year</th><th>Mcap</th><th>Nom. GDP</th><th>Ratio %</th></tr></thead>
         <tbody id="bfTbody"></tbody>
@@ -884,14 +917,14 @@ body.light .hp-formula .k{color:#4f46e5}
 
     <div class="hp-card info">
       <div class="hp-card-ttl">How to read it &mdash; Buffett's own framing</div>
-      <div class="hp-p" style="margin-bottom:0">Buffett (Fortune, Dec 2001): a high ratio means the market is large relative to the real economy &mdash; he called the ~70&ndash;80% zone a level where "buying stocks is likely to work very well for you," and a ratio approaching ~200% "playing with fire." It is a <strong>slow, strategic gauge</strong>, not a timing tool &mdash; it can stay stretched for years. India trades structurally lower than the US, so the bands here are set to India's own history (median ~82%); above ~115% is richly valued <em>for India</em>. Buffett's original used <strong>latest reported actual GDP</strong> (no forecasts) &mdash; so the headline is the trailing-year reading. Pair it with the per-index P/E bands on the Dashboard.</div>
+      <div class="hp-p" style="margin-bottom:0">Buffett (Fortune, Dec 2001): a high ratio means the market is large relative to the real economy &mdash; he called the ~70&ndash;80% zone a level where "buying stocks is likely to work very well for you," and a ratio approaching ~200% "playing with fire." It is a <strong>slow, strategic gauge</strong>, not a timing tool &mdash; it can stay stretched for years. India trades structurally lower than the US, so the bands here are set to India's own history (median <span class="bfMedLive">of the history rows, shown on the chart</span>); above ~115% is richly valued <em>for India</em>. This page divides BSE market cap by the <strong>latest full-year actual GDP</strong>, so the headline is the trailing-year reading. Buffett's own 2001 chart used GNP. Pair it with the per-index P/E bands on the Dashboard.</div>
     </div>
 
     <div class="hp-card warn">
       <div class="hp-card-ttl">Data, denominator choice &amp; caveats</div>
       <div class="hp-p" style="margin-bottom:0">
-        <strong>Numerator</strong> = BSE total market cap, refreshed daily from BSE (intraday-updated close).
-        <strong>Denominator</strong> = nominal GDP &mdash; <em>not</em> live; it updates only on MOSPI/Budget prints, so it is maintained by hand (<span id="bfGdpUpdated">&mdash;</span>). The headline divides by the <strong>latest reported actual GDP (trailing FY26, &#8377;357.14 L cr)</strong> per Buffett's method; the prior year and the FY27 Budget <em>estimate</em> (&#8377;392.85 L cr &rarr; ~118%) are shown only for context, since Buffett would not anchor on a forecast.
+        <strong>Numerator</strong> = BSE total market cap, refreshed twice daily by a job on the owner's computer (BSE blocks the cloud runner); it can lag if that computer is off. The tile shows when it was last fetched.
+        <strong>Denominator</strong> = nominal GDP &mdash; <em>not</em> live; it updates only on MOSPI/Budget prints, so it is maintained by hand (<span id="bfGdpUpdated">&mdash;</span>). The headline divides by the <strong>latest full-year actual GDP (<span id="bfTrailTxt">see the tile</span>)</strong>; the prior year and the Budget <em>estimate</em> for next year (<span id="bfFwdTxt">see the forward tile</span>) are shown only for context, because an estimate can be revised.
         History FY2006&ndash;FY2018 is from primary SEBI/BSE tables, FY2021&ndash;FY2025 from BSE year-end exchange data; <strong>FY2019, FY2020 &amp; FY2026 are softer estimates (&plusmn;2&ndash;3 L cr, marked "est.")</strong>.
         <strong>GDP base:</strong> the whole series uses MOSPI's <strong>2011-12 base</strong> for internal consistency. MOSPI <em>rebased to a 2022-23 series on 27-Feb-2026</em> (FY26 nominal = &#8377;345.47 L cr vs &#8377;357.14 old base) &mdash; on that new base today's reading is <strong><span id="bfNewBase">&mdash;</span></strong>. We migrate the full series once MOSPI publishes the back-cast new-base history. This is the pure <strong>BSE-mcap / nominal-GDP</strong> definition.
       </div>
@@ -899,7 +932,7 @@ body.light .hp-formula .k{color:#4f46e5}
 
     <div class="bf-tile" style="margin-top:4px">
       <div class="bf-tile-lbl">Data freshness &amp; manual-update schedule</div>
-      <div class="hp-p" style="font-size:.8rem;margin:6px 0 10px;color:var(--txt3);line-height:1.5">Market cap (BSE) and market P/E (NSE) refresh <strong>automatically twice daily</strong>. The slower inputs below are maintained by hand on their release calendars &mdash; this shows when each was last set and when the next official update is due.</div>
+      <div class="hp-p" style="font-size:.8rem;margin:6px 0 10px;color:var(--txt3);line-height:1.5">Market cap (BSE) and market P/E (NSE) are <strong>refreshed twice daily by a job on the owner's computer; they can lag if that computer is off</strong> (the market-cap tile shows the fetch time and age). The slower inputs below are maintained by hand on their release calendars &mdash; this shows when each was last set and when the next official update is due.</div>
       <div id="bfSchedBody"></div>
     </div>
   </div>
@@ -917,7 +950,7 @@ body.light .hp-formula .k{color:#4f46e5}
     .gl-section-title{font-family:var(--mono);font-size:.62rem;letter-spacing:.7px;text-transform:uppercase;color:var(--ghost);font-weight:700;margin:30px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--bdr)}
     .gl-perf-head{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:14px}
     .gl-pillrow{display:inline-flex;gap:2px;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:3px}
-    .gl-pill{padding:6px 13px;border-radius:7px;font-family:var(--mono);font-size:.66rem;font-weight:600;letter-spacing:.4px;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .16s;white-space:nowrap}
+    .gl-pill{padding:6px 13px;border-radius:7px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.4px;color:var(--sub);background:transparent;border:none;cursor:pointer;transition:all .16s;white-space:nowrap}
     .gl-pill:hover{color:var(--txt)}
     .gl-pill.active{background:var(--sur);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
     body.light .gl-pill.active{box-shadow:0 1px 4px rgba(0,0,0,.08)}
@@ -962,6 +995,7 @@ body.light .hp-formula .k{color:#4f46e5}
     .gl-vcard.cheap{background:var(--vc-bg);border-color:var(--vc-bd)}.gl-vcard.cheap::after{background:var(--vc-c)}
     .gl-vcard.fair{background:var(--n-bg,var(--sur));border-color:var(--n-bd)}.gl-vcard.fair::after{background:var(--n-c)}
     .gl-vcard.expensive{background:var(--ve-bg);border-color:var(--ve-bd)}.gl-vcard.expensive::after{background:var(--ve-c)}
+    .gl-vcard.insufficient{background:var(--sur);border:1px dashed var(--sub)}.gl-vcard.insufficient::after{background:var(--ghost)}
     .gl-vc-name{font-family:var(--body);font-size:.82rem;font-weight:700;color:var(--txt)}
     .gl-vc-region{font-family:var(--mono);font-size:.56rem;letter-spacing:.5px;text-transform:uppercase;color:var(--ghost);margin-top:1px}
     .gl-vc-pe{font-family:var(--mono);font-size:1.7rem;font-weight:700;color:var(--txt);margin:8px 0 1px;line-height:1}
@@ -971,6 +1005,7 @@ body.light .hp-formula .k{color:#4f46e5}
     .gl-vc-tag.cheap{color:var(--vc-c);background:var(--vc-tl);border:1px solid var(--vc-bd)}
     .gl-vc-tag.fair{color:var(--n-c);background:var(--n-tl);border:1px solid var(--n-bd)}
     .gl-vc-tag.expensive{color:var(--ve-c);background:var(--ve-tl);border:1px solid var(--ve-bd)}
+    .gl-vc-tag.insufficient{color:var(--sub);background:var(--bg3);border:1px dashed var(--sub);text-transform:none;letter-spacing:.2px;white-space:normal}
     .gl-vc-cape{font-family:var(--mono);font-size:.58rem;color:var(--ghost);margin-top:6px}
     @media(max-width:640px){.gl-wrap{padding:0 14px 50px}.gl-chart{height:280px}}
   </style>
@@ -983,7 +1018,7 @@ body.light .hp-formula .k{color:#4f46e5}
     </div>
     <div id="glUpdated" class="gl-updated">Loading global data&hellip;</div>
 
-    <div class="gl-section-title">Relative Performance &mdash; "100 invested"</div>
+    <div class="gl-section-title">Relative Performance &mdash; "100 invested" <button type="button" class="mi-btn" data-mi="glperf" data-mi-arg="" aria-expanded="false" aria-controls="mi-glperf" aria-label="How this is measured: relative performance">i</button></div><div class="mi-panel" id="mi-glperf" role="region" aria-label="Method" hidden></div>
     <div class="gl-perf-head">
       <div class="gl-pillrow" id="glCcyRow">
         <button class="gl-pill active" data-ccy="usd" onclick="setGlobalCcy('usd')">USD · comparable</button>
@@ -1009,16 +1044,16 @@ body.light .hp-formula .k{color:#4f46e5}
       </table>
     </div>
 
-    <div class="gl-section-title">Valuation &mdash; Trailing P/E vs Long-Run Band</div>
+    <div class="gl-section-title">Valuation &mdash; Trailing P/E vs Its Own Recent Range</div>
     <div class="gl-val-note" id="glValNote">
-      Current trailing P/E vs a static long-run band (no free <em>historical</em> P/E feed
-      exists for foreign indices, so these aren't own-history percentiles like the India
-      cards). Non-India figures use worldperatio's consistent country-basket methodology for
-      cross-country comparability &mdash; broad baskets that can differ from a single headline
-      index. <strong>India uses NSE Nifty 50</strong> to match the Dashboard. Coarse
-      cheap/fair/rich read, refreshed periodically.
+      Non-India figures are worldperatio <em>country-basket</em> trailing P/E, not each index&rsquo;s own P/E.
+      Each card&rsquo;s fair range (the dashed lines on its P/E chart) is the middle half (25th&ndash;75th percentile) of that market&rsquo;s own P/E on its current earnings basis,
+      at least 3 points wide; below the band reads cheap, above reads expensive. Markets with a recent basis change use a shorter history,
+      and markets without enough history show no band. These histories are short, so treat them as rough reads. <strong>India uses NSE Nifty 50 P/E</strong> against a fixed 19&ndash;24 reference band.
+      Gold, the dollar index, Nasdaq-100 and Emerging Markets have no P/E tracked. Pick any card to see its price and P/E history.
     </div>
     <div id="glValGrid" class="gl-val-grid"></div>
+    <div id="glDetail" role="region" aria-label="Index detail" hidden></div>
   </div>
 </div>
 
@@ -1032,7 +1067,7 @@ body.light .hp-formula .k{color:#4f46e5}
     .mc-chip-v{font-family:var(--mono);font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums}
     .mc-chip-s{font-family:var(--mono);font-size:.62rem;color:var(--sub);margin-top:3px;line-height:1.45}
     .mc-chips-note{grid-column:1/-1;font-size:.66rem;color:var(--txt3);margin-top:-2px}
-    .mc-pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.56rem;font-weight:700;padding:2px 9px;border-radius:12px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;border:1px solid var(--sub);color:var(--txt)}
+    .mc-pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;border:1px solid var(--sub);color:var(--txt)}
     .mc-pill.mc-headwind{border:2px solid var(--e-c);color:var(--e-c)}
     .mc-pill.mc-tailwind{border:2px dashed var(--vc-c);color:var(--vc-c)}
     .mc-pill.mc-neutral{border:1px solid var(--sub);color:var(--sub)}
@@ -1045,11 +1080,39 @@ body.light .hp-formula .k{color:#4f46e5}
     .mc-tip-d{font-family:var(--mono);font-size:.56rem;color:var(--ghost);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--bdr)}
     .mc-key{display:flex;flex-wrap:wrap;gap:6px 16px;margin:2px 2px 8px;font-family:var(--mono);font-size:.62rem;color:var(--sub)}
     .mc-key svg{vertical-align:middle;margin-right:5px}
+    .mc-idx{font-size:.74rem;line-height:1.45;color:var(--sub);margin:0 2px 8px;padding:6px 9px;border:1px dashed var(--bdr);border-radius:7px}
+    .mc-idx strong{color:var(--txt)}
+    .mc-tip{width:216px;box-sizing:border-box}
+    .mc-tip-r{display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 10px;align-items:baseline}
+    .mc-tip-r span{color:var(--sub);white-space:nowrap}
+    .mc-tip-r span svg{vertical-align:middle}
+    .mc-tip-r b{font-family:var(--mono);font-weight:700;text-align:right;font-variant-numeric:tabular-nums;margin-left:auto;white-space:nowrap}
+    .mc-tip-c{font-family:var(--mono);font-size:.6rem;color:var(--txt3);margin:-2px 0 3px}
+    .mc-tip-w{font-size:.64rem;font-weight:700;color:var(--txt);margin-top:3px;border-top:1px dashed var(--bdr);padding-top:3px}
+    .mc-svg:focus{outline:none}
+    .mc-svg:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:4px}
+    #view-macro .gl-pill:focus-visible,.mc-pillbtn:focus-visible,.mc-linkbtn:focus-visible,.mc-chip:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+    .mc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .mc-ctl{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+    .mc-ctl .gl-pillrow{margin:0}
+    .mc-ctl-l{font-family:var(--mono);font-size:.58rem;letter-spacing:.5px;text-transform:uppercase;color:var(--ghost);font-weight:700;margin-right:4px;align-self:center}
+    .mc-note{font-size:.7rem;color:var(--txt3);margin:8px 2px 0}
+    .mc-pills{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}
+    .mc-pillbtn{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:4px 10px;font-family:var(--mono);font-size:.62rem;color:var(--txt);cursor:pointer}
+    .mc-pillbtn:hover,.mc-pillbtn[aria-expanded="true"]{border-color:var(--sub)}
+    .mc-caret{color:var(--sub)}
+    .mc-linkbtn{background:none;border:0;padding:4px 0;color:var(--brand);font-family:var(--body);font-size:.74rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+    .mc-explain{margin-top:8px;background:var(--bg2);border:1px solid var(--bdr);border-left:3px solid var(--sub);border-radius:8px;padding:10px 12px;font-size:.76rem;line-height:1.55;color:var(--sub)}
+    .mc-explain strong{color:var(--txt)}
+    .mc-fwin{margin:0 0 6px}
+    .mc-fwin-t{font-size:.76rem;color:var(--sub);margin:0 2px 8px;line-height:1.5}
+    .mc-fwin-t strong{color:var(--txt)}
     .mc-tbl{width:100%;border-collapse:collapse;font-size:.74rem}
     .mc-tbl th{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.5px;color:var(--ghost);text-align:left;padding:6px 8px;border-bottom:1px solid var(--bdr)}
     .mc-tbl td{padding:7px 8px;border-bottom:1px solid var(--bdr);vertical-align:top;color:var(--sub)}
     .mc-tbl td:first-child{color:var(--txt);font-weight:600;white-space:nowrap}
     .mc-tblwrap{overflow-x:auto}
+    @media (max-width:560px){.mc-tbl thead{display:none}.mc-tbl,.mc-tbl tbody,.mc-tbl tr,.mc-tbl td{display:block;width:100%}.mc-tbl tr{border-bottom:1px solid var(--bdr);padding:6px 0}.mc-tbl td{border:0;padding:3px 8px;white-space:normal}.mc-tbl td:first-child{white-space:normal}.mc-tbl td[data-l]:not(:first-child)::before{content:attr(data-l) ": ";font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ghost)}}
     @media(max-width:680px){.mc-chip-v{font-size:1.05rem}}
   </style>
   <div class="gl-wrap">
@@ -1060,28 +1123,46 @@ body.light .hp-formula .k{color:#4f46e5}
     <div id="mcUpdated" class="gl-updated">Loading&hellip;</div>
     <div id="mcVerdict" class="gl-verdict"></div>
 
-    <div class="gl-section-title">Chart range</div>
-    <div class="gl-pillrow" id="mcRangeRow">
-      <button class="gl-pill" data-range="3Y" onclick="setMacroRange('3Y')">3Y</button>
-      <button class="gl-pill active" data-range="5Y" onclick="setMacroRange('5Y')">5Y</button>
-      <button class="gl-pill" data-range="10Y" onclick="setMacroRange('10Y')">10Y</button>
+    <div class="gl-section-title">Chart range and overlay</div>
+    <div class="mc-ctl">
+      <div class="gl-pillrow" id="mcRangeRow" role="group" aria-label="Chart range for the rupee, crude, correlation and FII 20-date charts">
+        <button type="button" class="gl-pill" data-range="1Y" aria-pressed="false" onclick="setMacroRange('1Y')">1Y</button>
+        <button type="button" class="gl-pill" data-range="3Y" aria-pressed="false" onclick="setMacroRange('3Y')">3Y</button>
+        <button type="button" class="gl-pill active" data-range="5Y" aria-pressed="true" onclick="setMacroRange('5Y')">5Y</button>
+        <button type="button" class="gl-pill" data-range="10Y" aria-pressed="false" onclick="setMacroRange('10Y')">10Y</button>
+        <button type="button" class="gl-pill" data-range="Max" aria-pressed="false" onclick="setMacroRange('Max')">Max</button>
+      </div>
+      <div class="gl-pillrow" id="mcOvlRow" role="group" aria-label="Rupee and crude charts: indexed with the Nifty overlay, or real values">
+        <span class="mc-ctl-l">Show</span>
+        <button type="button" class="gl-pill active" data-ovl="on" aria-pressed="true" onclick="mcSetOvl(true)">Indexed, with Nifty</button>
+        <button type="button" class="gl-pill" data-ovl="off" aria-pressed="false" onclick="mcSetOvl(false)">Real values</button>
+      </div>
     </div>
+    <div class="mc-note">Nifty is overlaid as coincident context, not predictive. Hover, tap or focus a chart and use the arrow keys to read dates and values.</div>
+    <div id="mcLive" class="mc-sr" aria-live="polite"></div>
 
-    <div class="gl-section-title">1 &middot; Rupee: USD/INR and Nifty in rupees vs dollars</div>
-    <div class="mc-card"><div id="mcKeyFx" class="mc-key"></div><svg id="mcFx" class="mc-svg" role="img" aria-label="USD/INR with Nifty in rupees and dollars, rebased to 100"></svg><div id="mcFxTip" class="mc-tip"></div></div>
+    <div class="gl-section-title">1 &middot; Rupee: USD/INR and Nifty in rupees vs dollars <button type="button" class="mi-btn" data-mi="mcfx" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcfx" aria-label="How this is measured: rupee panel">i</button></div><div class="mi-panel" id="mi-mcfx" role="region" aria-label="Method" hidden></div>
+    <div class="mc-card"><div id="mcIdxFx" class="mc-idx"></div><div id="mcKeyFx" class="mc-key"></div><svg id="mcFx" class="mc-svg" tabindex="0" role="img" aria-label="USD/INR with Nifty in rupees and dollars, indexed to 100 at the start of the range"></svg><div id="mcFxTip" class="mc-tip"></div></div>
     <div id="mcFxCap" class="mc-cap"></div>
 
-    <div class="gl-section-title">2 &middot; Crude: Brent futures vs Nifty</div>
-    <div class="mc-card"><div id="mcKeyBr" class="mc-key"></div><svg id="mcBr" class="mc-svg" role="img" aria-label="Brent futures and Nifty rebased to 100"></svg><div id="mcBrTip" class="mc-tip"></div></div>
+    <div class="gl-section-title">2 &middot; Crude: Brent futures vs Nifty <button type="button" class="mi-btn" data-mi="mcbr" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcbr" aria-label="How this is measured: crude panel">i</button></div><div class="mi-panel" id="mi-mcbr" role="region" aria-label="Method" hidden></div>
+    <div class="mc-card"><div id="mcIdxBr" class="mc-idx"></div><div id="mcKeyBr" class="mc-key"></div><svg id="mcBr" class="mc-svg" tabindex="0" role="img" aria-label="Brent front-month futures and Nifty, indexed to 100 at the start of the range"></svg><div id="mcBrTip" class="mc-tip"></div></div>
     <div id="mcBrCap" class="mc-cap"></div>
 
-    <div class="gl-section-title">3 &middot; Foreign investor flows (FII net equity)</div>
-    <div class="mc-card"><div id="mcKeyFii" class="mc-key"></div><svg id="mcFiiBars" class="mc-svg" role="img" aria-label="Daily FII net equity flow, last 60 reporting dates"></svg><div id="mcFiiBarsTip" class="mc-tip"></div></div>
-    <div class="mc-card" style="margin-top:12px"><div id="mcKeyFiiSum" class="mc-key"></div><svg id="mcFiiSum" class="mc-svg" role="img" aria-label="FII net equity flow, rolling 20 reporting dates"></svg><div id="mcFiiSumTip" class="mc-tip"></div></div>
+    <div class="gl-section-title">3 &middot; Foreign investor flows (FII net equity) <button type="button" class="mi-btn" data-mi="mcfii" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcfii" aria-label="How this is measured: foreign investor flows">i</button></div><div class="mi-panel" id="mi-mcfii" role="region" aria-label="Method" hidden></div>
+    <div class="gl-pillrow mc-fwin" id="mcFwinRow" role="group" aria-label="FII bar chart window">
+      <button type="button" class="gl-pill" data-fwin="5D" aria-pressed="false" onclick="mcSetFwin('5D')">5 sessions</button>
+      <button type="button" class="gl-pill" data-fwin="1M" aria-pressed="false" onclick="mcSetFwin('1M')">1M</button>
+      <button type="button" class="gl-pill active" data-fwin="3M" aria-pressed="true" onclick="mcSetFwin('3M')">3M</button>
+      <button type="button" class="gl-pill" data-fwin="1Y" aria-pressed="false" onclick="mcSetFwin('1Y')">1Y</button>
+    </div>
+    <div id="mcFiiWin" class="mc-fwin-t" aria-live="polite"></div>
+    <div class="mc-card"><div id="mcKeyFii" class="mc-key"></div><svg id="mcFiiBars" class="mc-svg" tabindex="0" role="img" aria-label="Daily FII net equity flow by NSDL report date"></svg><div id="mcFiiBarsTip" class="mc-tip"></div></div>
+    <div class="mc-card" style="margin-top:12px"><div id="mcKeyFiiSum" class="mc-key"></div><svg id="mcFiiSum" class="mc-svg" tabindex="0" role="img" aria-label="FII net equity flow, rolling 20 reporting dates"></svg><div id="mcFiiSumTip" class="mc-tip"></div></div>
     <div id="mcFiiCap" class="mc-cap"></div>
 
-    <div class="gl-section-title">4 &middot; How closely Nifty moves with each series</div>
-    <div class="mc-card"><div id="mcKeyCo" class="mc-key"></div><svg id="mcCo" class="mc-svg" role="img" aria-label="Rolling 52-week correlation of weekly Nifty returns with USD/INR and Brent"></svg><div id="mcCoTip" class="mc-tip"></div></div>
+    <div class="gl-section-title">4 &middot; How closely Nifty moves with each series <button type="button" class="mi-btn" data-mi="mcco" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcco" aria-label="How this is measured: correlation panel">i</button></div><div class="mi-panel" id="mi-mcco" role="region" aria-label="Method" hidden></div>
+    <div class="mc-card"><div id="mcKeyCo" class="mc-key"></div><svg id="mcCo" class="mc-svg" tabindex="0" role="img" aria-label="Rolling 52-week correlation of weekly Nifty returns with USD/INR and Brent"></svg><div id="mcCoTip" class="mc-tip"></div></div>
     <div id="mcCoCap" class="mc-cap"></div>
 
     <div class="gl-section-title">Sources, definitions and freshness</div>
@@ -1094,7 +1175,7 @@ body.light .hp-formula .k{color:#4f46e5}
 <!-- ================================================================ -->
 <div id="view-projections" class="view">
   <div class="dash-wrap">
-  <div class="gl-section-title" style="margin-bottom:6px">Index Price Projections</div>
+  <div class="gl-section-title" style="margin-bottom:6px">Index Price Projections <button type="button" class="mi-btn" data-mi="pj" data-mi-arg="" aria-expanded="false" aria-controls="mi-pj" aria-label="How this is measured: price projection">i</button></div><div class="mi-panel" id="mi-pj" role="region" aria-label="Method" hidden></div>
   <p class="hp-p" style="margin-top:0">Estimates where an index could trade if its valuation multiple reverts to its weighted historical median and earnings (or book value) recover to their historical peak. The headline is that base case; the chart and matrix flex each lever &mdash; multiple at 90&nbsp;/&nbsp;100&nbsp;/&nbsp;110% of median, fundamental at 90&nbsp;/&nbsp;100&nbsp;/&nbsp;110% of peak.</p>
   <div class="pj-disc">⚠ <strong>Educational use only &mdash; not investment advice.</strong> These are mechanical what-if estimates, not forecasts or price targets. Real prices depend on growth, interest rates, sentiment and other factors not modelled here. Past medians and peaks may never repeat. Do your own research.</div>
 
@@ -1164,7 +1245,7 @@ body.light .hp-formula .k{color:#4f46e5}
     <div class="metric-grid">
       <div class="metric-card" id="peCard">
         <div class="mc-header">
-          <div class="mc-title"><svg class="ico"><use href="#i-trending-up"/></svg>Price / Earnings</div>
+          <div class="mc-title"><svg class="ico"><use href="#i-trending-up"/></svg>Price / Earnings <button type="button" class="mi-btn" data-mi="detpe" data-mi-arg="" aria-expanded="false" aria-controls="mi-detpe" aria-label="How this is measured: P/E valuation">i</button></div><div class="mi-panel" id="mi-detpe" role="region" aria-label="Method" hidden></div>
         </div>
         <div class="mc-current">
           <div class="mc-val" id="peVal">&mdash;</div>
@@ -1278,7 +1359,7 @@ body.light .hp-formula .k{color:#4f46e5}
   <!-- ============== SUB: BACKTEST (merged) ============== -->
   <div id="sub-backtest" class="page">
     <div class="bt-controls">
-      <div class="bt-controls-title"><svg class="ico"><use href="#i-sliders"/></svg>Backtest Settings</div>
+      <div class="bt-controls-title"><svg class="ico"><use href="#i-sliders"/></svg>Backtest Settings <button type="button" class="mi-btn" data-mi="bt" data-mi-arg="" aria-expanded="false" aria-controls="mi-bt" aria-label="How this is measured: backtest">i</button></div><div class="mi-panel" id="mi-bt" role="region" aria-label="Method" hidden></div>
 
       <div class="bt-mode-row">
         <div class="bt-mode-toggle">
@@ -1286,7 +1367,7 @@ body.light .hp-formula .k{color:#4f46e5}
           <button class="bt-mode-opt" onclick="setBtMode('absolute',this)"><svg class="ico ico-sm"><use href="#i-target"/></svg>Absolute</button>
         </div>
         <div class="bt-mode-desc" id="btModeDesc">
-          <strong>Relative:</strong> fire signals when current P/E or P/B is within a % band of the rolling weighted reference. Adapts to regime shifts.
+          <strong>Relative:</strong> fire signals when current P/E or P/B ÷ the rolling weighted reference is within &plusmn;1 percentage point of your %. Adapts to regime shifts.
         </div>
       </div>
 
@@ -1401,7 +1482,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <div id="sbtEmpty" class="no-data">Set a PE threshold and click Run Backtest.</div>
 
       <div class="sbt-note">
-        <strong>Absolute-mode logic:</strong> Buy at close when PE first falls below the threshold (after cooldown). Sell after the fixed hold period. Win = positive simple return at exit.
+        <strong>Absolute-mode logic:</strong> Buy at close on any day PE is below the threshold, once the cooldown since the last signal has passed (a long spell below the level fires again after each cooldown). Sell after the fixed hold period. Win = positive simple return at exit.
         <br/><strong>Limitations to keep in mind:</strong>
         <ul style="margin:6px 0 0 16px;line-height:1.8">
           <li><strong>Absolute threshold, not regime-adjusted</strong> &mdash; PE 25 meant different things at different rate cycles. Relative mode's "% of rolling median" adapts to regime changes.</li>
@@ -1690,14 +1771,14 @@ body.light .hp-formula .k{color:#4f46e5}
 
     <div class="hp-sec" id="h-buffett">
       <div class="hp-sec-h">8 · Buffett Indicator (market cap &divide; GDP)</div>
-      <div class="hp-p">The <strong>Buffett tab</strong> answers a different question from the 4 cards. Instead of "is each index's <em>P/E</em> high vs its own history?", it asks "is the <em>whole market</em> big vs the real economy?" &mdash; total listed market value &divide; nominal GDP, the gauge Warren Buffett called "probably the best single measure of where valuations stand." Numerator = <strong>BSE total market cap</strong> (all listed companies, refreshed daily); denominator = India's <strong>latest reported actual nominal GDP</strong> (no forecast, per Buffett). Bands are calibrated to India's own 20-year history (median ~82%), not Buffett's US zones.</div>
+      <div class="hp-p">The <strong>Buffett tab</strong> answers a different question from the 4 cards. Instead of "is each index's <em>P/E</em> high vs its own history?", it asks "is the <em>whole market</em> big vs the real economy?" &mdash; total listed market value &divide; nominal GDP, the gauge Warren Buffett called "probably the best single measure of where valuations stand." Numerator = <strong>BSE total market cap</strong> (all listed companies, fetched twice daily by a job on the owner's computer; it lags if that computer is off); denominator = India's <strong>latest full-year actual nominal GDP</strong>. Buffett's own 2001 chart used GNP. Bands are calibrated to India's own 20-year history (median <span class="bfMedLive">of the history rows, shown on the Buffett tab</span>), not Buffett's US zones.</div>
 
       <div class="hp-p">It is a deliberate complement, with <strong>different failure modes</strong> from the P/E engine &mdash; so the two <em>agreeing</em> at an extreme is high-conviction, and the two <em>diverging</em> is itself the signal worth investigating.</div>
 
       <div class="hp-card warn">
         <div class="hp-card-ttl">Where it is blind — vs the per-index P/E method</div>
         <ul class="hp-list" style="margin:6px 0 0">
-          <li><strong>Earnings-blind.</strong> P/E knows whether prices are high <em>because profits are high</em>; mcap/GDP doesn't. India's corporate-profit-to-GDP is at decadal highs, so part of a "stretched" Buffett reading is justified by genuine profitability that the P/E cards capture and this gauge can't.</li>
+          <li><strong>Earnings-blind.</strong> P/E knows whether prices are high <em>because profits are high</em>; mcap/GDP doesn't. India's corporate-profit-to-GDP <span class="bfPsHelp">is high by its own history</span>, so part of a "stretched" Buffett reading is justified by genuine profitability that the P/E cards capture and this gauge can't.</li>
           <li><strong>Mismatched universes.</strong> The numerator is <em>listed</em> companies (some earning abroad); the denominator is <em>domestic</em> output including India's large informal economy. Apples-to-oranges in a way that is worse for India than the US.</li>
           <li><strong>Structural drift.</strong> Market cap inflates mechanically with IPOs, rising free float and financialisation &mdash; so comparing today to 2013 partly compares different market structures. Per-share P/E is immune to this.</li>
           <li><strong>No relative read.</strong> One blunt number for the whole market &mdash; it can't tell you large-vs-small or which sector is frothy. That is exactly what the index cards and the cross-asset / relative panel (&sect;9) are for.</li>
@@ -1707,17 +1788,17 @@ body.light .hp-formula .k{color:#4f46e5}
 
       <div class="hp-card tip">
         <div class="hp-card-ttl">The fix — decompose into profit-share &times; P/E</div>
-        <div class="hp-p">Because <code>Market cap / GDP = (Earnings / GDP) &times; (Market cap / Earnings)</code>, the Buffett ratio is simply <strong>corporate profit-share &times; P/E</strong>. Splitting it tells you <em>which</em> is driving a high reading:</div>
+        <div class="hp-p">Because <code>Market cap / GDP = (Earnings / GDP) &times; (Market cap / Earnings)</code>, the Buffett ratio is approximately <strong>corporate profit-share &times; P/E</strong>. It is only approximate here: the market cap is the whole BSE, while the profit share and P/E come from Nifty-500 companies, so the product (for example 5.2% &times; 21.3 &asymp; 111% in Oct 2026) sits below the headline ratio (about 129%). Splitting it tells you <em>which</em> is driving a high reading:</div>
         <ul class="hp-list" style="margin:6px 0">
           <li><strong>Profit-share (Earnings/GDP)</strong> &mdash; how big a slice of the economy corporate profits are. Margins are highly mean-reverting, so a <em>high</em> profit-share is a caution on the <strong>sustainability of earnings</strong>, not on price.</li>
           <li><strong>Market P/E (Market cap/Earnings)</strong> &mdash; how richly those profits are priced. A high P/E is the caution on <strong>price</strong>.</li>
         </ul>
-        <div class="hp-p" style="margin-bottom:0">India's listed profit-to-GDP collapsed to ~2% in FY2020 and has recovered to a decadal-high ~4.5&ndash;5% &mdash; so much of today's elevated Buffett reading is <strong>recovered profitability, not pure over-valuation</strong>. The <strong>Decomposition</strong> panel on the Buffett tab surfaces this split (profit-share &times; the live Nifty 50 / Nifty 500 P/E) so you can tell "high because profitable" from "high because expensive."</div>
+        <div class="hp-p" style="margin-bottom:0">India's listed profit-to-GDP collapsed to ~2% in FY2020 and has recovered to ~<span class="bfPsNow">5.2%</span>, which <span class="bfPsHelp">is high by its own history</span> &mdash; so much of today's elevated Buffett reading is <strong>recovered profitability, not pure over-valuation</strong>. The <strong>Decomposition</strong> panel on the Buffett tab surfaces this split (profit-share &times; the live Nifty 50 / Nifty 500 P/E) so you can tell "high because profitable" from "high because expensive."</div>
       </div>
 
       <div class="hp-card info">
         <div class="hp-card-ttl">Best practice</div>
-        <div class="hp-p" style="margin-bottom:0">Treat the Buffett gauge as a <strong>slow macro overlay / sanity-check</strong> and keep the per-index P/E percentile + backtest as the actionable workhorse. It is the <em>least</em> timing-useful input here &mdash; it can stay stretched for years. Read it for confirmation and for the divergence: e.g. "market rich vs the economy, but cushioned by record margins" is a more honest read than either gauge alone.</div>
+        <div class="hp-p" style="margin-bottom:0">Treat the Buffett gauge as a <strong>slow macro overlay / sanity-check</strong> and keep the per-index P/E percentile + backtest as the actionable workhorse. It is the <em>least</em> timing-useful input here &mdash; it can stay stretched for years. Read it for confirmation and for the divergence: e.g. "market rich vs the economy, but cushioned by high margins" is a more honest read than either gauge alone.</div>
       </div>
     </div>
 
@@ -1741,7 +1822,7 @@ body.light .hp-formula .k{color:#4f46e5}
         <div class="hp-card-ttl">Why this matters for allocation</div>
         <div class="hp-p" style="margin-bottom:0">The index cards can each say "expensive" at the same time, leaving you no steer on <em>where</em> to lean. The relative ratio is what tells you whether the froth is concentrated down the cap curve — the single most useful input for a large-vs-small tilt that the absolute bands cannot give you.</div>
       </div>
-      <div class="hp-note" style="margin-top:10px">Both panels share the same percentile/band engine as the cards. The G-Sec series is refreshed daily; if that feed is briefly unavailable the panel falls back to the last embedded value, so the yield can lag by a day at worst.</div>
+      <div class="hp-note" style="margin-top:10px">Both panels share the same percentile/band engine as the cards. The 10Y G-Sec yield is refreshed on each run of the &ldquo;Update index data&rdquo; GitHub Action (09:00, 19:00 and 22:30 IST) by scripts/fetch_gsec.py, which reads a third-party relay (a SectorScope web worker; its original source is not stated). The latest point is usually the previous trading day. If data/gsec.json cannot be loaded, the panel falls back to a copy embedded in the page that ends on 2026-06-02, so the yield can then be months old. The &ldquo;10Y yield as of&rdquo; date in the panel shows which one you are seeing, and it says STALE after 4 business days (Mon-Fri). Exchange holidays still count as business days, since there is no holiday calendar.</div>
     </div>
 
     <!-- ══ 10. EMAIL ALERTS ══ -->
@@ -1752,7 +1833,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="hp-p">Each reading carries one word and one shape: <strong>◆ HEADWIND</strong>, <strong>● NEUTRAL</strong>, <strong>▲ TAILWIND</strong>. For USD/INR and Brent, the page takes the latest 12-month change and ranks it against every rolling 12-month change in the last 10 years. The top quarter is a headwind (a weaker rupee or dearer oil hurts an economy that imports oil and relies on portfolio inflows). The bottom quarter is a tailwind. For FII, the page ranks the sum of the last 5 reporting dates against all rolling 5-date sums since 2014. The direction flips: heavy selling is the headwind.</div>
       <div class="hp-card info"><div class="hp-p" style="margin-bottom:0">A headwind describes how extreme the move is against history. It is not a forecast. The correlation panel shows why. It measures how weekly Nifty returns and each series moved in the same week. A negative value means they moved in opposite directions; a value between −0.1 and +0.1 is near zero. The caption names the sign and size of each figure, including the one-week-lead figures, and none of them is a forecast.</div></div>
       <div class="hp-sub-h">What to know about each source</div>
-      <div class="hp-p"><strong>Brent</strong> is front-month futures from Yahoo (BZ=F), not spot. It rolls monthly and can differ from a spot quote by a few percent. <strong>FII</strong> comes from NSDL, the depository, and covers equity only. Each NSDL date is the reporting date and carries the <em>previous</em> trading day’s trades. A few rows combine several trading days; the chart marks rows that look that way with †. The NSE same-day figure is provisional and is shown as text, not added to the chart. If a source is older than 4 days, the page says STALE with the age in days.</div>
+      <div class="hp-p"><strong>Brent</strong> is front-month futures from Yahoo (BZ=F), not spot. The two can differ materially. <strong>FII</strong> comes from NSDL, the depository, and covers equity only. Each NSDL date is the reporting date and carries the <em>previous</em> trading day’s trades. A few rows combine several trading days; the chart marks rows that look that way with †. The NSE same-day figure is provisional and is shown as text, not added to the chart. If a source is more than 4 business days (Mon-Fri, counted to today in India) old, the page says STALE with the age in business days. Exchange holidays still count as business days (there is no holiday calendar), so a run of several holidays can show STALE early. The newest weekly point on the price charts can be a partial week (the last quote, not a weekly close); the charts mark it with a hollow circle and the words “partial week”.</div>
     </div>
 
     <div class="hp-sec" id="h-alerts">
@@ -2871,14 +2952,21 @@ function relPctile(arr, cur) {
 
 // Convert a metric percentile to a valuation band. highIsCheap=true means a
 // HIGH reading is cheap (EY-BY spread); false means a LOW reading is cheap (PE ratios).
+var BAND_CUTS = [10, 30, 70, 90]; // q cut points: Very Cheap | Cheap | Neutral | Expensive | Very Expensive
 function bandFromPctile(p, highIsCheap) {
   if (p == null) return 'neutral';
   var q = highIsCheap ? (100 - p) : p; // q: 0 = cheapest, 100 = most expensive
-  if (q <= 10) return 'vcheap';
-  if (q <= 30) return 'cheap';
-  if (q <= 70) return 'neutral';
-  if (q <= 90) return 'expensive';
+  if (q <= BAND_CUTS[0]) return 'vcheap';
+  if (q <= BAND_CUTS[1]) return 'cheap';
+  if (q <= BAND_CUTS[2]) return 'neutral';
+  if (q <= BAND_CUTS[3]) return 'expensive';
   return 'vexpensive';
+}
+// Plain-words band rule built from BAND_CUTS, so the "i" text cannot drift from the code.
+function bandRuleTxt(cheapEnd, dearEnd) {
+  var c = BAND_CUTS;
+  return cheapEnd + ' ' + c[0] + '% Very Cheap, next ' + (c[1] - c[0]) + '% Cheap, middle ' + (c[2] - c[1]) + '% Neutral, next '
+    + (c[3] - c[2]) + '% Expensive, ' + dearEnd + ' ' + (100 - c[3]) + '% Very Expensive';
 }
 // Valuation position (0 cheap .. 100 expensive) for the marker.
 function valPos(p, highIsCheap) { return p == null ? 50 : (highIsCheap ? 100 - p : p); }
@@ -2912,20 +3000,20 @@ function ord(n) {
   var s = ['th','st','nd','rd'], v = n % 100;
   return n + (s[(v-20)%10] || s[v] || s[0]);
 }
-function pbarHTML(pos) {
+// hollow: a hollow grey ring instead of the solid marker, for a rank that must not be read as a band.
+function pbarHTML(pos, hollow) {
   pos = Math.max(0, Math.min(100, pos));
   return '<div class="xa-pbar-wrap"><div class="xa-pbar"></div>'
-       + '<div class="xa-pmark" style="left:' + pos.toFixed(1) + '%"></div></div>';
+       + '<div class="xa-pmark' + (hollow ? ' xa-pmark-hollow' : '') + '" style="left:' + pos.toFixed(1) + '%"></div></div>';
 }
 
-// Freshness of the 10Y G-Sec series. Weekends plus a holiday can legitimately make it
-// 4 days old; anything older is flagged STALE in words (not colour alone).
+// Freshness of the 10Y G-Sec series in business days (Mon-Fri) up to today in IST, as on the Macro tab.
+// Up to 4 business days can be a holiday gap; anything older is flagged STALE in words (not colour alone).
 function gsecFreshnessHTML() {
   if (!GSEC_HISTORY.length) return '10Y yield: no data';
   var d = GSEC_HISTORY[GSEC_HISTORY.length-1][0];
-  var age = Math.floor((Date.now() - new Date(d + 'T00:00:00Z').getTime()) / 86400000);
-  var stale = age > 4;
-  return '10Y yield as of ' + d + (stale ? ' \u00b7 <strong>STALE (' + age + ' days old)</strong>' : '');
+  var age = mcAge(d), lim = (typeof MC_FRESH_DAYS === 'number') ? MC_FRESH_DAYS : 4;
+  return '10Y yield as of ' + d + (age > lim ? ' \u00b7 <strong>STALE (' + age + ' business days old)</strong>' : '');
 }
 
 function eybyCardHTML() {
@@ -2959,13 +3047,14 @@ function eybyCardHTML() {
   return '<div class="xa-card">'
     + '<div class="xa-card-ttl">Earnings Yield &minus; Bond Yield · Nifty 50</div>'
     + '<div class="xa-card-q">Are equities cheap versus the 10Y government bond? Higher gap = cheaper.</div>'
-    + '<div class="xa-row"><div><div class="xa-big">' + (curSpread!=null ? (curSpread>=0?'+':'') + fmt(curSpread,1) + ' pp' : '—') + '</div>'
-    + '<div class="xa-big-sub">EY ' + (curEY!=null?fmt(curEY,1)+'%':'—') + ' &minus; 10Y ' + (curBY!=null?fmt(curBY,1)+'%':'—') + '</div>'
+    + '<div class="xa-row"><div><div class="xa-big">' + (curSpread!=null ? (curSpread>=0?'+':'\u2212') + fmt(Math.abs(curSpread),2) + ' pp' : '—') + '</div>'
+    + '<div class="xa-big-sub">EY ' + (curEY!=null?fmt(curEY,2)+'%':'—') + ' &minus; 10Y ' + (curBY!=null?fmt(curBY,2)+'%':'—') + ' = ' + (curSpread!=null ? (curSpread>=0?'+':'&minus;') + fmt(Math.abs(curSpread),2) + ' pp' : '—') + '</div>'
     + '<div class="xa-big-sub">' + gsecFreshnessHTML() + '</div></div>'
     + '<span class="xa-pill band-' + band + '">' + interp + '</span></div>'
     + '<div class="xa-pbar-lbl"><span>Cheap vs bonds</span><span>Rich vs bonds</span></div>'
-    + pbarHTML(pos)
-    + '<div class="xa-pval">' + (widerThan!=null ? 'Gap is wider than ' + fmt(widerThan,0) + '% of the last 10 years' + (capped ? ' \u2014 but the gap is negative (earnings yield below the 10Y yield), so the label is held at ' + bandLabel(band) : ' (' + bandLabel(band) + ')') + (neverPos ? '. In the last 10 years the gap has never been positive (max ' + fmt(maxGap,1) + ' pp), so this reading cannot reach Cheap.' : '') : 'Insufficient data') + '</div>'
+    + pbarHTML(pos, belowBond)
+    + (belowBond && widerThan!=null ? '<div class="xa-pmark-note">\u25cb Hollow marker: ranks ' + ord(Math.round(widerThan)) + ' pctile of history, but the gap is negative</div>' : '')
+    + '<div class="xa-pval">' + (widerThan!=null ? 'The gap is higher' + (belowBond ? ' (less negative)' : '') + ' than in ' + fmt(widerThan,0) + '% of the last 10 years' + (capped ? ' \u2014 but the gap is negative (earnings yield below the 10Y yield), so the label is held at ' + bandLabel(band) : ' (' + bandLabel(band) + ')') + (neverPos ? '. In the last 10 years the gap has never been positive (max ' + (maxGap<0?'\u2212':'') + fmt(Math.abs(maxGap),1) + ' pp), so this reading cannot reach Cheap.' : '') : 'Insufficient data') + '</div>'
     + '<div class="xa-note">A positive, high-percentile gap is conventionally read as cheap equities; a negative gap (EY below the bond yield) as a late-cycle caution. This is a reading convention, not a tested forecast. Complements the per-index P/E bands, which are blind to rates.</div>'
     + '</div>';
 }
@@ -3243,7 +3332,14 @@ function showMainView(target, el) {
   // Hide all top-level views first
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
 
-  if (target === 'help') {
+  if (target === 'admin' && IS_ADMIN && document.getElementById('view-admin')) {
+    document.getElementById('view-admin').classList.add('active');
+    CURRENT_VIEW = 'admin';
+    DETAILS_INDEX = null;
+    document.title = 'IndexScope \u2014 Admin';
+    try { renderAdmin(); } catch (e) { console.warn('renderAdmin', e); }
+    return;
+  } else if (target === 'help') {
     document.getElementById('view-help').classList.add('active');
     CURRENT_VIEW = 'help';
     DETAILS_INDEX = null;
@@ -3325,7 +3421,7 @@ function setBtMode(mode, el) {
   var desc = document.getElementById('btModeDesc');
   if (desc) {
     desc.innerHTML = isRel
-      ? '<strong>Relative:</strong> fire signals when current P/E or P/B is within a % band of the rolling weighted reference. Adapts to regime shifts.'
+      ? '<strong>Relative:</strong> fire signals when current P/E or P/B ÷ the rolling weighted reference is within &plusmn;1 percentage point of your %. Adapts to regime shifts.'
       : '<strong>Absolute:</strong> fire signals when P/E falls below a fixed threshold (e.g. 25). Simpler but does not adjust for regime changes.';
   }
 }
@@ -4760,12 +4856,26 @@ function bfBand(r) {
   return            {label:'Very Expensive', c:'--ve-c', bd:'--ve-bd', tl:'--ve-tl'};
 }
 
+// Where today's profit share sits against the anchors in buffett.json decomp.anchors.
+// "record" only when strictly above every other anchor; "ties its FY2008 high" only when equal to
+// FY2008 and not below any other anchor; otherwise "near its high" (or "below its high").
+function bfPsRel(dc) {
+  if (!dc || typeof dc.profit_share !== 'number') return null;
+  var ps = dc.profit_share, a08 = null, others = [];
+  (dc.anchors || []).forEach(function(a){ if (!a || typeof a[1] !== 'number') return; if (a[0] === 'FY2008') a08 = a[1]; if (a[0] !== dc.profit_share_fy) others.push(a[1]); });
+  var mxO = others.length ? Math.max.apply(null, others) : null;
+  var kind = mxO == null ? 'near' : ps > mxO ? 'record' : (a08 != null && ps === a08 && ps >= mxO) ? 'tie08' : (ps >= 0.9 * mxO ? 'near' : 'below');
+  var phrase = kind === 'record' ? 'is at a record high' : kind === 'tie08' ? 'ties its FY2008 high' : kind === 'near' ? 'is near its high' : 'is below its high';
+  return {kind: kind, phrase: phrase, ps: ps, a08: a08};
+}
+
 function fetchBuffett() {
   return fetch('./data/buffett.json?t=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (!d || !d.history) return;
       BUFFETT_DATA = d;
+      try { var pr = bfPsRel(d.decomp); if (pr) { document.querySelectorAll('.bfPsHelp').forEach(function(e){ e.textContent = pr.phrase; }); document.querySelectorAll('.bfPsNow').forEach(function(e){ e.textContent = pr.ps + '%'; }); } } catch (e) {}
       if (CURRENT_VIEW === 'buffett') { try { renderBuffett(); } catch(e){} }
     })
     .catch(function(){ /* keep silent; tab simply shows em-dashes */ });
@@ -4776,7 +4886,7 @@ function renderBuffett() {
   if (!d) return;
   var g = d.gdp;
   var mcap = d.live.mcap;
-  var rT = mcap / g.trailing * 100;   // headline: latest reported actual GDP (Buffett's method)
+  var rT = mcap / g.trailing * 100;   // headline: latest full-year actual GDP
   var rP = mcap / g.prior * 100;      // prior year, context
   var rF = mcap / g.forward * 100;    // forward Budget estimate, context only
   var ratios = d.history.map(function(h){ return h[4]; });
@@ -4805,7 +4915,9 @@ function renderBuffett() {
   }
 
   set('bfMcap', '₹' + mcap.toLocaleString('en-IN') + ' L cr');
-  set('bfMcapUsd', (d.live.usd_tn ? '$' + d.live.usd_tn + ' trillion · ' : '') + (d.live.dttm || ''));
+  var bfFt = d.fetchedAt ? new Date(d.fetchedAt).getTime() : NaN, bfAgeH = isNaN(bfFt) ? null : Math.max(0, (Date.now() - bfFt) / 3600000);
+  set('bfMcapUsd', (d.live.usd_tn ? '$' + d.live.usd_tn + ' trillion · ' : '') + (d.live.dttm || '')
+    + (bfAgeH != null ? ' · fetched ' + (bfAgeH < 1 ? 'under 1 hour' : bfAgeH < 48 ? Math.round(bfAgeH) + ' hours' : Math.round(bfAgeH / 24) + ' days') + ' ago' + (bfAgeH > 26 ? ' (STALE: the refresh job may be off)' : '') : ''));
   set('bfPriorLbl', 'vs ' + g.prior_label + ' (prior yr)');
   set('bfPrior', rP.toFixed(1) + '%');
   set('bfPriorSub', 'GDP ₹' + g.prior + ' L cr · actual');
@@ -4815,6 +4927,9 @@ function renderBuffett() {
   set('bfMedian', Math.round(median) + '%');
   set('bfRange', '(' + Math.round(lo) + '–' + Math.round(hi) + '%)');
   set('bfGdpUpdated', 'GDP last set ' + (g.updated || '—'));
+  document.querySelectorAll('.bfMedLive').forEach(function(el){ el.textContent = '~' + Math.round(median) + '%'; });
+  set('bfTrailTxt', (g.trailing_label || 'trailing') + ', ₹' + g.trailing + ' L cr');
+  set('bfFwdTxt', '₹' + g.forward + ' L cr → ' + rF.toFixed(1) + '%');
   if (g.trailing_newbase) set('bfNewBase', '~' + (mcap / g.trailing_newbase * 100).toFixed(0) + '%');
 
   // Decomposition: the high mcap/GDP reflects two levers — corporate profitability
@@ -4828,7 +4943,10 @@ function renderBuffett() {
     set('bfMktPE', pe500 != null ? pe500.toFixed(1) + '×' : (pe50 != null ? pe50.toFixed(1) + '×' : '—'));
     set('bfMktPESub', (pe500 != null ? 'Nifty 500' : 'Nifty 50') + (pe50 != null ? ' · Nifty 50 ' + pe50.toFixed(1) + '×' : '') + ' · NSE, read ' + (d.fetchedAt ? new Date(d.fetchedAt).toLocaleString('en-IN', {timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false}) + ' IST' : 'at last build') + '; the Dashboard P/E is read at another time, so the two can differ');
     set('bfPsLo', dc.trough + '% (' + dc.trough_fy + ')');
-    set('bfPsHi', dc.peak + '% (' + dc.peak_fy + ')');
+    // Tie / record wording comes from decomp.anchors (bfPsRel), not from a hard-coded value.
+    var psR = bfPsRel(dc) || {kind: 'near', phrase: 'is near its high'};
+    var a08p = psR.a08, psTie = (a08p != null && dc.peak === a08p && dc.peak_fy !== 'FY2008') ? ', ties FY2008' : '';
+    set('bfPsHi', dc.peak + '% (' + dc.peak_fy + psTie + ')');
     var psPos = (ps - dc.trough) / (dc.peak - dc.trough);
     var psm = document.getElementById('bfPsMarker');
     if (psm) psm.style.left = Math.max(0, Math.min(100, psPos * 100)) + '%';
@@ -4846,7 +4964,7 @@ function renderBuffett() {
       }
     }
 
-    var psWord = psPos >= 0.995 ? 'at its ' + dc.peak_fy + ' high' : psPos > 0.8 ? 'near its ' + dc.peak_fy + ' high' : psPos > 0.5 ? 'above mid-range' : 'below mid-range';
+    var psWord = psPos >= 0.995 ? (psR.kind === 'record' ? 'a record, at its ' + dc.peak_fy + ' high' : 'at its ' + dc.peak_fy + ' high' + (psR.kind === 'tie08' ? ', which ties FY2008' : '')) : psPos > 0.8 ? 'near its ' + dc.peak_fy + ' high' : psPos > 0.5 ? 'above mid-range' : 'below mid-range';
     var peWord = (pePctile == null) ? 'elevated' : pePctile >= 75 ? 'historically rich' : pePctile >= 45 ? 'around its 10-yr average' : 'below its 10-yr average';
     set('bfDecRead', 'Two levers behind it: corporate profit-share ' + ps.toFixed(1) + '% (' + psWord + ', range ' + dc.trough + '–' + dc.peak + '%), and the market P/E — ' + (pe500 != null ? 'Nifty 500 ' + pe500.toFixed(1) + '×' : '') + (pe50 != null ? ', Nifty 50 ' + pe50.toFixed(1) + '×' + (pePctile != null ? ' (≈' + ord(pePctile) + ' percentile, ' + peWord + ')' : '') : '') + '. Profit-share: Motilal Oswal Nifty-500 series.');
 
@@ -4882,7 +5000,7 @@ function renderBuffett() {
 
     var verdict;
     if (psHigh && peHigh)       verdict = '<strong>Today: both stretched.</strong> Profit-share ' + psWord + ' AND the market P/E ' + peWord + ' — richly valued on both counts; margin mean-reversion and a P/E de-rating both in play.';
-    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, cheap multiple — a two-way setup.</strong> The reading is elevated because profitability is near record, not because multiples are stretched (Nifty 50 ' + peTxt + ', ' + peWord + '). Two mean-reversions pull opposite ways: <strong>margins reverting down is the risk</strong> (earnings near peak), while a <strong>P/E re-rating up with margins holding is the opportunity</strong> — the cheap large-cap multiple is a cushion.';
+    else if (psHigh && !peHigh) verdict = '<strong>Today: high profit-share, cheap multiple — a two-way setup.</strong> The reading is elevated because profitability ' + psR.phrase + ', not because multiples are stretched (Nifty 50 ' + peTxt + ', ' + peWord + '). Two mean-reversions pull opposite ways: <strong>margins reverting down is the risk</strong> (earnings near peak), while a <strong>P/E re-rating up with margins holding is the opportunity</strong> — the cheap large-cap multiple is a cushion.';
     else if (!psHigh && peHigh) verdict = '<strong>Today: stretched multiple on sub-peak margins.</strong> You are paying up; the P/E is the main risk.';
     else                        verdict = '<strong>Today: both subdued.</strong> Neither profitability nor the multiple is stretched — a more comfortable zone.';
     var qEl = document.getElementById('bfQuadRead');
@@ -4941,7 +5059,11 @@ function bfDrawChart(history, nowRatio, median) {
   var yMin = Math.floor((allMin - 8) / 10) * 10;
   if (yMin < 0) yMin = 0;
 
-  function x(i){ return pad.l + (vals.length === 1 ? 0 : i / (vals.length - 1) * iW); }
+  // FY points are one year apart; "Now" sits at its real distance after the last FY point (by date), not a full year step.
+  var nH = history.length, nowFrac = 1, lastFY = nH ? history[nH-1][1] : null, nowD = (typeof BUFFETT_DATA !== 'undefined' && BUFFETT_DATA && BUFFETT_DATA.live) ? BUFFETT_DATA.live.date : null;
+  if (lastFY && nowD) { var df = (new Date(nowD) - new Date(lastFY)) / 864e5 / 365.25; if (isFinite(df)) nowFrac = Math.min(1, Math.max(0.08, df)); }
+  var xMax = nH - 1 + nowFrac;
+  function x(i){ var pos = i < nH ? i : nH - 1 + nowFrac; return pad.l + (xMax <= 0 ? 0 : pos / xMax * iW); }
   function y(v){ return pad.t + (1 - (v - yMin) / (yMax - yMin)) * iH; }
 
   // gridlines + y labels every ~25
@@ -4955,8 +5077,9 @@ function bfDrawChart(history, nowRatio, median) {
   // x labels: first, every 4th, and Now
   var xLabels = '';
   labels.forEach(function(lb, i){
-    if (i === 0 || i === labels.length-1 || i % 4 === 0) {
-      var short = (lb === 'Now') ? 'Now' : lb.replace('FY','’').slice(0,3);
+    // Skip a FY label that would collide with "Now" (Now sits by date, often under a year after the last FY point).
+    if (i === 0 || i === labels.length-1 || (i % 4 === 0 && x(labels.length-1) - x(i) >= 30)) {
+      var short = (lb === 'Now') ? 'Now' : '’' + String(lb).slice(-2);
       xLabels += '<text x="'+x(i)+'" y="'+(pad.t+iH+15)+'" text-anchor="middle" font-size="9" fill="var(--sub)" font-family="monospace">'+short+'</text>';
     }
   });
@@ -4992,23 +5115,31 @@ var GL_COLORS = {
 var GL_EQUITY = ['nifty','spx','ndx','em','csi300','hsi','nikkei','kospi','taiex','estoxx','ftse'];
 
 // ---------- Macro tab: USD/INR, Brent futures, FII net equity ----------
-var MACRO = null, FII = null, MC_RANGE = '5Y', MC_YEARS = {'3Y':3,'5Y':5,'10Y':10}, MC_CH = {};
+var MACRO = null, FII = null, MC_RANGE = '5Y', MC_YEARS = {'1Y':1,'3Y':3,'5Y':5,'10Y':10,'Max':0}, MC_CH = {};
 var MC_SHAPE = {HEADWIND:'◆', NEUTRAL:'●', TAILWIND:'▲', UNKNOWN:'?'};
-var MC_FRESH_DAYS = 4; // weekend + one holiday; older is flagged STALE in words
+var MC_FRESH_DAYS = 4; // business days (Mon-Fri) since the last data date, counted to today in IST; more is flagged STALE in words
 var MACRO_LOADING = true; // true until fetchMacro() settles, so the tab says "Loading" not "unavailable"
+var MC_OVL = true; // Nifty overlay (indexed to 100) on the USD/INR and Brent charts; coincident context only
+var MC_FWIN = '3M', MC_FWINS = {'5D':{n:5, label:'Last 5 sessions'}, '1M':{m:1, label:'Last 1 month'}, '3M':{m:3, label:'Last 3 months'}, '1Y':{m:12, label:'Last 12 months'}};
+var MC_EXPL = null; // open state explanation: 'all' | 'usdinr' | 'brent' | 'fii' | null
+var MC_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MC_NAMES = {usdinr:'USD/INR', brent:'Brent', fii:'FII flows'};
 function mcNum(v){ return typeof v === 'number' && isFinite(v); }
-// Accept macro.json only when the fields the page reads are present and typed.
+function mcNN(v){ return v === null || v === undefined || mcNum(v); }
+// Accept macro.json when the weekly table and the Nifty series are usable. A missing or malformed
+// USD/INR or Brent series is set to null (that reading shows as unavailable) instead of dropping the file.
 function mcValidMacro(m) {
   try {
     if (!m || !m.series || !m.weekly || !Array.isArray(m.weekly.rows) || m.weekly.rows.length < 2) return false;
-    var rowsOk = m.weekly.rows.every(function(r){ return Array.isArray(r) && typeof r[0] === 'string' && mcNum(r[1]) && mcNum(r[2]) && mcNum(r[3]); });
-    var serOk = ['usdinr','brent','nifty'].every(function(k){
+    var rowsOk = m.weekly.rows.every(function(r){ return Array.isArray(r) && typeof r[0] === 'string' && mcNum(r[3]) && mcNN(r[1]) && mcNN(r[2]); });
+    var nf = m.series.nifty;
+    if (!rowsOk || !nf || !mcNum(nf.last) || typeof nf.lastDailyBar !== 'string') return false;
+    ['usdinr','brent'].forEach(function(k){
       var x = m.series[k];
-      if (!x || !mcNum(x.last) || typeof x.lastDailyBar !== 'string') return false;
-      if (k === 'nifty') return true;
-      return mcNum(x.chg12m) && mcNum(x.chg12mPctile) && MC_SHAPE.hasOwnProperty(x.state);
+      var ok = !!(x && mcNum(x.last) && typeof x.lastDailyBar === 'string' && mcNum(x.chg12m) && mcNum(x.chg12mPctile) && MC_SHAPE.hasOwnProperty(x.state));
+      if (!ok) { console.warn('macro.json series ' + k + ' is missing or malformed; showing it as unavailable'); m.series[k] = null; }
     });
-    return rowsOk && serOk;
+    return true;
   } catch (e) { return false; }
 }
 // Correlation block is checked on its own; a bad block drops only the correlation chart.
@@ -5028,12 +5159,16 @@ function mcValidFii(f) {
       && f.rows.every(function(r){ return Array.isArray(r) && typeof r[0] === 'string' && mcNum(r[1]); }));
   } catch (e) { return false; }
 }
+function mcSer(k){ return MACRO && MACRO.series ? (MACRO.series[k] || null) : null; }
 // Chart colours: darker tokens on the light theme. Colour is never the only cue; every line also has a dash pattern and a name label.
 function mcC(k) {
   var L = document.body.classList.contains('light');
   return ({amber: L ? '#b45309' : '#fbbf24', blue: L ? '#1d4ed8' : '#60a5fa', violet: L ? '#6d28d9' : '#a78bfa', green: L ? '#047857' : '#34d399'})[k];
 }
-function mcR(v){ return mcNum(v) ? v.toFixed(2) : 'n/a'; }
+// Correlations: macro.json stores them rounded once to 3 dp; show them as stored (no second rounding).
+function mcR(v){ return mcNum(v) ? mcMinus(v.toFixed(3)) : 'n/a'; }
+// True minus sign (U+2212) for any formatted negative number.
+function mcMinus(t){ return String(t).replace(/(^|[^\w.])-(?=[\d.$₹])/g, '$1\u2212'); }
 // Words for a correlation: sign gives direction, size gives strength.
 function mcCorrWord(v) {
   if (!mcNum(v)) return 'not available';
@@ -5055,15 +5190,46 @@ function fetchMacro() {
     if (CURRENT_VIEW === 'macro') { try { renderMacro(); } catch (e) { console.warn('macro', e); } }
   });
 }
-function setMacroRange(r){ MC_RANGE = r; document.querySelectorAll('#mcRangeRow .gl-pill').forEach(function(b){ b.classList.toggle('active', b.dataset.range === r); }); renderMacro(); }
+// Toggle-button groups: active class plus aria-pressed, so the state is announced, not only shown.
+function mcPills(rowId, attr, val) {
+  document.querySelectorAll('#' + rowId + ' .gl-pill').forEach(function(b){ var on = b.getAttribute(attr) === val; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+}
+function setMacroRange(r){ MC_RANGE = r; mcPills('mcRangeRow', 'data-range', r); mcHideAll(); renderMacro(); }
+function mcSetOvl(on){ MC_OVL = !!on; mcPills('mcOvlRow', 'data-ovl', on ? 'on' : 'off'); mcHideAll(); renderMacro(); }
+function mcSetFwin(w){
+  MC_FWIN = w; mcPills('mcFwinRow', 'data-fwin', w); mcHide('mcFiiBars');
+  try { renderMacroFii(); } catch (e) { console.warn('renderMacro fii', e); var ce = document.getElementById('mcFiiCap'); if (ce) ce.textContent = '⚠ The FII section could not be drawn from the data file.'; }
+}
 
-function mcAge(d){ return Math.floor((Date.now() - new Date(d + 'T00:00:00Z').getTime()) / 86400000); }
+// Today's date in India (UTC+5:30), so the age is not one day low between 00:00 and 05:30 IST.
+function mcTodayIST(){ return new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10); }
+// Business days (Mon-Fri) after date d up to and including today in IST. Exchange holidays are not known here.
+function mcAge(d){
+  var t = mcT(d), e = mcT(mcTodayIST()), n = 0;
+  if (!isFinite(t) || !isFinite(e)) return 0;
+  for (var x = t + 864e5; x <= e && n < 4000; x += 864e5) { var w = new Date(x).getUTCDay(); if (w !== 0 && w !== 6) n++; }
+  return n;
+}
 function mcAsOf(d, label){
   var a = mcAge(d);
-  return label + ' as of ' + d + (a > MC_FRESH_DAYS ? ' · <strong>STALE (' + a + ' days old)</strong>' : '');
+  return label + ' as of ' + d + (a > MC_FRESH_DAYS ? ' · <strong>STALE (' + a + ' business days old)</strong>' : '');
+}
+// macro.json says whether its newest weekly row is an unfinished week; the date rule below is only a fallback.
+function mcPW(){ if (!MACRO) return false; if (typeof MACRO.partialWeek === 'boolean') return MACRO.partialWeek; var W = MACRO.weekly.rows; return mcPartial(W[W.length - 1][0]); }
+// Date of the last complete week (states, percentiles and correlations are computed up to it).
+function mcLCW(){ if (MACRO && typeof MACRO.lastCompleteWeek === 'string') return MACRO.lastCompleteWeek; return null; }
+// 12M change behind the state (last complete week) and its words; the chip headline uses the last quote.
+function mcStateChg(s){ var lc = mcLCW(), c = mcNum(s.chg12mComplete) ? s.chg12mComplete : s.chg12m; return {v:c, words: lc && mcNum(s.chg12mComplete) ? 'to the last complete week (' + lc + ')' : 'to last quote'}; }
+// The latest weekly row is the last quote of a week that may still be trading (not a weekly close).
+function mcPartial(d){
+  var t = mcT(d), e = mcT(mcTodayIST()), w = new Date(t).getUTCDay();
+  return isFinite(t) && e - t < 7 * 864e5 && (w !== 5 || e === t);
 }
 function mcSigned(v, dp, pre, suf){ return (v < 0 ? '−' : '+') + (pre || '') + Math.abs(v).toLocaleString('en-IN', {minimumFractionDigits:dp, maximumFractionDigits:dp}) + (suf || ''); }
+function mcPct(v){ return mcNum(v) ? mcSigned(v, 1, '', '%') : 'n/a'; }
 function mcPill(st){ return '<span class="mc-pill mc-' + st.toLowerCase() + '">' + MC_SHAPE[st] + ' ' + st + '</span>'; }
+function mcT(d){ return Date.parse(d + 'T00:00:00Z'); }
+function mcDL(d){ return (+d.slice(8, 10)) + ' ' + MC_MON[+d.slice(5, 7) - 1] + ' ' + d.slice(0, 4); }
 
 // FII state: sum of the last 5 reporting dates, ranked against every rolling 5-date sum since 2014.
 // Heavy selling (low percentile) is the headwind; heavy buying is the tailwind.
@@ -5079,129 +5245,271 @@ function fiiStat() {
            first: win[0][0], last: r[n-1][0], catchup: win.some(function(x){ return x[4]; }), nWin: sums.length };
 }
 function mcStates() {
-  var out = {};
-  out.usdinr = MACRO ? MACRO.series.usdinr.state : 'UNKNOWN';
-  out.brent = MACRO ? MACRO.series.brent.state : 'UNKNOWN';
+  var out = {}, u = mcSer('usdinr'), b = mcSer('brent');
+  out.usdinr = u ? u.state : 'UNKNOWN';
+  out.brent = b ? b.state : 'UNKNOWN';
   var f = fiiStat(); out.fii = f ? f.state : 'UNKNOWN';
   return out;
 }
 
 function renderMacroChips() {
   var el = document.getElementById('macroChips'); if (!el) return;
-  if (!MACRO && !FII) { el.innerHTML = '<div class="mc-chips-note">' + (MACRO_LOADING ? '\u25cc Loading macro context (USD/INR, Brent, FII)\u2026' : 'Macro context unavailable: data/macro.json and data/fii.json did not load.') + '</div>'; return; }
-  var h = '';
-  if (MACRO) {
-    var u = MACRO.series.usdinr, b = MACRO.series.brent;
-    h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>USD/INR</span>' + mcPill(u.state) + '</div>'
+  if (!MACRO && !FII) { el.innerHTML = '<div class="mc-chips-note">' + (MACRO_LOADING ? '◌ Loading macro context (USD/INR, Brent, FII)…' : 'Macro context unavailable: data/macro.json and data/fii.json did not load.') + '</div>'; return; }
+  var h = '', u = mcSer('usdinr'), b = mcSer('brent');
+  if (u) h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>USD/INR</span>' + mcPill(u.state) + '</div>'
       + '<div class="mc-chip-v">₹' + u.last.toFixed(2) + '</div>'
-      + '<div class="mc-chip-s">' + mcSigned(u.chg12m, 1, '', '%') + ' over 12M · ' + ord(Math.round(u.chg12mPctile)) + ' percentile<br>' + mcAsOf(u.lastDailyBar, 'last quote') + '</div></button>';
-    h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>Brent futures</span>' + mcPill(b.state) + '</div>'
+      + '<div class="mc-chip-s">' + mcSigned(u.chg12m, 1, '', '%') + ' over 12M to last quote (' + u.lastDailyBar + ')<br>State uses ' + mcSigned(mcStateChg(u).v, 1, '', '%') + ' ' + mcStateChg(u).words + ', ' + ord(Math.round(u.chg12mPctile)) + ' percentile<br>' + mcAsOf(u.lastDailyBar, 'last quote') + '</div></button>';
+  if (b) h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>Brent futures</span>' + mcPill(b.state) + '</div>'
       + '<div class="mc-chip-v">$' + b.last.toFixed(2) + '</div>'
-      + '<div class="mc-chip-s">' + mcSigned(b.chg12m, 1, '', '%') + ' over 12M · ' + ord(Math.round(b.chg12mPctile)) + ' percentile<br>' + mcAsOf(b.lastDailyBar, 'last quote') + '</div></button>';
-  }
+      + '<div class="mc-chip-s">' + mcSigned(b.chg12m, 1, '', '%') + ' over 12M to last quote (' + b.lastDailyBar + ')<br>State uses ' + mcSigned(mcStateChg(b).v, 1, '', '%') + ' ' + mcStateChg(b).words + ', ' + ord(Math.round(b.chg12mPctile)) + ' percentile<br>' + mcAsOf(b.lastDailyBar, 'last quote') + '</div></button>';
   var f = fiiStat();
   if (f) {
     h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>FII net, 5 report dates</span>' + mcPill(f.state) + '</div>'
       + '<div class="mc-chip-v">' + mcSigned(f.sum, 0, '₹', ' cr') + '</div>'
-      + '<div class="mc-chip-s">' + ord(Math.round(f.pct)) + ' percentile of rolling 5-date sums since 2014' + (f.catchup ? '<br>\u2020 includes a row flagged as a likely catch-up' : '') + '<br>' + mcAsOf(f.last, 'NSDL report') + '</div></button>';
+      + '<div class="mc-chip-s">' + ord(Math.round(f.pct)) + ' percentile of rolling 5-date sums since 2014' + (f.catchup ? '<br>† includes a row flagged as a likely catch-up' : '') + '<br>' + mcAsOf(f.last, 'NSDL report') + '</div></button>';
   }
   var st = mcStates(), hw = ['usdinr','brent','fii'].filter(function(k){ return st[k] === 'HEADWIND'; }).length;
   var unkC = ['usdinr','brent','fii'].filter(function(k){ return st[k] === 'UNKNOWN'; });
-  var nmC = {usdinr:'USD/INR', brent:'Brent', fii:'FII flows'};
   h += '<div class="mc-chips-note">Macro context: ' + hw + ' of 3 readings are headwinds'
-    + (unkC.length ? '; ' + unkC.length + ' unavailable (' + unkC.map(function(k){ return nmC[k]; }).join(', ') + ')' : '')
+    + (unkC.length ? '; ' + unkC.length + ' unavailable (' + unkC.map(function(k){ return MC_NAMES[k]; }).join(', ') + ')' : '')
     + '. It does not change any valuation band. Open the Macro tab for sources and charts.</div>';
   el.innerHTML = h;
 }
 function openMacro() { showMainView('macro', document.querySelector('.ptab[data-view="macro"]')); }
 
 function mcRows(rows, cutoff){ return rows.filter(function(r){ return r[0] >= cutoff; }); }
-function mcCutoff(lastDate){ var c = new Date(lastDate + 'T00:00:00Z'); c.setUTCFullYear(c.getUTCFullYear() - MC_YEARS[MC_RANGE]); return c.toISOString().slice(0, 10); }
+function mcCutoff(lastDate){ var y = MC_YEARS[MC_RANGE]; if (!y) return '0000-00-00'; var c = new Date(lastDate + 'T00:00:00Z'); c.setUTCFullYear(c.getUTCFullYear() - y); return c.toISOString().slice(0, 10); }
 function mcFmt(v){ return Math.abs(v) >= 1000 ? v.toLocaleString('en-IN', {maximumFractionDigits:0}) : (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2)); }
+// Index of the row about 12 months before row j (last row on or before date - 365 days), or -1.
+function mcIdx12(D, j) {
+  var t = D[j] - 365 * 864e5, lo = 0, hi = j - 1, ans = -1;
+  while (lo <= hi) { var mid = (lo + hi) >> 1; if (D[mid] <= t) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+  return (ans < 0 || t - D[ans] > 21 * 864e5) ? -1 : ans;
+}
+// Index of the row exactly 52 weekly rows before row j (the rule fetch_macro.py uses for chips and
+// states), or -1 when there is no such row or the gap is not about a year (a hole in the weekly series).
+function mcIdx52(D, j) {
+  var k = j - 52; if (k < 0) return -1;
+  var g = (D[j] - D[k]) / 864e5;
+  return (g >= 350 && g <= 378) ? k : -1;
+}
+// Nearest index in a sorted time array (binary search; no per-point scan on pointermove).
+function mcNear(D, t) {
+  var lo = 0, hi = D.length - 1; if (hi < 0) return -1;
+  while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (D[mid] <= t) lo = mid; else hi = mid; }
+  return Math.abs(D[lo] - t) <= Math.abs(D[hi] - t) ? lo : hi;
+}
+function mcSw(S){ return '<svg width="18" height="6" aria-hidden="true"><line x1="0" x2="18" y1="3" y2="3" stroke="' + S.col + '" stroke-width="2.4"' + (S.dash ? ' stroke-dasharray="' + S.dash + '"' : '') + '/></svg>'; }
+function mcEmptySvg(svg, W, msg) {
+  svg.setAttribute('viewBox', '0 0 ' + W + ' 90'); svg.setAttribute('height', 90); svg.setAttribute('width', W);
+  svg.innerHTML = '<text x="' + (W / 2) + '" y="49" text-anchor="middle" fill="var(--sub)" font-size="12">' + msg + '</text>';
+}
 
-// Generic line chart. series: [{name, pts:[[date,val]], dash, col, w, fmt}]. opts: {yMin,yMax,zero,base100,unit}
+// Generic line chart. series: [{name, pts:[[date,val]], dash, col, w, fmt, tv(i), tc(i)}]; all series share one date axis.
+// opts: {yMin,yMax,zero,base100,baseDate,axisFmt,group,dateLabel,empty,partial}
+// base100: values are indexed (start = 100); the axis, end labels and tooltip say so, and series names carry "(index)".
 function mcLine(id, series, opts) {
   opts = opts || {};
-  var svg = document.getElementById(id), wrap = svg.parentNode;
-  var W = Math.max(300, wrap.clientWidth - 28), H = 270, pad = {l:46, r:W < 520 ? 70 : 118, t:12, b:24};
+  var svg = document.getElementById(id), wrap = svg.parentNode, cardW = wrap.clientWidth;
+  var W = Math.max(300, cardW - 28), H = (W < 520 ? 240 : 270) + (opts.partial ? 14 : 0), pad = {l:46, r:W < 520 ? 70 : 118, t:opts.base100 ? 26 : 12, b:opts.partial ? 38 : 24};
   var labW = 0;
-  series.forEach(function(S){ S.ok = S.pts.filter(function(p){ return p[1] != null && !isNaN(p[1]); }); });
-  series.forEach(function(S){ if (!S.ok.length) return; var lv = S.ok[S.ok.length - 1][1]; labW = Math.max(labW, (S.name + ' ' + (S.fmt ? S.fmt(lv) : mcFmt(lv))).length * 5.9 + 12); });
-  pad.r = Math.max(pad.r, Math.ceil(labW));
+  delete MC_CH[id];
+  series.forEach(function(S){ S.ok = S.pts.filter(function(p){ return mcNum(p[1]); }); });
+  series.forEach(function(S){ if (!S.ok.length) return; var lv = S.ok[S.ok.length - 1][1]; if (S.lab) { labW = Math.max(labW, Math.max(S.lab(lv).length, (S.sub ? S.sub() : '').length) * 5.9 + 12); return; } labW = Math.max(labW, (S.name + ' ' + (S.fmt ? S.fmt(lv) : mcFmt(lv))).length * 5.9 + 12); });
+  pad.r = Math.max(pad.r, Math.min(Math.ceil(labW), Math.round(W * 0.42)));
   var iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
-  var all = [], tMin = Infinity, tMax = -Infinity;
-  series.forEach(function(S){ S.ok.forEach(function(p){ all.push(p[1]); var t = +new Date(p[0]); if (t < tMin) tMin = t; if (t > tMax) tMax = t; }); });
-  if (!all.length) { svg.innerHTML = ''; return; }
+  var all = [];
+  series.forEach(function(S){ S.ok.forEach(function(p){ all.push(p[1]); }); });
+  if (!all.length || !series[0].pts.length) { mcEmptySvg(svg, W, opts.empty || 'No data in this range.'); return; }
+  var D = series[0].pts.map(function(p){ return mcT(p[0]); }), n = D.length, tMin = D[0], tMax = D[n - 1];
   var lo = opts.yMin != null ? opts.yMin : Math.min.apply(null, all), hi = opts.yMax != null ? opts.yMax : Math.max.apply(null, all);
   if (opts.yMin == null) { var pv = (hi - lo) * 0.06 || 1; lo -= pv; hi += pv; }
   var vR = hi - lo || 1, tR = tMax - tMin || 1;
-  function xp(d){ return pad.l + (+new Date(d) - tMin) / tR * iW; }
+  function xp(t){ return pad.l + (t - tMin) / tR * iW; }
   function yp(v){ return pad.t + iH - (v - lo) / vR * iH; }
   var g = '';
   for (var i = 0; i <= 4; i++) { var v = lo + vR * i / 4, y = yp(v);
     g += '<line x1="' + pad.l + '" x2="' + (pad.l + iW) + '" y1="' + y + '" y2="' + y + '" stroke="var(--bdr)" stroke-width="0.5"/>'
-      + '<text x="' + (pad.l - 5) + '" y="' + (y + 3) + '" text-anchor="end" fill="var(--txt3)" font-size="10">' + (opts.axisFmt ? opts.axisFmt(v) : mcFmt(v)) + '</text>'; }
+      + '<text x="' + (pad.l - 5) + '" y="' + (y + 3) + '" text-anchor="end" fill="var(--txt3)" font-size="10">' + mcMinus(opts.axisFmt ? opts.axisFmt(v) : mcFmt(v)) + '</text>'; }
+  if (opts.base100) g += '<text x="' + (pad.l - 40) + '" y="12" fill="var(--txt3)" font-size="10" font-weight="700">Index, start = 100' + (opts.baseDate ? ' on ' + (W < 520 ? opts.baseDate : mcDL(opts.baseDate)) : '') + (W < 520 ? '' : ' (not a price or rate)') + '</text>';
   var ref = opts.base100 ? 100 : (opts.zero ? 0 : null);
   if (ref != null && ref >= lo && ref <= hi) g += '<line x1="' + pad.l + '" x2="' + (pad.l + iW) + '" y1="' + yp(ref) + '" y2="' + yp(ref) + '" stroke="var(--txt3)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>';
-  var prevYr = '', lastX = -999, ref0 = series[0].pts;
-  ref0.forEach(function(p){ var yr = p[0].slice(0, 4); if (yr !== prevYr) { var x = xp(p[0]); if (x - lastX >= 44) { g += '<text x="' + x + '" y="' + (H - 6) + '" text-anchor="middle" fill="var(--txt3)" font-size="10">' + yr + '</text>'; lastX = x; } prevYr = yr; } });
+  // x labels: years, or months when the range is short
+  var short = tR < 400 * 864e5, prevL = '', lastX = -999;
+  series[0].pts.forEach(function(p, j){ var L = short ? p[0].slice(0, 7) : p[0].slice(0, 4); if (L !== prevL) { var x = xp(D[j]); if ((j > 0 || short) && x - lastX >= 44 && x <= pad.l + iW) { g += '<text x="' + x + '" y="' + (pad.t + iH + 18) + '" text-anchor="middle" fill="var(--txt3)" font-size="10">' + (short ? MC_MON[+p[0].slice(5, 7) - 1] + ' ' + p[0].slice(2, 4) : L) + '</text>'; lastX = x; } prevL = L; } });
   var body = '', ends = [];
   series.forEach(function(S){
     if (!S.ok.length) return;
     // Break the line at null values instead of joining across the gap.
     var segs = [], cur = [];
-    S.pts.forEach(function(p){ if (p[1] == null || isNaN(p[1])) { if (cur.length) segs.push(cur); cur = []; } else cur.push(xp(p[0]).toFixed(1) + ',' + yp(p[1]).toFixed(1)); });
+    S.pts.forEach(function(p, j){ if (!mcNum(p[1])) { if (cur.length) segs.push(cur); cur = []; } else cur.push(xp(D[j]).toFixed(1) + ',' + yp(p[1]).toFixed(1)); });
     if (cur.length) segs.push(cur);
     segs.forEach(function(sg){
       if (sg.length === 1) { var xy = sg[0].split(','); body += '<circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="1.6" fill="' + S.col + '"/>'; return; }
       body += '<polyline points="' + sg.join(' ') + '" fill="none" stroke="' + S.col + '" stroke-width="' + (S.w || 2) + '" stroke-linejoin="round" stroke-linecap="round"' + (S.dash ? ' stroke-dasharray="' + S.dash + '"' : '') + '/>';
     });
-    var lp = S.ok[S.ok.length - 1]; ends.push({y: yp(lp[1]), name: S.name, v: lp[1], col: S.col, fmt: S.fmt});
+    var lp = S.ok[S.ok.length - 1]; ends.push({y: yp(lp[1]), name: S.name, v: lp[1], col: S.col, fmt: S.fmt, lab: S.lab ? S.lab(lp[1]) : null, sub: S.sub ? S.sub() : null});
+    if (opts.partial && lp[0] === S.pts[n - 1][0]) body += '<circle cx="' + xp(D[n - 1]).toFixed(1) + '" cy="' + yp(lp[1]).toFixed(1) + '" r="4" fill="var(--sur)" stroke="' + S.col + '" stroke-width="2"/>';
   });
   ends.sort(function(a, b){ return a.y - b.y; });
-  for (var k = 1; k < ends.length; k++) if (ends[k].y - ends[k-1].y < 13) ends[k].y = ends[k-1].y + 13;
-  ends.forEach(function(e){ body += '<text x="' + (pad.l + iW + 6) + '" y="' + (e.y + 3) + '" fill="' + e.col + '" font-size="10.5" font-weight="700">' + e.name + ' ' + (e.fmt ? e.fmt(e.v) : mcFmt(e.v)) + '</text>'; });
+  for (var k = 1; k < ends.length; k++) { var gap = ends[k-1].sub ? 25 : 13; if (ends[k].y - ends[k-1].y < gap) ends[k].y = ends[k-1].y + gap; }
+  if (opts.partial) body += '<text x="' + pad.l + '" y="' + (H - 3) + '" fill="var(--txt3)" font-size="9.5">○ latest point = partial week (last quote)</text>';
+  ends.forEach(function(e){ if (e.lab) { body += '<text x="' + (pad.l + iW + 6) + '" y="' + (e.y + 3) + '" fill="' + e.col + '" font-size="10.5" font-weight="700">' + e.lab + (e.sub ? '<tspan x="' + (pad.l + iW + 6) + '" dy="12" font-weight="400" fill="var(--sub)">' + e.sub + '</tspan>' : '') + '</text>'; return; } body += '<text x="' + (pad.l + iW + 6) + '" y="' + (e.y + 3) + '" fill="' + e.col + '" font-size="10.5" font-weight="700">' + e.name + ' ' + mcMinus(e.fmt ? e.fmt(e.v) : mcFmt(e.v)) + '</text>'; });
+  var hov = '<g id="' + id + 'H" style="display:none" pointer-events="none"><line id="' + id + 'X" x1="0" x2="0" y1="' + pad.t + '" y2="' + (pad.t + iH) + '" stroke="var(--txt3)" stroke-width="1"/>'
+    + series.map(function(S, si){ return '<circle id="' + id + 'M' + si + '" r="3.6" fill="var(--sur)" stroke="' + S.col + '" stroke-width="2"/>'; }).join('') + '</g>';
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H); svg.setAttribute('width', W);
-  svg.innerHTML = g + body + '<line id="' + id + 'X" x1="0" x2="0" y1="' + pad.t + '" y2="' + (pad.t + iH) + '" stroke="var(--txt3)" stroke-width="1" style="display:none"/>';
-  MC_CH[id] = {W: W, H: H, pad: pad, iW: iW, tMin: tMin, tR: tR, series: series};
-  mcHover(id);
+  svg.innerHTML = g + body + hov;
+  MC_CH[id] = {kind:'line', W: W, H: H, pad: pad, iW: iW, cardW: cardW, sc: Math.min(1, (cardW - 28) / W), n: n, D: D, series: series, group: opts.group || null,
+    idxAt: function(px){ return mcNear(D, tMin + (px - pad.l) / iW * tR); },
+    xAt: function(j){ return xp(D[j]); }, yAt: yp,
+    tip: function(j){
+      var d = series[0].pts[j][0], pw = opts.partial && j === n - 1;
+      var hd = (pw ? 'Last quote ' + mcDL(d) + ' (partial week)' : (opts.dateLabel ? opts.dateLabel + ' ' : '') + mcDL(d));
+      var nt = opts.base100 ? 'Indexed, start = 100' + (opts.baseDate ? ' on ' + mcDL(opts.baseDate) : '') : '';
+      var h = '<div class="mc-tip-d">' + hd + '</div>' + (nt ? '<div class="mc-tip-c">' + nt + '</div>' : ''), t = hd + (nt ? '. ' + nt : '');
+      series.forEach(function(S){
+        var raw = S.pts[j][1], v = S.tv ? S.tv(j) : (mcNum(raw) ? (S.fmt ? S.fmt(raw) : mcFmt(raw)) : 'n/a'), c = S.tc ? S.tc(j) : '';
+        h += '<div class="mc-tip-r"><span>' + mcSw(S) + ' ' + S.name + '</span><b>' + v + '</b></div>' + (c ? '<div class="mc-tip-c">' + c + '</div>' : '');
+        t += '. ' + S.name + ' ' + v + (c ? ', ' + c : '');
+      });
+      return {h: h, t: t};
+    }};
 }
-function mcHover(id) {
-  var svg = document.getElementById(id), tip = document.getElementById(id + 'Tip'), cx = document.getElementById(id + 'X');
-  function hide(){ tip.style.display = 'none'; if (cx) cx.style.display = 'none'; }
-  svg.onpointerleave = hide;
-  svg.onpointermove = function(ev){
+
+// ---- Crosshair + tooltip controller (mouse, touch, keyboard). Layout is read once per animation frame. ----
+var MC_GROUP_IDS = ['mcFx', 'mcBr', 'mcCo'];
+function mcHide(id) {
+  var hg = document.getElementById(id + 'H'), tip = document.getElementById(id + 'Tip');
+  if (hg) hg.style.display = 'none'; if (tip) tip.style.display = 'none';
+}
+function mcHideAll() { ['mcFx','mcBr','mcCo','mcFiiBars','mcFiiSum','glPx','glPe'].forEach(mcHide); }
+function mcMark(id, i) {
+  var C = MC_CH[id], hg = document.getElementById(id + 'H'); if (!C || !hg) return;
+  hg.style.display = '';
+  if (C.kind === 'bars') { var B = C.bar(i), r = document.getElementById(id + 'R'); r.setAttribute('x', B.x - 2); r.setAttribute('y', B.y - 2); r.setAttribute('width', B.w + 4); r.setAttribute('height', B.h + 4); return; }
+  var x = C.xAt(i), cx = document.getElementById(id + 'X'); cx.setAttribute('x1', x); cx.setAttribute('x2', x);
+  C.series.forEach(function(S, si){
+    var m = document.getElementById(id + 'M' + si), v = S.pts[i] && S.pts[i][1]; if (!m) return;
+    if (mcNum(v)) { m.setAttribute('cx', x); m.setAttribute('cy', C.yAt(v)); m.style.display = ''; } else m.style.display = 'none';
+  });
+}
+function mcShow(id, i, announce) {
+  var C = MC_CH[id]; if (!C || i < 0 || i >= C.n) return;
+  C.cur = i; mcMark(id, i);
+  var tip = document.getElementById(id + 'Tip'), r = C.tip(i);
+  tip.innerHTML = r.h; tip.style.display = 'block';
+  var px = 14 + (C.kind === 'bars' ? C.bar(i).x + C.bar(i).w / 2 : C.xAt(i)) * C.sc, TW = 216, left = px + 12;
+  if (left + TW > C.cardW - 4) left = px - 12 - TW;
+  tip.style.left = Math.max(4, left) + 'px'; tip.style.top = '34px';
+  if (announce) { var lv = document.getElementById('mcLive'); if (lv) lv.textContent = r.t; }
+  // Shared crosshair: the other weekly charts mark the same week (marker only, no second tooltip).
+  if (C.group) MC_GROUP_IDS.forEach(function(o){
+    if (o === id) return; var O = MC_CH[o];
+    if (!O || O.group !== C.group) { mcHide(o); return; }
+    var t = C.D[i]; if (t < O.D[0] - 4 * 864e5 || t > O.D[O.n - 1] + 4 * 864e5) { mcHide(o); return; }
+    var tp = document.getElementById(o + 'Tip'); if (tp) tp.style.display = 'none';
+    O.cur = mcNear(O.D, t); mcMark(o, O.cur);
+  });
+}
+function mcBind(id) {
+  var svg = document.getElementById(id); if (!svg || svg.getAttribute('data-mcb')) return;
+  svg.setAttribute('data-mcb', '1');
+  var raf = 0, lastX = 0;
+  function run() {
+    raf = 0; var C = MC_CH[id]; if (!C) return;
+    var r = svg.getBoundingClientRect(); if (!r.width) return;
+    var px = (lastX - r.left) * (C.W / r.width);
+    if (px < C.pad.l - 6 || px > C.pad.l + C.iW + 6) { if (C.group) MC_GROUP_IDS.forEach(mcHide); else mcHide(id); return; }
+    mcShow(id, C.idxAt(px), false);
+  }
+  function queue(ev){ lastX = ev.clientX; if (!raf) raf = requestAnimationFrame(run); }
+  svg.addEventListener('pointermove', queue);
+  svg.addEventListener('pointerdown', queue);
+  // Touch: the tooltip stays after the finger lifts; a tap elsewhere hides it.
+  svg.addEventListener('pointerleave', function(ev){ if (ev.pointerType === 'mouse') mcHideAll(); });
+  svg.addEventListener('keydown', function(ev){
     var C = MC_CH[id]; if (!C) return;
-    var r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * (C.W / r.width);
-    if (px < C.pad.l || px > C.pad.l + C.iW) { hide(); return; }
-    var t = C.tMin + (px - C.pad.l) / C.iW * C.tR, best = null, rows = [];
-    C.series.forEach(function(S){
-      var P = S.ok || S.pts; if (!P.length) return;
-      var bi = 0, bd = Infinity;
-      P.forEach(function(p, i){ var d = Math.abs(+new Date(p[0]) - t); if (d < bd) { bd = d; bi = i; } });
-      if (best == null) best = P[bi][0];
-      rows.push('<div><span style="color:' + S.col + ';font-weight:700">' + S.name + '</span> ' + (S.fmt ? S.fmt(P[bi][1]) : mcFmt(P[bi][1])) + '</div>');
-    });
-    if (best == null) { hide(); return; }
-    var x = C.pad.l + (+new Date(best) - C.tMin) / C.tR * C.iW;
-    cx.setAttribute('x1', x); cx.setAttribute('x2', x); cx.style.display = '';
-    tip.innerHTML = '<div class="mc-tip-d">' + best + '</div>' + rows.join('');
-    tip.style.display = 'block';
-    var left = x * (r.width / C.W) + 14 + svg.parentNode.firstElementChild.offsetLeft;
-    tip.style.left = Math.min(left, svg.parentNode.clientWidth - 170) + 'px'; tip.style.top = '36px';
-  };
+    var i = C.cur == null ? C.n - 1 : C.cur, k = ev.key, step = ev.shiftKey ? 10 : 1;
+    if (k === 'ArrowLeft') i -= step; else if (k === 'ArrowRight') i += step; else if (k === 'Home') i = 0; else if (k === 'End') i = C.n - 1;
+    else if (k === 'Escape') { mcHideAll(); return; } else return;
+    ev.preventDefault(); mcShow(id, Math.max(0, Math.min(C.n - 1, i)), true);
+  });
+  svg.addEventListener('focus', function(){
+    var C = MC_CH[id], kb = false; if (!C) return;
+    try { kb = svg.matches(':focus-visible'); } catch (e) {}
+    if (kb) mcShow(id, C.cur == null ? C.n - 1 : C.cur, true);
+  });
+  svg.addEventListener('blur', function(){ mcHideAll(); });
 }
+document.addEventListener('pointerdown', function(ev){ if (CURRENT_VIEW === 'macro' && !(ev.target.closest && ev.target.closest('.mc-svg'))) mcHideAll(); });
+
 function mcKey(id, items) {
   document.getElementById(id).innerHTML = items.map(function(it){
-    return '<span><svg width="30" height="8"><line x1="0" x2="30" y1="4" y2="4" stroke="' + it.col + '" stroke-width="2.5"' + (it.dash ? ' stroke-dasharray="' + it.dash + '"' : '') + '/></svg>' + it.name + '</span>';
+    var none = it.pts && !it.pts.some(function(p){ return mcNum(p[1]); });
+    return '<span><svg width="30" height="8" aria-hidden="true"><line x1="0" x2="30" y1="4" y2="4" stroke="' + it.col + '" stroke-width="2.5"' + (it.dash ? ' stroke-dasharray="' + it.dash + '"' : '') + '/></svg>' + it.name + (none ? ' (no data)' : '') + '</span>';
   }).join('');
 }
 
+// State explanations: what each word means and the rule behind the current reading.
+function mcExplain(k) {
+  MC_EXPL = MC_EXPL === k ? null : k;
+  try { mcRenderVerdict(); } catch (e) { console.warn('macro explain', e); }
+  var b = document.querySelector('#mcVerdict [data-k="' + k + '"]'); if (b) b.focus();
+}
+function mcExplainHTML(k) {
+  var rule = 'Rule: 75th percentile or higher = <strong>◆ HEADWIND</strong>; 25th or lower = <strong>▲ TAILWIND</strong>; in between = <strong>● NEUTRAL</strong>.';
+  var tail = ' The word places the move in its own history. It is coincident, not predictive: it does not forecast Nifty.';
+  if (k === 'all') return '<strong>◆ HEADWIND</strong>: the latest move is in the top quarter of its own history in the direction that has hurt Indian equities (a weaker rupee, dearer oil, heavy FII selling). '
+    + '<strong>● NEUTRAL</strong>: between the 25th and 75th percentile. <strong>▲ TAILWIND</strong>: the bottom quarter, the helpful direction. <strong>? UNKNOWN</strong>: the data is missing or too short to rank. '
+    + '<br>USD/INR and Brent rank the latest 12-month change against rolling 12-month changes over 10 years. FII ranks the sum of the last 5 NSDL report dates against every rolling 5-date sum since 2014, with the direction flipped.' + tail;
+  if (k === 'fii') {
+    var f = fiiStat();
+    if (!f) return '<strong>FII flows: ? UNKNOWN.</strong> ' + (FII ? 'fii.json has too few rows to rank (needs at least 260).' : 'fii.json did not load or failed validation, so no state is shown.');
+    var nx = f.state === 'HEADWIND' ? 'It would read NEUTRAL above the 25th percentile.' : (f.state === 'TAILWIND' ? 'It would read NEUTRAL below the 75th percentile.' : 'It would read HEADWIND at the 25th percentile or lower, TAILWIND at the 75th or higher.');
+    return '<strong>FII flows: ' + MC_SHAPE[f.state] + ' ' + f.state + '.</strong> The sum of the last 5 NSDL report dates (' + f.first + ' to ' + f.last + ') is <strong>' + mcSigned(f.sum, 0, '₹', ' cr') + '</strong>, the ' + ord(Math.round(f.pct)) + ' percentile of ' + f.nWin.toLocaleString('en-IN') + ' rolling 5-date sums since 2014.'
+      + '<br>Rule (direction flipped, heavy selling is the headwind): 25th percentile or lower = <strong>◆ HEADWIND</strong>; 75th or higher = <strong>▲ TAILWIND</strong>; in between = <strong>● NEUTRAL</strong>. ' + nx
+      + (f.catchup ? '<br>† The window includes a row flagged as a likely catch-up, which may combine several trading days.' : '') + tail;
+  }
+  var s = mcSer(k), nm = MC_NAMES[k];
+  if (!s) return '<strong>' + nm + ': ? UNKNOWN.</strong> The series is missing from macro.json or failed validation, so no state is shown.';
+  var why = {usdinr:'A rise in USD/INR means a weaker rupee: imports cost more and a foreign investor’s dollar return shrinks.', brent:'Brent here is front-month futures, not spot. The two can differ materially. India imports most of its crude, so dearer oil raises the import bill and inflation risk.'}[k];
+  var nx2 = s.state === 'HEADWIND' ? 'It would read NEUTRAL below the 75th percentile.' : (s.state === 'TAILWIND' ? 'It would read NEUTRAL above the 25th percentile.' : 'It would read HEADWIND at the 75th percentile or higher, TAILWIND at the 25th or lower.');
+  return '<strong>' + nm + ': ' + MC_SHAPE[s.state] + ' ' + s.state + '.</strong> 12-month change ' + mcStateChg(s).words + ' <strong>' + mcSigned(mcStateChg(s).v, 1, '', '%') + '</strong>, the ' + ord(Math.round(s.chg12mPctile)) + ' percentile' + (s.basis ? ' (' + s.basis + ')' : '') + '.' + (mcNum(s.chg12mComplete) && mcLCW() ? ' To the last quote (' + s.lastDailyBar + ') the 12-month change is ' + mcSigned(s.chg12m, 1, '', '%') + '; the state waits for the week to close.' : '')
+    + '<br>' + rule + ' ' + nx2 + '<br>' + why + tail;
+}
+function mcRenderVerdict() {
+  var st = mcStates(), names = MC_NAMES, upd = document.getElementById('mcUpdated');
+  var hw = Object.keys(st).filter(function(k){ return st[k] === 'HEADWIND'; });
+  var tw = Object.keys(st).filter(function(k){ return st[k] === 'TAILWIND'; });
+  var unk = Object.keys(st).filter(function(k){ return st[k] === 'UNKNOWN'; });
+  function btn(k, inner){ var on = MC_EXPL === k; return '<button type="button" class="mc-pillbtn" data-k="' + k + '" aria-expanded="' + on + '" aria-controls="mcExplain" onclick="mcExplain(\'' + k + '\')">' + inner + ' <span class="mc-caret" aria-hidden="true">' + (on ? '▾' : '▸') + '</span><span class="mc-sr"> explain this reading</span></button>'; }
+  document.getElementById('mcVerdict').innerHTML = '<b>' + hw.length + ' of 3</b> readings are headwinds'
+    + (hw.length ? ' (' + hw.map(function(k){ return names[k]; }).join(', ') + ')' : '') + '; ' + tw.length + ' tailwind'
+    + (unk.length ? '; ' + unk.length + ' unreadable (' + unk.map(function(k){ return names[k]; }).join(', ') + ')' : '') + '. '
+    + 'Each reading ranks the latest 12-month change (or 5-date FII sum) against its own history. '
+    + 'A headwind says the move is in the top quarter of what India has seen in the unfavourable direction. It does not say Nifty will fall.' + (mcLCW() ? ' USD/INR and Brent states are as of the last complete week (' + mcLCW() + ').' : '')
+    + '<div class="mc-pills">' + ['usdinr','brent','fii'].map(function(k){ return btn(k, names[k] + ' ' + mcPill(st[k])); }).join('') + '</div>'
+    + '<button type="button" class="mc-linkbtn" data-k="all" aria-expanded="' + (MC_EXPL === 'all') + '" aria-controls="mcExplain" onclick="mcExplain(\'all\')">ⓘ What HEADWIND, NEUTRAL and TAILWIND mean <span aria-hidden="true">' + (MC_EXPL === 'all' ? '▾' : '▸') + '</span></button>'
+    + '<div id="mcExplain" class="mc-explain" role="region" aria-label="Explanation of the macro reading"' + (MC_EXPL ? '' : ' hidden') + '>' + (MC_EXPL ? mcExplainHTML(MC_EXPL) : '') + '</div>';
+  var asof = [], u = mcSer('usdinr'), b = mcSer('brent');
+  if (MACRO) asof.push(mcAsOf(MACRO.series.nifty.lastDailyBar, 'Nifty last quote'));
+  if (u) asof.push(mcAsOf(u.lastDailyBar, 'USD/INR last quote'));
+  if (b) asof.push(mcAsOf(b.lastDailyBar, 'Brent last quote'));
+  if (FII) asof.push(mcAsOf(FII.lastReportDate, 'FII (NSDL report date)'));
+  if (!MACRO) asof.push('macro.json did not load');
+  if (!FII) asof.push('fii.json did not load');
+  var Wl = MACRO ? MACRO.weekly.rows[MACRO.weekly.rows.length - 1][0] : null;
+  upd.innerHTML = asof.join(' &middot; ') + (MACRO ? ' &middot; price charts use weekly closes' + (mcPW() ? '; the latest point (' + Wl + ') is the last quote of the current week (partial)' : '') : '');
+}
+
 function renderMacro() {
+  ['mcFx','mcBr','mcCo','mcFiiBars','mcFiiSum'].forEach(mcBind);
   var upd = document.getElementById('mcUpdated');
   if (!MACRO && !FII) {
-    upd.textContent = MACRO_LOADING ? '\u25cc Loading macro data\u2026' : 'Macro data unavailable (data/macro.json and data/fii.json did not load).';
-    document.getElementById('mcVerdict').innerHTML = MACRO_LOADING ? '\u25cc Loading\u2026' : '';
+    var msgL = '◌ Loading…', msgE = 'Macro data unavailable (data/macro.json and data/fii.json did not load).';
+    upd.textContent = MACRO_LOADING ? '◌ Loading macro data…' : msgE;
+    document.getElementById('mcVerdict').innerHTML = MACRO_LOADING ? msgL : 'No readings: neither data file loaded. Try Refresh, or check back after the next data update.';
+    ['mcFxCap','mcBrCap','mcCoCap','mcFiiCap'].forEach(function(i){ document.getElementById(i).textContent = MACRO_LOADING ? msgL : 'No data file loaded, so this chart is empty.'; });
     return;
   }
   // Each section draws in its own try, so one bad block does not blank the rest of the tab.
@@ -5209,111 +5517,192 @@ function renderMacro() {
     try { fn(); } catch (e) {
       console.warn('renderMacro ' + name, e);
       var ce = capId && document.getElementById(capId);
-      if (ce) ce.textContent = '\u26a0 This section could not be drawn from the data file (' + (e && e.message ? e.message : 'error') + ').';
+      if (ce) ce.textContent = '⚠ This section could not be drawn from the data file (' + (e && e.message ? e.message : 'error') + ').';
     }
   }
-  sect('verdict', 'mcVerdict', function(){
-  var st = mcStates(), names = {usdinr:'USD/INR', brent:'Brent', fii:'FII flows'};
-  var hw = Object.keys(st).filter(function(k){ return st[k] === 'HEADWIND'; });
-  var tw = Object.keys(st).filter(function(k){ return st[k] === 'TAILWIND'; });
-  var unk = Object.keys(st).filter(function(k){ return st[k] === 'UNKNOWN'; });
-  document.getElementById('mcVerdict').innerHTML = '<b>' + hw.length + ' of 3</b> readings are headwinds'
-    + (hw.length ? ' (' + hw.map(function(k){ return names[k]; }).join(', ') + ')' : '') + '; ' + tw.length + ' tailwind'
-    + (unk.length ? '; ' + unk.length + ' unreadable (' + unk.map(function(k){ return names[k]; }).join(', ') + ')' : '') + '. '
-    + 'Each reading ranks the latest 12-month change (or 5-date FII sum) against its own history. '
-    + 'A headwind says the move is in the top quarter of what India has seen in the unfavourable direction. It does not say Nifty will fall.'
-    + '<div style="margin-top:8px">' + ['usdinr','brent','fii'].map(function(k){ return names[k] + ' ' + mcPill(st[k]); }).join(' &nbsp; ') + '</div>';
-  var asof = [];
-  if (MACRO) asof.push(mcAsOf(MACRO.series.usdinr.lastDailyBar, 'USD/INR and Nifty last quote') , mcAsOf(MACRO.series.brent.lastDailyBar, 'Brent last quote'));
-  if (FII) asof.push(mcAsOf(FII.lastReportDate, 'FII (NSDL report date)'));
-  upd.innerHTML = asof.join(' &middot; ') + ' &middot; weekly closes for the price charts';
-  });
+  sect('verdict', 'mcVerdict', mcRenderVerdict);
 
   if (MACRO) {
-    var W = MACRO.weekly.rows, last = W[W.length - 1][0], cut = mcCutoff(last), rows = mcRows(W, cut), b = rows[0];
-    var nI, f1 = function(v){ return v.toFixed(0); };
+    var W = MACRO.weekly.rows, cut = mcCutoff(W[W.length - 1][0]), D = W.map(function(r){ return mcT(r[0]); }), s0 = 0;
+    while (s0 < W.length - 1 && W[s0][0] < cut) s0++;
+    var rows = W.slice(s0), b0 = rows[0][0];
+    var f0 = function(v){ return v.toFixed(0); };
+    var lvI = function(v){ return v.toLocaleString('en-IN', {maximumFractionDigits:0}); };
+    var G = {fx:function(r){ return mcNum(r[1]) ? r[1] : null; }, br:function(r){ return mcNum(r[2]) ? r[2] : null; },
+             ni:function(r){ return mcNum(r[3]) ? r[3] : null; }, nu:function(r){ return mcNum(r[1]) && r[1] > 0 && mcNum(r[3]) ? r[3] / r[1] : null; }};
+    // One weekly series: level, optional rebase to 100, 12M change per point, change over the visible range.
+    // Indexed series always carry "(index)" in the name and show the actual level next to the index value.
+    var wk = function(key, name, sty, rebase, lvFmt, lvWord) {
+      var nm0 = name; if (rebase) name += ' (index)';
+      var g = G[key], lv = rows.map(g), base = null;
+      for (var i = 0; i < lv.length; i++) if (mcNum(lv[i]) && lv[i] !== 0) { base = lv[i]; break; }
+      var c12 = lv.map(function(a, j){ var k = mcIdx52(D, s0 + j), p = k >= 0 ? g(W[k]) : null; return mcNum(a) && mcNum(p) && p !== 0 ? (a / p - 1) * 100 : null; });
+      var pts = rows.map(function(r, j){ return [r[0], mcNum(lv[j]) && base != null ? (rebase ? lv[j] / base * 100 : lv[j]) : null]; });
+      var a = null, z = null; lv.forEach(function(v){ if (mcNum(v)) { if (a == null) a = v; z = v; } });
+      return {name:name, pts:pts, col:sty.col, dash:sty.dash, w:sty.w, fmt: rebase ? f0 : lvFmt, base: base,
+        rg: mcNum(a) && mcNum(z) && a !== 0 ? (z / a - 1) * 100 : null,
+        lab: rebase ? function(v){ return nm0 + ' ' + f0(v) + ' (index)'; } : null,
+        sub: rebase ? function(){ return mcNum(z) ? lvWord + ' ' + lvFmt(z) : ''; } : null,
+        tv: function(j){ return mcNum(lv[j]) ? (rebase ? 'index ' + f0(pts[j][1]) + ' · ' + lvWord + ' ' : '') + lvFmt(lv[j]) : 'n/a'; },
+        tc: function(j){ if (!mcNum(lv[j])) return 'no quote this week'; return '12M change' + (j === lv.length - 1 && pw ? ' to last quote ' : ' ') + (mcNum(c12[j]) ? mcSigned(c12[j], 1, '', '%') : 'n/a'); }};
+    };
+    var mcIdxLine = function(id, b0, real){ document.getElementById(id).innerHTML = MC_OVL
+        ? '<strong>Indexed: start of range = 100 (' + b0 + ').</strong> The start moves with the range, so index values differ between 1Y, 3Y, 5Y and 10Y; the real values do not. Hover or tap for the real values (' + real + ').'
+        : '<strong>Real values</strong> (' + real.split(', Nifty')[0] + '), no Nifty overlay. Switch to Indexed to compare with Nifty.'; };
+    var nI = null, pw = mcPW(), RG = 'Over the range (' + MC_RANGE + ', to ' + (pw ? 'last quote ' : '') + rows[rows.length - 1][0] + ')';
     sect('usdinr chart', 'mcFxCap', function(){
-    var fx = rows.map(function(r){ return [r[0], r[1] / b[1] * 100]; });
-    nI = rows.map(function(r){ return [r[0], r[3] / b[3] * 100]; });
-    var nU = rows.map(function(r){ return [r[0], (r[3] / r[1]) / (b[3] / b[1]) * 100]; });
-    var sFx = [{name:'Nifty in ₹', pts:nI, col:mcC('amber'), w:2.6, fmt:f1}, {name:'Nifty in $', pts:nU, col:mcC('amber'), dash:'7 4', w:2.2, fmt:f1}, {name:'USD/INR', pts:fx, col:mcC('blue'), dash:'2 3', w:2.4, fmt:f1}];
-    mcKey('mcKeyFx', sFx); mcLine('mcFx', sFx, {base100:true, axisFmt:f1});
-    var uI = nI[nI.length-1][1] - 100, uU = nU[nU.length-1][1] - 100, rr = fx[fx.length-1][1] - 100;
-    document.getElementById('mcFxCap').innerHTML = 'Rebased to 100 at ' + b[0] + '. Over the range, Nifty is <strong>' + mcSigned(uI, 1, '', '%') + ' in rupees</strong> and <strong>' + mcSigned(uU, 1, '', '%') + ' in dollars</strong>; USD/INR is ' + mcSigned(rr, 1, '', '%') + ' (a rise means a weaker rupee). The gap between the two Nifty lines is the rupee’s move. A foreign investor earns the dollar line.';
+      nI = wk('ni', 'Nifty in ₹', {col:mcC('amber'), w:2.6}, true, lvI, 'level');
+      var sU = wk('nu', 'Nifty in $', {col:mcC('amber'), dash:'7 4', w:2.2}, true, function(v){ return '$' + v.toFixed(1); }, 'level');
+      var sX = wk('fx', 'USD/INR', {col:mcC('blue'), dash:'2 3', w:2.4}, MC_OVL, function(v){ return '₹' + v.toFixed(2); }, 'rate');
+      var ser = MC_OVL ? [nI, sU, sX] : [sX];
+      mcKey('mcKeyFx', ser);
+      mcLine('mcFx', ser, MC_OVL ? {base100:true, baseDate:b0, axisFmt:f0, group:'wk', dateLabel:'Week to', partial:pw} : {axisFmt:function(v){ return v.toFixed(1); }, group:'wk', dateLabel:'Week to', empty:'USD/INR has no data in this range.', partial:pw});
+      document.getElementById('mcFx').setAttribute('aria-label', (MC_OVL ? 'USD/INR with Nifty in rupees and dollars, indexed: every line starts at 100 on ' + b0 : 'USD/INR in rupees per dollar') + ', ' + MC_RANGE + ' range. Focus and use arrow keys to read values.');
+      nI = Object.assign({}, nI, {name:'Nifty (index)', lab:function(v){ return 'Nifty ' + f0(v) + ' (index)'; }});
+      mcIdxLine('mcIdxFx', b0, 'USD/INR rate in ₹ per $, Nifty level, Nifty in $');
+      document.getElementById('mcFxCap').innerHTML = (MC_OVL ? '<strong>Indexed, start = 100 on ' + b0 + ':</strong> the chart numbers are index values, not rates or levels. Hover or tap for the actual rate. ' : 'USD/INR in rupees per dollar from ' + b0 + ' (Nifty overlay off). ')
+        + RG + ', Nifty is <strong>' + mcPct(nI.rg) + ' in rupees</strong> and <strong>' + mcPct(sU.rg) + ' in dollars</strong>; USD/INR is <strong>' + mcPct(sX.rg) + '</strong> (a rise means a weaker rupee).'
+        + (MC_OVL ? ' The gap between the two Nifty lines is the rupee’s move. A foreign investor earns the dollar line.' : '')
+        + (sX.base == null ? ' ⚠ USD/INR has no data in this range, so its line and the dollar line are missing.' : '');
     });
     sect('brent chart', 'mcBrCap', function(){
-    if (!nI) nI = rows.map(function(r){ return [r[0], r[3] / b[3] * 100]; });
-    var br = rows.map(function(r){ return [r[0], r[2] / b[2] * 100]; });
-    var sBr = [{name:'Nifty', pts:nI, col:mcC('amber'), w:2.6, fmt:f1}, {name:'Brent futures', pts:br, col:mcC('violet'), dash:'7 3 1 3', w:2.4, fmt:f1}];
-    mcKey('mcKeyBr', sBr); mcLine('mcBr', sBr, {base100:true, axisFmt:f1});
-    var bs = MACRO.series.brent;
-    document.getElementById('mcBrCap').innerHTML = 'Rebased to 100 at ' + b[0] + '. <strong>Brent here is front-month futures, not spot.</strong> It rolls monthly, so it can differ from a spot quote by a few percent. India imports most of its crude, so a sharp rise raises the import bill and inflation risk. Latest 12-month change: <strong>' + mcSigned(bs.chg12m, 1, '', '%') + '</strong> (' + ord(Math.round(bs.chg12mPctile)) + ' percentile of its own 10-year history).';
+      var sN = nI || wk('ni', 'Nifty', {col:mcC('amber'), w:2.6}, true, lvI, 'level');
+      var sB = wk('br', 'Brent futures', {col:mcC('violet'), dash:'7 3 1 3', w:2.4}, MC_OVL, function(v){ return '$' + v.toFixed(2); }, 'price');
+      var ser = MC_OVL ? [sN, sB] : [sB];
+      mcKey('mcKeyBr', ser); mcIdxLine('mcIdxBr', b0, 'Brent price in $ per barrel, Nifty level');
+      mcLine('mcBr', ser, MC_OVL ? {base100:true, baseDate:b0, axisFmt:f0, group:'wk', dateLabel:'Week to', partial:pw} : {axisFmt:function(v){ return '$' + v.toFixed(0); }, group:'wk', dateLabel:'Week to', empty:'Brent has no data in this range.', partial:pw});
+      document.getElementById('mcBr').setAttribute('aria-label', (MC_OVL ? 'Brent front-month futures and Nifty, indexed: every line starts at 100 on ' + b0 : 'Brent front-month futures, US dollars per barrel') + ', ' + MC_RANGE + ' range. Focus and use arrow keys to read values.');
+      var bs = mcSer('brent');
+      document.getElementById('mcBrCap').innerHTML = (MC_OVL ? '<strong>Indexed, start = 100 on ' + b0 + ':</strong> the chart numbers are index values, not prices. Hover or tap for the actual price. ' : 'US dollars per barrel from ' + b0 + ' (Nifty overlay off). ')
+        + '<strong>Front-month futures, not spot.</strong> The two can differ materially. India imports most of its crude, so a sharp rise raises the import bill and inflation risk. '
+        + RG + ': Brent <strong>' + mcPct(sB.rg) + '</strong>, Nifty <strong>' + mcPct(sN.rg) + '</strong>. '
+        + (bs ? '12-month change to last quote (' + bs.lastDailyBar + '): <strong>' + mcSigned(bs.chg12m, 1, '', '%') + '</strong>. The state uses ' + mcSigned(mcStateChg(bs).v, 1, '', '%') + ' ' + mcStateChg(bs).words + ', the ' + ord(Math.round(bs.chg12mPctile)) + ' percentile of its own 10-year history.' : '⚠ The Brent reading is missing from macro.json, so its state is unavailable.')
+        + (sB.base == null ? ' ⚠ Brent has no data in this range.' : '');
     });
     sect('correlation chart', 'mcCoCap', function(){
-    var C = MACRO.correlation;
-    if (!C) { document.getElementById('mcCo').innerHTML = ''; document.getElementById('mcKeyCo').innerHTML = ''; document.getElementById('mcCoCap').textContent = '\u26a0 The correlation block in macro.json is missing or malformed, so this chart is empty.'; return; }
-    var cr = mcRows(C.rolling, cut);
-    var f2 = function(v){ return v.toFixed(2); };
-    var sCo = [{name:'Nifty vs USD/INR', pts:cr.map(function(r){ return [r[0], r[1]]; }), col:mcC('blue'), dash:'2 3', w:2.4, fmt:f2},
-               {name:'Nifty vs Brent', pts:cr.map(function(r){ return [r[0], r[2]]; }), col:mcC('violet'), dash:'7 3 1 3', w:2.4, fmt:f2}];
-    mcKey('mcKeyCo', sCo); mcLine('mcCo', sCo, {yMin:-1, yMax:1, zero:true, axisFmt:function(v){ return v.toFixed(1); }});
-    function cw(v){ return '<strong>' + mcR(v) + '</strong> (' + mcCorrWord(v) + ')'; }
-    var leadNear = [C.full.lead1w_usdinr, C.full.lead1w_brent].every(function(v){ return !mcNum(v) || Math.abs(v) < 0.1; });
-    document.getElementById('mcCoCap').innerHTML = 'Correlation of <strong>weekly returns</strong>, rolling over ' + C.window_weeks + ' weeks (n = ' + (C.latest.n != null ? C.latest.n : C.window_weeks) + ' per point; gaps in a line are weeks with too little data). '
-      + 'A negative value means Nifty tended to move the <em>opposite</em> way to the series in the same week; a value between −0.1 and +0.1 is near zero. '
-      + 'Latest: USD/INR ' + cw(C.latest.usdinr) + ', Brent ' + cw(C.latest.brent) + '. '
-      + 'Full sample (n = ' + C.full.n + ' weeks): USD/INR ' + cw(C.full.usdinr) + ', Brent ' + cw(C.full.brent) + '. '
-      + 'With the macro move one week <em>earlier</em>: USD/INR ' + cw(C.full.lead1w_usdinr) + ', Brent ' + cw(C.full.lead1w_brent) + (leadNear ? ', so these series show no usable lead. ' : '. A one-week lead of this size is still weak and is not a forecast. ')
-      + '<strong>Coincident, not predictive:</strong> these numbers describe how the same weeks moved. They do not say one caused the other, and they do not forecast Nifty.';
+      var C = MACRO.correlation;
+      if (!C) { delete MC_CH.mcCo; document.getElementById('mcCo').innerHTML = ''; document.getElementById('mcKeyCo').innerHTML = ''; document.getElementById('mcCoCap').textContent = '⚠ The correlation block in macro.json is missing or malformed, so this chart is empty.'; return; }
+      var CR = C.rolling, DC = CR.map(function(r){ return mcT(r[0]); }), c0 = 0;
+      while (c0 < CR.length - 1 && CR[c0][0] < cut) c0++;
+      var cr = CR.slice(c0);
+      var f2 = function(v){ return mcR(v); };
+      var co = function(col, name, sty) {
+        var pts = cr.map(function(r){ return [r[0], mcNum(r[col]) ? r[col] : null]; });
+        var mn = null, mx = null; pts.forEach(function(p){ if (mcNum(p[1])) { mn = mn == null ? p[1] : Math.min(mn, p[1]); mx = mx == null ? p[1] : Math.max(mx, p[1]); } });
+        return {name:name, pts:pts, col:sty.col, dash:sty.dash, w:2.4, fmt:f2, mn:mn, mx:mx,
+          tv: function(j){ return mcR(pts[j][1]); },
+          tc: function(j){ var v = pts[j][1]; if (!mcNum(v)) return 'too few weeks to compute'; var k = mcIdx52(DC, c0 + j), p = k >= 0 ? CR[k][col] : null; return mcCorrWord(v) + ' · 12M change ' + (mcNum(p) ? mcSigned(v - p, 2) : 'n/a'); }};
+      };
+      var sCo = [co(1, 'Nifty vs USD/INR', {col:mcC('blue'), dash:'2 3'}), co(2, 'Nifty vs Brent', {col:mcC('violet'), dash:'7 3 1 3'})];
+      mcKey('mcKeyCo', sCo); mcLine('mcCo', sCo, {yMin:-1, yMax:1, zero:true, axisFmt:function(v){ return v.toFixed(1); }, group:'wk', dateLabel:'Week to', empty:'No correlation values in this range.'});
+      function cw(v){ return '<strong>' + mcR(v) + '</strong> (' + mcCorrWord(v) + ')'; }
+      function rg(S){ return S.mn == null ? 'n/a' : mcR(S.mn) + ' to ' + mcR(S.mx); }
+      var leadNear = [C.full.lead1w_usdinr, C.full.lead1w_brent].every(function(v){ return !mcNum(v) || Math.abs(v) < 0.1; });
+      document.getElementById('mcCoCap').innerHTML = 'Correlation of <strong>weekly returns</strong>, rolling over ' + C.window_weeks + ' weeks (n = ' + (C.latest.n != null ? C.latest.n : C.window_weeks) + ' per point; gaps in a line are weeks with too little data). '
+        + 'A negative value means Nifty tended to move the <em>opposite</em> way to the series in the same week; a value between −0.1 and +0.1 is near zero. '
+        + 'Latest' + (typeof C.asOf === 'string' ? ' (as of last complete week ' + C.asOf + ')' : '') + ': USD/INR ' + cw(C.latest.usdinr) + ', Brent ' + cw(C.latest.brent) + '. '
+        + 'Within the ' + MC_RANGE + ' range it ran from ' + rg(sCo[0]) + ' (USD/INR) and ' + rg(sCo[1]) + ' (Brent). '
+        + 'Full sample (n = ' + C.full.n + ' weeks): USD/INR ' + cw(C.full.usdinr) + ', Brent ' + cw(C.full.brent) + '. '
+        + 'With the macro move one week <em>earlier</em>: USD/INR ' + cw(C.full.lead1w_usdinr) + ', Brent ' + cw(C.full.lead1w_brent) + (leadNear ? ', so these series show no usable lead. ' : '. A one-week lead of this size is still weak and is not a forecast. ')
+        + '<strong>Coincident, not predictive:</strong> these numbers describe how the same weeks moved. They do not say one caused the other, and they do not forecast Nifty.';
     });
   } else {
-    ['mcFx','mcBr','mcCo'].forEach(function(i){ document.getElementById(i).innerHTML = ''; });
-    ['mcFxCap','mcBrCap','mcCoCap'].forEach(function(i){ document.getElementById(i).textContent = 'macro.json did not load, so this chart is empty.'; });
+    ['mcFx','mcBr','mcCo'].forEach(function(i){ delete MC_CH[i]; document.getElementById(i).innerHTML = ''; });
+    ['mcKeyFx','mcKeyBr','mcKeyCo'].forEach(function(i){ document.getElementById(i).innerHTML = ''; });
+    ['mcFxCap','mcBrCap','mcCoCap'].forEach(function(i){ document.getElementById(i).textContent = MACRO_LOADING ? '◌ Loading…' : 'macro.json did not load or failed validation, so this chart is empty. FII flows below come from a separate file.'; });
   }
   sect('fii', 'mcFiiCap', renderMacroFii);
   sect('sources', null, renderMacroSources);
 }
 
+function mcFiiRows() {
+  var R = FII.rows, w = MC_FWINS[MC_FWIN] || MC_FWINS['3M'];
+  if (w.n) return R.slice(-w.n);
+  var c = new Date(R[R.length - 1][0] + 'T00:00:00Z'); c.setUTCMonth(c.getUTCMonth() - w.m);
+  var cs = c.toISOString().slice(0, 10);
+  return R.filter(function(r){ return r[0] > cs; });
+}
 function renderMacroFii() {
-  var capEl = document.getElementById('mcFiiCap');
-  if (!FII) { ['mcFiiBars','mcFiiSum'].forEach(function(i){ document.getElementById(i).innerHTML = ''; }); capEl.textContent = 'fii.json did not load, so FII charts are empty. The Mac job that builds it may be behind.'; return; }
-  var R = FII.rows, n = R.length, svg = document.getElementById('mcFiiBars'), wrap = svg.parentNode;
-  var bars = R.slice(-60), W = Math.max(300, wrap.clientWidth - 28), H = 250, pad = {l:52, r:10, t:12, b:30};
-  var iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
-  var mx = Math.max.apply(null, bars.map(function(r){ return Math.abs(r[1]); })) * 1.08, bw = iW / bars.length;
-  function yp(v){ return pad.t + iH / 2 - v / mx * (iH / 2); }
-  var g = '';
-  [-1, -0.5, 0, 0.5, 1].forEach(function(f){ var y = yp(f * mx);
-    g += '<line x1="' + pad.l + '" x2="' + (W - pad.r) + '" y1="' + y + '" y2="' + y + '" stroke="var(--bdr)" stroke-width="' + (f === 0 ? 1.2 : 0.5) + '"/>'
-      + '<text x="' + (pad.l - 5) + '" y="' + (y + 3) + '" text-anchor="end" fill="var(--txt3)" font-size="10">' + (f * mx / 1000).toFixed(0) + 'k</text>'; });
-  var b = '';
-  bars.forEach(function(r, i){
-    var x = pad.l + i * bw + bw * 0.12, w = Math.max(1.5, bw * 0.76), v = r[1], y0 = yp(0), y1 = yp(v);
-    var top = Math.min(y0, y1), h = Math.max(1, Math.abs(y1 - y0));
-    var isCU = r[4] === 1;
-    b += '<rect x="' + x.toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '"'
-      + (v >= 0 ? ' fill="var(--vc-c)" opacity=".85"' : ' fill="var(--ve-c)" opacity=".85"')
-      + (isCU ? ' stroke="var(--txt)" stroke-width="1.4" stroke-dasharray="3 2"' : '') + '><title>' + r[0] + ': ' + mcSigned(v, 0, '₹', ' cr') + (isCU ? ' (likely multi-day catch-up)' : '') + '</title></rect>';
-    if (isCU) b += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (v >= 0 ? top - 3 : top + h + 11).toFixed(1) + '" text-anchor="middle" fill="var(--txt)" font-size="11" font-weight="700">†</text>';
-    if (i % 10 === 0 || i === bars.length - 1) b += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" fill="var(--txt3)" font-size="9.5">' + r[0].slice(5) + '</text>';
-  });
-  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H); svg.setAttribute('width', W);
-  svg.innerHTML = g + b;
-  svg.onpointermove = null;
-  document.getElementById('mcKeyFii').innerHTML = '<span><svg width="14" height="12"><rect width="14" height="12" fill="var(--vc-c)"/></svg>net buying (bar above zero line)</span>'
-    + '<span><svg width="14" height="12"><rect width="14" height="12" fill="var(--ve-c)"/></svg>net selling (bar below zero line)</span>'
-    + '<span><svg width="14" height="12"><rect x="1" y="1" width="12" height="10" fill="none" stroke="var(--txt)" stroke-width="1.4" stroke-dasharray="3 2"/></svg>† likely multi-day catch-up</span>'
-    + '<span>₹ crore, last 60 NSDL reporting dates</span>';
-  // rolling 20-date sum over the chosen range
-  var cut = mcCutoff(R[n - 1][0]), sum = [], acc = 0;
-  for (var i = 0; i < n; i++) { acc += R[i][1]; if (i >= 20) acc -= R[i - 20][1]; if (i >= 19 && R[i][0] >= cut) sum.push([R[i][0], acc]); }
-  var sS = [{name:'20-date sum', pts:sum, col:mcC('green'), w:2.4, fmt:function(v){ return mcSigned(v / 1000, 1, '', 'k'); }}];
-  mcKey('mcKeyFiiSum', sS); mcLine('mcFiiSum', sS, {zero:true, axisFmt:function(v){ return (v / 1000).toFixed(0) + 'k'; }});
+  var capEl = document.getElementById('mcFiiCap'), svg = document.getElementById('mcFiiBars'), winEl = document.getElementById('mcFiiWin');
+  if (!FII) {
+    delete MC_CH.mcFiiBars; delete MC_CH.mcFiiSum;
+    ['mcFiiBars','mcFiiSum'].forEach(function(i){ document.getElementById(i).innerHTML = ''; });
+    ['mcKeyFii','mcKeyFiiSum'].forEach(function(i){ document.getElementById(i).innerHTML = ''; });
+    winEl.textContent = '';
+    capEl.textContent = MACRO_LOADING ? '◌ Loading…' : 'fii.json did not load or failed validation, so the FII charts are empty. The daily data refresh may be behind. The rupee and crude charts above are unaffected.';
+    return;
+  }
+  var R = FII.rows, n = R.length, bars = mcFiiRows(), m = bars.length, wrap = svg.parentNode, cardW = wrap.clientWidth;
+  var W = Math.max(300, cardW - 28), H = W < 520 ? 230 : 250, pad = {l:52, r:10, t:16, b:30};
+  var iW = W - pad.l - pad.r, iH = H - pad.t - pad.b, wl = (MC_FWINS[MC_FWIN] || MC_FWINS['3M']).label;
+  delete MC_CH.mcFiiBars;
+  if (!m) { mcEmptySvg(svg, W, 'No FII rows in this window.'); winEl.textContent = ''; }
+  else {
+    var mx = Math.max.apply(null, bars.map(function(r){ return Math.abs(r[1]); })) * 1.12 || 1, bw = iW / m;
+    var bwid = Math.max(1, Math.min(bw * 0.76, 30));
+    var yp = function(v){ return pad.t + iH / 2 - v / mx * (iH / 2); };
+    var g = '';
+    [-1, -0.5, 0, 0.5, 1].forEach(function(f){ var y = yp(f * mx);
+      g += '<line x1="' + pad.l + '" x2="' + (W - pad.r) + '" y1="' + y + '" y2="' + y + '" stroke="var(--bdr)" stroke-width="' + (f === 0 ? 1.2 : 0.5) + '"/>'
+        + '<text x="' + (pad.l - 5) + '" y="' + (y + 3) + '" text-anchor="end" fill="var(--txt3)" font-size="10">' + mcMinus(Math.abs(mx) < 4000 ? (f * mx).toFixed(0) : (f * mx / 1000).toFixed(0) + 'k') + '</text>'; });
+    var b = '', geo = [], cum = [], acc = 0, nb = 0, ns = 0, cu = [], step = Math.max(1, Math.ceil(58 / bw)), lastLx = -999;
+    bars.forEach(function(r, i){
+      var x = pad.l + i * bw + (bw - bwid) / 2, v = r[1], y0 = yp(0), y1 = yp(v);
+      var top = Math.min(y0, y1), h = Math.max(1, Math.abs(y1 - y0)), isCU = r[4] === 1;
+      acc += v; cum.push(acc); if (v >= 0) nb++; else ns++; if (isCU) cu.push(r[0]);
+      geo.push({x:x, y:top, w:bwid, h:h});
+      b += '<rect x="' + x.toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bwid.toFixed(1) + '" height="' + h.toFixed(1) + '"'
+        + (v >= 0 ? ' fill="var(--vc-c)" opacity=".85"' : ' fill="var(--ve-c)" opacity=".85"')
+        + (isCU ? ' stroke="var(--txt)" stroke-width="1.4" stroke-dasharray="3 2"' : '') + '/>';
+      if (isCU) b += '<text x="' + (x + bwid / 2).toFixed(1) + '" y="' + (v >= 0 ? top - 4 : top + h + 12).toFixed(1) + '" text-anchor="middle" fill="var(--txt)" font-size="11" font-weight="700">†' + (bw >= 44 ? ' catch-up' : '') + '</text>';
+      var lx = x + bwid / 2;
+      if ((i % step === 0 || i === m - 1) && lx - lastLx >= 50) {
+        var lab = m > 80 ? MC_MON[+r[0].slice(5, 7) - 1] + ' ' + r[0].slice(2, 4) : (+r[0].slice(8, 10)) + ' ' + MC_MON[+r[0].slice(5, 7) - 1];
+        b += '<text x="' + lx.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" fill="var(--txt3)" font-size="9.5">' + lab + '</text>'; lastLx = lx;
+      }
+    });
+    var hov = '<g id="mcFiiBarsH" style="display:none" pointer-events="none"><rect id="mcFiiBarsR" fill="none" stroke="var(--txt)" stroke-width="1.6" rx="2"/></g>';
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H); svg.setAttribute('width', W);
+    svg.innerHTML = g + b + hov;
+    svg.setAttribute('aria-label', 'Daily FII net equity flow, ' + wl.toLowerCase() + ', ' + m + ' NSDL report dates, net ' + mcSigned(acc, 0, '₹', ' crore') + '. Focus and use arrow keys to read each date.');
+    var D = bars.map(function(r){ return mcT(r[0]); });
+    MC_CH.mcFiiBars = {kind:'bars', W:W, H:H, pad:pad, iW:iW, cardW:cardW, sc:Math.min(1, (cardW - 28) / W), n:m, D:D,
+      idxAt: function(px){ return Math.max(0, Math.min(m - 1, Math.floor((px - pad.l) / bw))); },
+      bar: function(i){ return geo[i]; },
+      tip: function(i){
+        var r = bars[i], v = r[1], isCU = r[4] === 1, dir = v >= 0 ? '▲ Net buying' : '▼ Net selling';
+        var h = '<div class="mc-tip-d">Report date ' + mcDL(r[0]) + '</div>'
+          + '<div class="mc-tip-r"><span>' + dir + '</span><b>' + mcSigned(v, 0, '₹', ' cr') + '</b></div>'
+          + (mcNum(r[3]) ? '<div class="mc-tip-r"><span>Gross turnover</span><b>₹' + r[3].toLocaleString('en-IN', {maximumFractionDigits:0}) + ' cr</b></div>' : '')
+          + '<div class="mc-tip-r"><span>Running total in window</span><b>' + mcSigned(cum[i], 0, '₹', ' cr') + '</b></div>'
+          + '<div class="mc-tip-c">Carries the previous trading day’s trades</div>'
+          + (isCU ? '<div class="mc-tip-w">† Likely catch-up: may combine several trading days</div>' : '');
+        var t = 'Report date ' + mcDL(r[0]) + '. ' + dir + ' ' + mcSigned(v, 0, '₹', ' crore') + '. Running total ' + mcSigned(cum[i], 0, '₹', ' crore') + (isCU ? '. Flagged as a likely catch-up row' : '');
+        return {h:h, t:t};
+      }};
+    winEl.innerHTML = '<strong>' + wl + '</strong> (' + m + ' report date' + (m === 1 ? '' : 's') + ', ' + bars[0][0] + ' to ' + bars[m - 1][0] + '): net <strong>' + mcSigned(acc, 0, '₹', ' cr') + '</strong>'
+      + ' · ▲ ' + nb + ' buying, ▼ ' + ns + ' selling'
+      + (cu.length ? ' · <strong>† ' + cu.length + ' catch-up row' + (cu.length > 1 ? 's' : '') + '</strong> (' + cu.join(', ') + ')' : ' · no catch-up rows flagged');
+  }
+  document.getElementById('mcKeyFii').innerHTML = '<span><svg width="14" height="12" aria-hidden="true"><rect width="14" height="12" fill="var(--vc-c)"/></svg>▲ net buying (bar above zero line)</span>'
+    + '<span><svg width="14" height="12" aria-hidden="true"><rect width="14" height="12" fill="var(--ve-c)"/></svg>▼ net selling (bar below zero line)</span>'
+    + '<span><svg width="14" height="12" aria-hidden="true"><rect x="1" y="1" width="12" height="10" fill="none" stroke="var(--txt)" stroke-width="1.4" stroke-dasharray="3 2"/></svg>† likely multi-day catch-up (dashed outline)</span>'
+    + '<span>₹ crore, ' + wl.toLowerCase() + ' of NSDL reporting dates</span>';
+  // rolling 20-date sum over the chosen chart range
+  var cut = mcCutoff(R[n - 1][0]), sumAll = [], acc2 = 0;
+  for (var i = 0; i < n; i++) { acc2 += R[i][1]; if (i >= 20) acc2 -= R[i - 20][1]; if (i >= 19) sumAll.push([R[i][0], acc2]); }
+  var DS = sumAll.map(function(p){ return mcT(p[0]); }), q0 = 0;
+  while (q0 < sumAll.length - 1 && sumAll[q0][0] < cut) q0++;
+  var sum = sumAll.slice(q0);
+  var sS = [{name:'20-date sum', pts:sum, col:mcC('green'), w:2.4, fmt:function(v){ return mcSigned(v / 1000, 1, '', 'k'); },
+    tv: function(j){ return mcSigned(sum[j][1], 0, '₹', ' cr'); },
+    tc: function(j){ var k = mcIdx12(DS, q0 + j); return '12M earlier ' + (k >= 0 ? mcSigned(sumAll[k][1], 0, '₹', ' cr') : 'n/a'); }}];
+  mcKey('mcKeyFiiSum', sS); mcLine('mcFiiSum', sS, {zero:true, axisFmt:function(v){ return (v / 1000).toFixed(0) + 'k'; }, dateLabel:'Report date', empty:'No FII rows in this range.'});
   var f = fiiStat(), nse = FII.nseToday;
   capEl.innerHTML = '<strong>Source: NSDL FPI Monitor</strong> (depository-confirmed, equity, Stock Exchange route; ₹ crore). <strong>Each date is the NSDL reporting date and carries the previous trading day’s trades.</strong> '
-    + 'History starts 2014-06-02 (' + n + ' rows, newest ' + FII.lastReportDate + '). Rows marked † are flagged by size (turnover above 1.8 times the recent median) and may combine several trading days; the flag is a caution, not proof. '
+    + 'History starts ' + R[0][0] + ' (' + n.toLocaleString('en-IN') + ' rows, newest ' + FII.lastReportDate + '). Rows marked † are flagged by size (turnover above 1.8 times the recent median) and may combine several trading days; the flag is a caution, not proof. '
     + (f ? 'Last 5 report dates (' + f.first + ' to ' + f.last + '): <strong>' + mcSigned(f.sum, 0, '₹', ' cr') + '</strong>, ' + ord(Math.round(f.pct)) + ' percentile. ' : '')
-    + (nse ? '<br>NSE same-day figure, <strong>provisional</strong>, cash market, for ' + nse.date + ': ' + mcSigned(nse.net, 0, '₹', ' cr') + ' (buy ' + nse.buy.toLocaleString('en-IN', {maximumFractionDigits:0}) + ', sell ' + nse.sell.toLocaleString('en-IN', {maximumFractionDigits:0}) + '). It is a different trading day from the NSDL row with the same date, so it is not added to the chart.' : '')
+    + (nse && mcNum(nse.net) ? '<br>NSE same-day figure, <strong>provisional</strong>, cash market, for ' + nse.date + ': ' + mcSigned(nse.net, 0, '₹', ' cr') + (mcNum(nse.buy) && mcNum(nse.sell) ? ' (buy ' + nse.buy.toLocaleString('en-IN', {maximumFractionDigits:0}) + ', sell ' + nse.sell.toLocaleString('en-IN', {maximumFractionDigits:0}) + ')' : '') + '. It is a different trading day from the NSDL row with the same date, so it is not added to the chart.' : '')
     + '<br>DII flows are not shown: no depository-confirmed daily DII source is wired in yet.';
 }
 
@@ -5321,17 +5710,19 @@ function renderMacroSources() {
   var rows = [];
   if (MACRO) ['usdinr','brent','nifty'].forEach(function(k){
     var s = MACRO.series[k], nm = {usdinr:'USD/INR', brent:'Brent futures', nifty:'Nifty 50'}[k];
-    rows.push([nm, s.definition, s.source + ' (' + s.sym + ')', mcAsOf(s.lastDailyBar, 'last quote')]);
+    if (!s) { rows.push([nm, 'Missing or malformed in macro.json', '—', 'unavailable']); return; }
+    rows.push([nm, s.definition || '', (s.source || '') + (s.sym ? ' (' + s.sym + ')' : ''), mcAsOf(s.lastDailyBar, 'last quote')]);
   });
   if (FII) {
-    rows.push(['FII net equity', FII.definition, FII.source, mcAsOf(FII.lastReportDate, 'last report date') + ' · file built ' + FII.fetchedAt.slice(0, 16).replace('T', ' ') + ' UTC']);
-    if (FII.nseToday) rows.push(['FII, same day (provisional)', 'Cash-market FII/FPI net, first print of the day. Can be revised.', FII.nseToday.source, 'for ' + FII.nseToday.date]);
+    rows.push(['FII net equity', FII.definition || '', FII.source || '', mcAsOf(FII.lastReportDate, 'last report date') + (typeof FII.fetchedAt === 'string' ? ' · file built ' + FII.fetchedAt.slice(0, 16).replace('T', ' ') + ' UTC' : '')]);
+    if (FII.nseToday) rows.push(['FII, same day (provisional)', 'Cash-market FII/FPI net, first print of the day. Can be revised.', FII.nseToday.source || '', 'for ' + FII.nseToday.date]);
   }
-  rows.push(['State words', (MACRO ? MACRO.rule : 'HEADWIND if in the top quarter of its own history, TAILWIND in the bottom quarter, else NEUTRAL.') + ' For FII the direction flips: heavy selling is the headwind.', 'IndexScope percentile rule', 'Computed in the page']);
+  rows.push(['State words', (MACRO && MACRO.rule ? MACRO.rule : 'HEADWIND if in the top quarter of its own history, TAILWIND in the bottom quarter, else NEUTRAL.') + ' For FII the direction flips: heavy selling is the headwind.', 'IndexScope percentile rule', 'Computed in the page']);
   document.getElementById('mcSources').innerHTML = '<table class="mc-tbl"><thead><tr><th>Item</th><th>Definition</th><th>Source</th><th>Freshness</th></tr></thead><tbody>'
-    + rows.map(function(r){ return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td></tr>'; }).join('') + '</tbody></table>';
+    + rows.map(function(r){ return '<tr><td data-l="Item">' + r[0] + '</td><td data-l="Definition">' + r[1] + '</td><td data-l="Source">' + r[2] + '</td><td data-l="Freshness">' + r[3] + '</td></tr>'; }).join('') + '</tbody></table>';
 }
-window.addEventListener('resize', function(){ if (CURRENT_VIEW === 'macro') { try { renderMacro(); } catch (e) {} } });
+var MC_RSZ = 0;
+window.addEventListener('resize', function(){ if (CURRENT_VIEW !== 'macro') return; clearTimeout(MC_RSZ); MC_RSZ = setTimeout(function(){ try { mcHideAll(); renderMacro(); } catch (e) {} }, 120); });
 
 function fetchGlobal() {
   Promise.all([
@@ -5348,21 +5739,25 @@ function setGlobalRange(r){ GL_RANGE=r; document.querySelectorAll('#glRangeRow .
 
 function glFmtPct(v){
   if(v==null||isNaN(v)) return '<span style="color:var(--ghost)">&mdash;</span>';
-  var cls = v<0 ? 'gl-ret neg' : 'gl-ret';
-  return '<span class="'+cls+'">'+(v>0?'+':'')+v.toFixed(1)+'%</span>';
+  var r = Math.round(v*10)/10; if (r === 0) r = 0; // round first: no signed zero
+  var cls = r<0 ? 'gl-ret neg' : 'gl-ret';
+  return '<span class="'+cls+'">'+mcMinus((r>0?'+':'')+r.toFixed(1))+'%</span>';
 }
+// Whole-percent return text: rounded first, "0" (no sign) when it rounds to zero, true minus otherwise.
+function glPct0(v){ var r = Math.round(v); return r === 0 ? '0' : mcMinus((r > 0 ? '+' : '') + r); }
 
 function renderGlobal(){
   var d = GLOBAL_DATA;
   if(!d || !d.indices){ var u=document.getElementById('glUpdated'); if(u) u.textContent='Global data unavailable (run scripts/fetch_global.py).'; return; }
-  document.getElementById('glUpdated').innerHTML = 'As of '+d.asOf+' &middot; weekly closes &middot; price returns (ex-dividend)';
+  var glLd=(d.indices&&d.indices[0]&&d.indices[0].lastDate)||d.asOf;
+  document.getElementById('glUpdated').innerHTML = 'As of '+d.asOf+' &middot; each point is a weekly close'+(mcPartial(glLd)?'; the latest point ('+glLd+') is the last quote of the current week (partial)':'')+' &middot; price returns (ex-dividend)';
   var localMode = GL_CCY==='local';
   var si = localMode ? 1 : 2;
   var years = GL_RANGE_YEARS[GL_RANGE];
   var lastDate = d.indices[0].lastDate;
   var cutoff = new Date(lastDate); cutoff.setFullYear(cutoff.getFullYear()-years);
   var cutoffStr = cutoff.toISOString().slice(0,10);
-  renderGlobalChart(d, si, cutoffStr);
+  renderGlobalChart(d, si, cutoffStr, localMode);
   renderGlobalVerdict(d, localMode);
   renderGlobalTable(d, localMode);
   renderGlobalVal();
@@ -5378,7 +5773,7 @@ function setGlobalLines(mode){
   renderGlobal();
 }
 
-function renderGlobalChart(d, si, cutoffStr){
+function renderGlobalChart(d, si, cutoffStr, localMode){
   var svg = document.getElementById('glChart');
   var W=900, H=340, pad={l:40,r:14,t:14,b:24};
   var iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
@@ -5388,9 +5783,13 @@ function renderGlobalChart(d, si, cutoffStr){
   d.indices.forEach(function(ix){
     var pts = ix.series.filter(function(p){ return p[0]>=cutoffStr && p[si]!=null; });
     if(pts.length<2) return;
-    var base = pts[0][si]; if(!base) return;
-    allLines.push({ key:ix.key, name:ix.name, hi:ix.highlight,
-      reb: pts.map(function(p){ return [p[0], p[si]/base*100]; }) });
+    // Same number as the returns table and the verdict: ret/retUsd (first DAILY close on/after the start date).
+    // The weekly path is scaled so its last point equals 100 + that return; the shape is unchanged.
+    var R = localMode ? ix.ret : (ix.retUsd || ix.ret), rv = R ? R[GL_RANGE] : null;
+    var last = pts[pts.length-1][si], base = pts[0][si]; if(!base || !last) return;
+    var tbl = typeof rv === 'number' && isFinite(rv), k = tbl ? (100 + rv) / last : 100 / base;
+    allLines.push({ key:ix.key, name:ix.name, hi:ix.highlight, tbl:tbl,
+      reb: pts.map(function(p){ return [p[0], p[si]*k]; }) });
   });
   var lines = allLines.filter(function(L){ return !GL_HIDDEN[L.key]; });
   var leg = allLines.slice().sort(function(a,b){ return b.reb[b.reb.length-1][1]-a.reb[a.reb.length-1][1]; });
@@ -5398,11 +5797,11 @@ function renderGlobalChart(d, si, cutoffStr){
     '<span class="gl-leg-act"><button class="gl-leg-btn" onclick="setGlobalLines(\'all\')">All</button>'
     + '<button class="gl-leg-btn" onclick="setGlobalLines(\'none\')">India only</button></span>'
     + leg.map(function(L){
-      var gain = L.reb[L.reb.length-1][1]-100, off=GL_HIDDEN[L.key];
+      var gain = Math.round(L.reb[L.reb.length-1][1]-100), off=GL_HIDDEN[L.key];
       return '<span class="gl-leg'+(L.hi?' ind':'')+(off?' off':'')+'" onclick="toggleGlobalLine(\''+L.key+'\')">'
         +'<span class="tick"'+(off?'':' style="background:'+(GL_COLORS[L.key]||'#888')+';border-color:'+(GL_COLORS[L.key]||'#888')+'"')+'></span>'
         +'<span class="sw" style="background:'+(GL_COLORS[L.key]||'#888')+'"></span>'+L.name
-        +' <span style="color:'+(gain>=0?'var(--vc-c)':'var(--ve-c)')+';font-family:var(--mono);font-size:.64rem">'+(gain>=0?'+':'')+gain.toFixed(0)+'%</span></span>';
+        +' <span style="color:'+(gain>0?'var(--vc-c)':(gain<0?'var(--ve-c)':'var(--sub)'))+';font-family:var(--mono);font-size:.64rem">'+glPct0(gain)+'%'+(L.tbl?'':' (weekly)')+'</span></span>';
     }).join('');
   if(!lines.length){ svg.innerHTML=''; return; }
   var allV=[], dMinT=Infinity, dMaxT=-Infinity;
@@ -5468,7 +5867,7 @@ function glChartMove(e){
   svg.insertAdjacentHTML('beforeend',
     '<g id="glCrosshair"><line x1="'+xpx.toFixed(1)+'" x2="'+xpx.toFixed(1)+'" y1="'+c.pad.t+'" y2="'+(c.pad.t+c.iH)+'" stroke="var(--txt3)" stroke-width="1" stroke-dasharray="3 3" opacity=".65"/>'+dots+'</g>');
   var tip=document.getElementById('glTip');
-  var dl=new Date(date).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'});
+  var dl=new Date(date).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'})+(mcPartial(date)?' &middot; partial week (last quote)':'');
   tip.innerHTML='<div class="gl-tip-d">'+dl+'</div>'+rows.map(function(r){
     var g=r.v-100;
     return '<div class="gl-tip-r'+(r.hi?' ind':'')+'"><span class="gl-tip-sw" style="background:'+r.col+'"></span>'
@@ -5506,13 +5905,14 @@ function renderGlobalVerdict(d, localMode){
     var tail = below.length ? ('ahead of only '+below.join(', ')) : 'the weakest of the set';
     var lagging = rank > n/2;
     el.innerHTML = 'Over <b>'+GL_RANGE.toUpperCase()+'</b> in '+ccyTxt+' terms, <b>India</b> ('
-      +(india.v>=0?'+':'')+india.v.toFixed(0)+'%) ranks <b>#'+rank+' of '+n+'</b> equity indices tracked here (gold and the dollar index are not ranked)'
+      +glPct0(india.v)+'%) ranks <b>#'+rank+' of '+n+'</b> equity indices tracked here (gold and the dollar index are not ranked)'
       + (lagging ? ' — <span class="hi">'+tail+'</span>. ' : '. ')
-      + top.name+' (<span class="lo">+'+top.v.toFixed(0)+'%</span>) led; '+bot.name+' (<span class="'+(bot.v<0?'hi':'lo')+'">'
-      +(bot.v>=0?'+':'')+bot.v.toFixed(0)+'%</span>) lagged.';
+      + top.name+' (<span class="'+(Math.round(top.v)<0?'hi':(Math.round(top.v)>0?'lo':''))+'">'+glPct0(top.v)+'%</span>) led; '+bot.name+' (<span class="'+(Math.round(bot.v)<0?'hi':(Math.round(bot.v)>0?'lo':''))+'">'
+      +glPct0(bot.v)+'%</span>) lagged.';
   } else {
-    el.innerHTML = top.name+' led the field ('+top.v.toFixed(0)+'%).';
+    el.innerHTML = top.name+' led the field ('+glPct0(top.v)+'%).';
   }
+  el.innerHTML = mcMinus(el.innerHTML); // true minus sign for negative returns
 }
 
 function renderGlobalTable(d, localMode){
@@ -5534,23 +5934,33 @@ function renderGlobalTable(d, localMode){
 
 function renderGlobalVal(){
   var v=GLOBAL_VAL, d=GLOBAL_DATA, grid=document.getElementById('glValGrid');
-  if(!v||!v.indices){ grid.innerHTML='<div class="gl-val-note">Valuation feed unavailable (run scripts/fetch_global_val.py).</div>'; return; }
-  var meta={}; if(d&&d.indices) d.indices.forEach(function(ix){ meta[ix.key]={name:ix.name,region:ix.region}; });
-  var order={cheap:0,fair:1,expensive:2};
-  var items=v.indices.slice().sort(function(a,b){ return (order[a.verdict]-order[b.verdict])||(a.pe-b.pe); });
-  grid.innerHTML = items.map(function(it){
-    var m=meta[it.key]||{name:it.key,region:''};
+  if(!d||!d.indices){ grid.innerHTML='<div class="gl-val-note">Global data unavailable.</div>'; return; }
+  var val={}; if(v&&v.indices) v.indices.forEach(function(it){ val[it.key]=it; });
+  // insufficient = too few P/E points since the source's last earnings-basis change; never shown as fair.
+  var SH={cheap:'▼',fair:'●',expensive:'▲',insufficient:'◌'}, order={cheap:0,fair:1,expensive:2,insufficient:3};
+  var ord=function(x){ return x in order ? order[x] : 4; };
+  var items=d.indices.slice().sort(function(a,b){ var A=val[a.key],B=val[b.key];
+    if(A&&B) return (ord(A.verdict)-ord(B.verdict))||(A.pe-B.pe); return A?-1:(B?1:0); });
+  grid.innerHTML = items.map(function(ix){
+    var it=val[ix.key], nm=miEsc(ix.name), open='<button type="button" class="gl-vc-open" data-gl="'+ix.key+'" aria-expanded="'+(GL_DET.key===ix.key)+'" aria-controls="glDetail" onclick="event.stopPropagation();glOpenDetail(\''+ix.key+'\')">'+(GL_DET.key===ix.key?'Hide charts ▴':'Show charts ▾')+'</button>';
+    var head='<div class="gl-vc-name">'+nm+'</div><div class="gl-vc-region">'+miEsc(ix.region)+(ix.key==='csi300'?' &middot; ETF price':'')+'</div>';
+    if(!it||!miOk(it.pe)){
+      return '<div class="gl-vcard nopx'+(GL_DET.key===ix.key?' sel':'')+'" data-gl="'+ix.key+'" onclick="glOpenDetail(\''+ix.key+'\')">'+head
+        +'<div class="gl-vc-pe">'+(miOk(ix.last)?mcFmt(ix.last):'unavailable')+' <small>'+miEsc(ix.cur||'')+' last price</small></div>'
+        +'<div class="gl-vc-band">No P/E tracked &middot; no valuation verdict</div>'+open+'</div>';
+    }
+    var vd=it.verdict in SH?it.verdict:'insufficient';
+    var vt=it.verdict in SH?(typeof it.verdictText==='string'&&it.verdictText?it.verdictText:it.verdict):'verdict unavailable';
     var cape = it.cape ? '<div class="gl-vc-cape">Shiller CAPE '+it.cape+'</div>' : '';
-    var src = it.src ? ' <small style="color:var(--brand)">'+it.src+'</small>' : '';
-    return '<div class="gl-vcard '+it.verdict+'">'
-      +'<div class="gl-vc-name">'+m.name+'</div>'
-      +'<div class="gl-vc-region">'+m.region+'</div>'
+    var src = it.src ? ' <small style="color:var(--brand)">'+miEsc(it.src)+'</small>' : '';
+    return '<div class="gl-vcard '+vd+(GL_DET.key===ix.key?' sel':'')+'" data-gl="'+ix.key+'" onclick="glOpenDetail(\''+ix.key+'\')">'+head
       +'<div class="gl-vc-pe">'+it.pe.toFixed(1)+' <small>P/E</small>'+src+'</div>'
-      +'<div class="gl-vc-band">'+(it.bandNote||'band')+' '+it.refLo+'&ndash;'+it.refHi+'</div>'
-      +'<span class="gl-vc-tag '+it.verdict+'">'+it.verdict+'</span>'+cape
+      +'<div class="gl-vc-band">'+miEsc(it.bandNote||'band')+(vd==='insufficient'?' '+glFR(it):' &middot; fair range '+glFR(it))+'</div>'
+      +'<span class="gl-vc-tag '+vd+'">'+(it.verdict in SH?SH[vd]:'?')+' '+miEsc(vt)+'</span>'+cape+open
       +'</div>';
   }).join('')
-  + '<div style="grid-column:1/-1;font-family:var(--mono);font-size:.55rem;color:var(--ghost);margin-top:2px">P/E source: '+(v.source||'')+' &middot; as of '+(v.asOf||'')+'</div>';
+  + '<div style="grid-column:1/-1;font-family:var(--mono);font-size:.55rem;color:var(--ghost);margin-top:2px">P/E source: '+miEsc(v&&v.source||'unavailable')+' &middot; as of '+miEsc(v&&v.asOf||'unavailable')+' &middot; shapes: ▼ cheap, ● fair, ▲ expensive, ◌ insufficient history on current basis</div>';
+  if(GL_DET.key) glRenderDetail();
 }
 
 // ===================== GOOGLE SIGN-IN (Google Identity Services) =====================
@@ -5587,6 +5997,7 @@ function loadGsi(){
 }
 
 function authRender(){
+  try { adminHint(); } catch (e) {}
   var btn=document.getElementById('authBtn'), chip=document.getElementById('authChip');
   if(IS_USER){
     if(btn) btn.style.display='none';
@@ -5619,9 +6030,11 @@ function authHandleCredential(resp){
   // affects the existing sign-in UX — alerts simply stay unavailable until the
   // exchange succeeds on a later sign-in.
   alertsExchangeSession(resp && resp.credential);
+  try { accessCheck(resp && resp.credential); } catch (e) {}
 }
 
 function authSignOut(){
+  try { accessSignOut(); } catch (e) {}
   IS_USER=null;
   try{ localStorage.removeItem('is_user'); }catch(e){}
   try{ localStorage.removeItem('is_session'); }catch(e){}   // additive: clear alerts session
@@ -5649,6 +6062,501 @@ function initAuth(){
     if(!IS_USER){ try{ google.accounts.id.prompt(); }catch(e){} }
   }).catch(function(){ /* network issue — header just shows no sign-in control */ });
 }
+
+// ===================== METHOD ("i") PANELS =====================
+// Every card/panel gets a keyboard-accessible "i" button (aria-expanded) that opens an
+// inline method panel (works on touch; not a hover tooltip). Texts are built at open
+// time from the live numbers. Static hosts carry the markup in HTML; re-rendered
+// hosts are decorated by miDecorate() after each render.
+var MI_OPEN = {};
+function miEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function miOk(v){ return typeof v === 'number' && isFinite(v); }
+function miF(v, dp){ return miOk(v) ? mcMinus(v.toFixed(dp == null ? 2 : dp)) : 'unavailable'; }
+function miPw(p){ if (!miOk(p)) return 'unavailable'; if (p < 1) return '1st (lowest 1%)'; return ord(Math.round(p)); }
+function miLast(a){ return a && a.length ? a[a.length - 1] : null; }
+function miDoc(o){
+  var R = [['Measures', o.what], ['Formula', o.formula], ['Source', o.source], ['Rule', o.rule], ['Does not tell you', o.not], ['As of', o.asof]];
+  return R.map(function(r){ return '<p><b>' + r[0] + ':</b> ' + (r[1] || 'unavailable') + '</p>'; }).join('');
+}
+var MI_ACT = 'the "Update index data" GitHub Action (09:00, 19:00 and 22:30 IST)';
+var MI_TEXT = {
+  idx: function(key){
+    var s = computeStatsFor(key), h = HISTORIES[key], L = miLast(h), nm = INDICES[key] ? INDICES[key].name : key, b = CFG.bands;
+    return miDoc({what: nm + ' trailing P/E against its own recent history.',
+      formula: 'P/E ÷ reference × 100; reference = 30% 3-yr, 60% 5-yr, 10% 10-yr median P/E. Now: ' + (s ? miF(s.curPE) + ' ÷ ' + miF(s.peRef) + ' = ' + miF(s.pePct, 0) + '%.' : 'unavailable.'),
+      source: 'NSE, via ' + MI_ACT + '.',
+      rule: 'Up to ' + b.vCheap + '% Very Cheap, ' + b.cheap + '% Cheap, ' + b.neutral + '% Neutral, ' + b.expensive + '% Expensive, above that Very Expensive.',
+      not: 'Future returns.', asof: L ? L[0] : null});
+  },
+  eyby: function(){
+    var h = HISTORIES.n50, L = miLast(h), g = miLast(GSEC_HISTORY), pe = L ? L[2] : null, ey = miOk(pe) && pe > 0 ? 100 / pe : null, by = g ? g[1] : null;
+    return miDoc({what: 'Nifty 50 earnings yield minus the 10-year government bond yield.',
+      formula: 'Gap = 100 ÷ P/E − 10Y yield. Now: 100 ÷ ' + miF(pe) + ' = ' + miF(ey) + '% − ' + miF(by) + '% = ' + (miOk(ey) && miOk(by) ? miF(ey - by) + ' pp.' : 'unavailable.'),
+      source: 'NSE P/E. 10Y yield from a third-party relay (a SectorScope web worker; original source not stated), fetched by scripts/fetch_gsec.py in ' + MI_ACT + '.',
+      rule: 'Ranked over 10 years: ' + bandRuleTxt('widest', 'narrowest') + '. A negative gap is never cheap; it shows Neutral.',
+      not: 'Where rates go; not a tested forecast.',
+      asof: (L ? 'P/E ' + L[0] : 'P/E unavailable') + ', yield ' + (g ? g[0] : 'unavailable')});
+  },
+  rel: function(){
+    var A = miLast(HISTORIES.nmid150), B = miLast(HISTORIES.n50), r = A && B && A[2] > 0 && B[2] > 0 ? A[2] / B[2] : null, S = buildRatioSeries('nmid150', 'n50');
+    return miDoc({what: 'How richly mid and small caps are priced against large caps.',
+      formula: 'Midcap 150 P/E ÷ Nifty 50 P/E (Smallcap row alike). Now: ' + (A && B ? miF(A[2]) + ' ÷ ' + miF(B[2]) + ' = ' + miF(r) + '×.' : 'unavailable.'),
+      source: 'NSE, via ' + MI_ACT + '.',
+      rule: 'Ratio ranked against its own shared history' + (S.length ? ' (since ' + S[0][0] + ')' : '') + ': ' + bandRuleTxt('lowest', 'highest') + '.',
+      not: 'Which group will return more.', asof: B ? B[0] : null});
+  },
+  mchips: function(){
+    var u = mcSer('usdinr'), f = fiiStat();
+    return miDoc({what: 'Rupee, crude and foreign-flow pressure on Indian stocks.',
+      formula: '12-month change ranked against its own 10-year history. Now: USD/INR ' + (u ? mcSigned(mcStateChg(u).v, 1, '', '%') + ', ' + miPw(u.chg12mPctile) + ' percentile.' : 'unavailable.') + ' FII: sum of the last 5 report dates ranked since 2014' + (f ? ' (' + miPw(f.pct) + ' percentile).' : '.'),
+      source: 'Yahoo Finance and NSDL, via the "Update index data" GitHub Action.',
+      rule: (MACRO && MACRO.rule ? miEsc(MACRO.rule) : 'Top quarter HEADWIND, bottom quarter TAILWIND, else NEUTRAL.'),
+      not: 'Valuation; it changes no band.', asof: u ? u.lastDailyBar : (f ? f.last : null)});
+  },
+  bf: function(){
+    var d = BUFFETT_DATA, m = d && d.live ? d.live.mcap : null, g = d && d.gdp ? d.gdp.trailing : null, r = miOk(m) && miOk(g) ? m / g * 100 : null;
+    return miDoc({what: 'Total BSE market value against India’s nominal GDP.',
+      formula: 'BSE market cap ÷ latest actual GDP × 100. Now: ₹' + miF(m) + ' L cr ÷ ₹' + miF(g) + ' L cr = ' + miF(r, 1) + '%.',
+      source: 'BSE market cap, fetched twice daily by a job on the owner’s computer (lags if it is off); GDP set by hand from MOSPI.',
+      rule: 'Below 70% Very Cheap, 70–85% Cheap, 85–100% Fair Value, 100–115% Expensive, 115% and above Very Expensive (India’s own 20-year history).',
+      not: 'Timing; it can stay high for years.', asof: d && d.live ? d.live.date : null});
+  },
+  bfdec: function(){
+    var d = BUFFETT_DATA, c = d ? d.decomp : null, nl = miLast(typeof HISTORIES !== 'undefined' ? HISTORIES.n50 : null);
+    var npe = nl && miOk(nl[2]) ? miF(nl[2]) + ' (' + miEsc(nl[0]) + ')' : 'unavailable';
+    return miDoc({what: 'Why the ratio is where it is: corporate profit share and the market multiple.',
+      formula: 'Market cap ÷ GDP ≈ (earnings ÷ GDP) × P/E. Now: profit share ' + (c ? miF(c.profit_share, 1) + '% (' + miEsc(c.profit_share_fy) + ')' : 'unavailable') + ', latest Nifty 50 P/E ' + npe + '.',
+      source: (c && c.source ? miEsc(c.source) : 'unavailable') + '; set by hand. Nifty 50 P/E: the latest NSE value loaded on this page (the Buffett card shows the P/E read by the computer job, with its read time).',
+      rule: 'Profit share is placed between its trough ' + (c ? miF(c.trough, 1) + '% (' + miEsc(c.trough_fy) + ')' : '') + ' and peak ' + (c ? miF(c.peak, 1) + '% (' + miEsc(c.peak_fy) + ')' : '') + '.',
+      not: 'Whether margins will fall; profit share is annual and slow.', asof: c ? c.profit_share_fy : null});
+  },
+  bfhist: function(){
+    var d = BUFFETT_DATA, H = d ? d.history : null, F = H && H.length ? H[0] : null, L = miLast(H);
+    return miDoc({what: 'Market cap ÷ GDP at each fiscal year-end.',
+      formula: 'Year-end BSE market cap ÷ that year’s nominal GDP × 100. Latest row: ' + (L ? miEsc(L[0]) + ' ₹' + miF(L[2]) + ' ÷ ₹' + miF(L[3]) + ' L cr = ' + miF(L[4], 1) + '%.' : 'unavailable.'),
+      source: 'SEBI/BSE tables and BSE year-end data; rows marked "est." are estimates. Updated by hand.',
+      rule: 'None; this is history. The median of these rows is the reference on the tiles.',
+      not: 'Intra-year swings; one point per year.', asof: L ? L[1] : null});
+  },
+  glperf: function(){
+    var d = GLOBAL_DATA, n = null; if (d && d.indices) d.indices.forEach(function(ix){ if (ix.key === 'nifty') n = ix; });
+    var r = n && n.retUsd ? n.retUsd[GL_RANGE] : null;
+    return miDoc({what: 'Price growth of 100 invested in each index, in USD or local currency.',
+      formula: 'Gain = last close ÷ first daily close on or after the start date, the same number as the returns table and the rank. Each line is the weekly closes scaled so it ends at that gain, so its first point can sit slightly off 100. Now: Nifty 50 over ' + GL_RANGE.toUpperCase() + ' in USD: 100 → ' + (miOk(r) ? miF(100 + r, 0) : 'unavailable') + '.',
+      source: 'Yahoo Finance via scripts/fetch_global.py, run by ' + MI_ACT + '.',
+      rule: 'No verdict; India is ranked among 11 equity indices. Gold and the dollar index are not ranked.',
+      not: 'Dividends (price only), or returns after currency hedging.', asof: d ? d.asOf : null});
+  },
+  glv: function(key){
+    var v = GLOBAL_VAL, it = null, st = null, nm = key;
+    if (GLOBAL_DATA && GLOBAL_DATA.indices) GLOBAL_DATA.indices.forEach(function(ix){ if (ix.key === key) nm = ix.name; });
+    if (v && v.indices) v.indices.forEach(function(x){ if (x.key === key) it = x; });
+    if (!it) return miDoc({what: nm + ' price only.', formula: 'None; no P/E is tracked for this series.', source: 'Yahoo Finance via scripts/fetch_global.py, run by ' + MI_ACT + '.', rule: 'No valuation verdict.', not: 'Whether it is cheap or expensive.', asof: GLOBAL_DATA ? GLOBAL_DATA.asOf : null});
+    if (key === 'nifty') {
+      st = v.bandStats && v.bandStats.niftyNSE ? v.bandStats.niftyNSE['10y'] : null;
+      return miDoc({what: 'NSE Nifty 50 trailing P/E.',
+        formula: 'Index price ÷ trailing earnings, published by NSE. Now ' + miF(it.pe) + '.',
+        source: 'NSE (niftyindices), refreshed by ' + MI_ACT + '.',
+        rule: 'Fair range ' + glFR(it) + ', a fixed long-run reference band, not a percentile band: below = cheap, above = expensive, else fair. Raw 25th–75th of the last 10 years: ' + glRawQ(st) + '. Separately, ' + (st ? miPw(st.pctile) + ' percentile of the last 10 years (n = ' + st.n.toLocaleString('en-IN') + ').' : 'percentile unavailable.'),
+        not: 'Earnings direction; the earnings basis may have changed around 2021, so older years compare loosely.', asof: v.asOf});
+    }
+    var BK = v.bandStats ? v.bandStats[key] : null, bb = glBasis(BK), insuf = it.verdict === 'insufficient';
+    st = BK ? (BK.current || BK.all) : null;
+    var pl = glPctOk(BK, st) ? ' Percentile: ' + miPw(st.pctile) + ' of ' + st.n + ' points since ' + st.start + '.' : ' Percentile not shown: too few points on current basis.';
+    return miDoc({what: 'worldperatio country-basket trailing P/E for ' + nm + '’s market; not the index’s own P/E. ' + glBasisWhy(bb),
+      formula: (insuf ? 'No band from its own history yet: ' + (bb && miOk(bb.n) ? bb.n + ' of ' + bb.minPoints + ' points' : 'too few points') + ' since the earnings-basis change. ' + glFR(it) + ' is a fixed long-run reference only.'
+        : 'Fair range ' + glFR(it) + ' = middle half (25th–75th percentile) of its own P/E since ' + (st ? st.start : '2023-07') + (glWidened(it, st) ? ', widened to at least 3 points. Raw 25th–75th: ' + glRawQ(st) + '.' : '.')) + ' Now ' + miF(it.pe) + (insuf ? '.' : ' vs fair range ' + glFR(it) + '.') + pl + (glOutTxt(bb) ? ' ' + glOutTxt(bb) : ''),
+      source: 'worldperatio.com, scraped by scripts/fetch_global_val.py in ' + MI_ACT + '.',
+      rule: insuf ? '◌ No verdict until there are ' + (bb && miOk(bb.minPoints) ? bb.minPoints : 60) + ' points on the current basis. Otherwise below the fair range cheap, above expensive, else fair.' : 'Below the fair range cheap, above expensive, else fair.',
+      not: 'Long-run value: history is short (n = ' + (insuf && bb && miOk(bb.n) ? bb.n + ' on the current basis' : (st ? st.n : 'unavailable')) + ').', asof: v.asOf});
+  },
+  mcfx: function(){ return mcMI('usdinr', 'Rupees per US dollar, with Nifty in rupees and in dollars.'); },
+  mcbr: function(){ return mcMI('brent', 'Brent front-month futures price, with Nifty.'); },
+  mcfii: function(){
+    var f = fiiStat();
+    return miDoc({what: 'Net equity buying or selling by foreign portfolio investors.',
+      formula: 'Sum of net flows over the last 5 NSDL report dates. Now: ' + (f ? mcSigned(f.sum, 0, '₹', ' cr') + ', ' + miPw(f.pct) + ' percentile of rolling 5-date sums since 2014.' : 'unavailable.'),
+      source: 'NSDL FPI Monitor via scripts/fetch_fii.py, on each run of ' + MI_ACT + '.',
+      rule: '25th percentile or lower HEADWIND, 75th or higher TAILWIND, else NEUTRAL.',
+      not: 'Why flows moved, or the next day; each date carries the previous day’s trades.', asof: f ? f.last : null});
+  },
+  mcco: function(){
+    var c = MACRO && MACRO.correlation ? MACRO.correlation.latest : null;
+    return miDoc({what: 'How closely weekly Nifty returns moved with the rupee and with Brent.',
+      formula: 'Correlation of weekly log returns (ln of this week’s close ÷ last week’s; close to the % change for small moves) over a rolling 52 weeks (−1 to +1). Latest: USD/INR ' + (c ? mcR(c.usdinr) : 'unavailable') + ', Brent ' + (c ? mcR(c.brent) : 'unavailable') + '.',
+      source: 'Computed by scripts/fetch_macro.py from Yahoo Finance weekly closes, in ' + MI_ACT + '.',
+      rule: 'No verdict. Size of r: below 0.1 near zero; 0.1 to 0.3 weak; 0.3 to 0.5 moderate; 0.5 and above strong. The sign gives the word: moved together (+) or moved opposite (−).',
+      not: 'Cause, or what happens next.', asof: mcLCW()});
+  },
+  pj: function(){
+    var c = pjState && pjState.data, s = c ? c.s : null, pe = pjState && pjState.mode === 'pe', ref = s ? (pe ? s.peRef : s.pbRef) : null, pk = c ? (pe ? c.maxEPS : c.maxBV) : null;
+    return miDoc({what: 'A mechanical what-if price, not a forecast.',
+      formula: 'Weighted median ' + (pe ? 'P/E' : 'P/B') + ' × peak ' + (pe ? 'EPS' : 'book value per share') + '. Now: ' + (s ? miF(ref) + ' × ' + miF(pk, 0) + ' = ' + miF(ref * pk, 0) + '.' : 'pick an index.'),
+      source: 'NSE index history, refreshed by ' + MI_ACT + '.',
+      rule: 'Upside = projected ÷ current price − 1. The matrix flexes each lever to 90/100/110%.',
+      not: 'When, or whether, the price gets there.', asof: s ? s.curDate : null});
+  },
+  bt: function(){
+    // The backtest runs on HISTORY (the active index), so describe that series, not DETAILS_INDEX (null before any Details card is opened).
+    var h = typeof HISTORY !== 'undefined' ? HISTORY : null, L = miLast(h), hk = null;
+    for (var k in HISTORIES) if (HISTORIES[k] === h) hk = k;
+    var tol = CFG && miOk(CFG.btTol) ? CFG.btTol : 1;
+    return miDoc({what: 'What happened after past valuation signals for ' + (hk && INDICES[hk] ? INDICES[hk].name : 'this index') + '.',
+      formula: 'Relative mode: a signal fires on a day when P/E (or P/B) ÷ its rolling weighted reference is within ±' + tol + ' percentage point of your % (for 90%: 89% to 91%). The reference is recomputed every 5 trading days. Returns are annualised (CAGR): (exit price ÷ entry price)^(1 ÷ years held) − 1, for exits about 6 months and 1 year later. Absolute mode: a signal fires on any day P/E is below your level, not only when it first crosses it; it shows the simple return (exit ÷ entry − 1) and the annualised one.',
+      source: 'This index’s NSE history in the page' + (h && h.length ? ' (' + h[0][0] + ' onward)' : '') + '.',
+      rule: 'After a signal, no new signal for the cooldown you set (default 90 days); a long spell below the level fires again once each cooldown has passed. Win = positive return at exit (1-year exit, else 6-month, in Relative mode).',
+      not: 'Future returns; past signals overlap and sample sizes are small.', asof: L ? L[0] : null});
+  }
+};
+function mcMI(k, what){
+  var s = mcSer(k);
+  return miDoc({what: what,
+    formula: '12-month change at the last complete week, ranked against 10 years of rolling 52-week changes. Now: ' + (s ? mcSigned(mcStateChg(s).v, 1, '', '%') + ', ' + miPw(s.chg12mPctile) + ' percentile.' : 'unavailable.'),
+    source: (s ? miEsc(s.source) : 'Yahoo Finance') + ' via scripts/fetch_macro.py, run by ' + MI_ACT + '.',
+    rule: 'Top quarter HEADWIND, bottom quarter TAILWIND, else NEUTRAL.',
+    not: 'Cause or direction from here; overlays are context only.', asof: s ? s.lastDailyBar : null});
+}
+function miText(key, arg){ try { var f = MI_TEXT[key]; return f ? f(arg) : 'Method text unavailable.'; } catch (e) { return '<p>Method text unavailable: the data for this panel did not load.</p>'; } }
+function miId(key, arg){ return 'mi-' + key + (arg ? '-' + arg : ''); }
+function miBtn(key, arg, label){
+  var id = miId(key, arg);
+  return '<button type="button" class="mi-btn" data-mi="' + key + '" data-mi-arg="' + (arg || '') + '" aria-expanded="' + (MI_OPEN[id] ? 'true' : 'false') + '" aria-controls="' + id + '" aria-label="How this is measured: ' + miEsc(label) + '">i</button>';
+}
+function miPanelEl(key, arg){
+  var p = document.createElement('div'); p.className = 'mi-panel'; p.id = miId(key, arg); p.setAttribute('role', 'region'); p.setAttribute('aria-label', 'Method');
+  if (MI_OPEN[p.id]) p.innerHTML = miText(key, arg); else p.hidden = true;
+  return p;
+}
+function miToggle(btn){
+  var key = btn.getAttribute('data-mi'), arg = btn.getAttribute('data-mi-arg') || '', id = miId(key, arg), p = document.getElementById(id);
+  if (!p) return;
+  var open = btn.getAttribute('aria-expanded') !== 'true';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) { MI_OPEN[id] = 1; p.innerHTML = miText(key, arg) + '<button type="button" class="mi-close" data-mi-close="' + id + '">Close</button>'; p.hidden = false; }
+  else { delete MI_OPEN[id]; p.hidden = true; }
+}
+// Capture phase: the "i" button and its panel never trigger the card's own click (e.g. open details).
+document.addEventListener('click', function(ev){
+  var t = ev.target; if (!t || !t.closest) return;
+  var b = t.closest('.mi-btn');
+  if (b) { ev.stopPropagation(); ev.preventDefault(); miToggle(b); return; }
+  var c = t.closest('.mi-close');
+  if (c) { ev.stopPropagation(); var id = c.getAttribute('data-mi-close'), ob = document.querySelector('.mi-btn[aria-controls="' + id + '"]'); if (ob) { miToggle(ob); ob.focus(); } return; }
+  if (t.closest('.mi-panel')) ev.stopPropagation();
+}, true);
+// Decorate re-rendered hosts. [container selector, item selector, key fn, label fn, button-into selector, panel-into selector]
+var MI_HOSTS = [
+  ['#dashGrid', '.idx-card[data-key]', function(el){ return ['idx', el.getAttribute('data-key')]; }, '.idx-name', '.idx-front'],
+  ['#xaGrid', '.xa-card', function(el){ var t = (el.querySelector('.xa-card-ttl') || {}).textContent || ''; return /Earnings Yield/.test(t) ? ['eyby', ''] : ['rel', '']; }, '.xa-card-ttl', null],
+  ['#glValGrid', '.gl-vcard[data-gl]', function(el){ return ['glv', el.getAttribute('data-gl')]; }, '.gl-vc-name', null]
+];
+function miDecorate(){
+  MI_HOSTS.forEach(function(H){
+    var root = document.querySelector(H[0]); if (!root) return;
+    root.querySelectorAll(H[1]).forEach(function(el){
+      if (el.querySelector('.mi-btn')) return;
+      var ka = H[2](el), into = el.querySelector(H[3]) || el, pin = H[4] ? (el.querySelector(H[4]) || el) : el;
+      into.insertAdjacentHTML('beforeend', miBtn(ka[0], ka[1], (into.textContent || ka[0]).trim().slice(0, 60)));
+      pin.appendChild(miPanelEl(ka[0], ka[1]));
+    });
+  });
+  var mc = document.getElementById('macroChips');
+  if (mc && mc.children.length && !mc.querySelector('.mi-btn')) {
+    var note = mc.querySelector('.mc-chips-note');
+    if (note) { note.insertAdjacentHTML('beforeend', ' ' + miBtn('mchips', '', 'Macro context chips')); var p = miPanelEl('mchips', ''); p.style.gridColumn = '1/-1'; mc.appendChild(p); }
+  }
+}
+var MI_DQ = 0;
+try { new MutationObserver(function(){ if (MI_DQ) return; MI_DQ = setTimeout(function(){ MI_DQ = 0; try { miDecorate(); } catch (e) {} }, 0); }).observe(document.body, {childList: true, subtree: true}); } catch (e) {}
+
+// ===================== GLOBAL: per-index detail (price + P/E history) =====================
+var GL_PH = null, GL_PE = null, GL_DET = {key: null, rng: '3Y', mode: 'real', peRng: '10Y'};
+function glFetchJSON(u){ return fetch(u + '?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); }
+function glLoadHist(){
+  if (GL_PH && GL_PE) return Promise.resolve();
+  return Promise.all([GL_PH ? GL_PH : glFetchJSON('./data/global_price_history.json'), GL_PE ? GL_PE : glFetchJSON('./data/global_pe_history.json')])
+    .then(function(r){ GL_PH = r[0] && r[0].byKey ? r[0] : null; GL_PE = r[1] && r[1].byKey ? r[1] : null; });
+}
+function glIx(key){ var o = null; if (GLOBAL_DATA && GLOBAL_DATA.indices) GLOBAL_DATA.indices.forEach(function(ix){ if (ix.key === key) o = ix; }); return o; }
+function glOpenDetail(key){
+  var el = document.getElementById('glDetail'); if (!el) return;
+  if (GL_DET.key === key && !el.hidden) { glCloseDetail(); return; }
+  GL_DET.key = key; el.hidden = false;
+  el.innerHTML = '<div class="mc-note">◌ Loading history…</div>';
+  glMarkCards();
+  glLoadHist().then(function(){ glRenderDetail(); var h = document.getElementById('glDetTitle'); if (h) { h.focus({preventScroll: true}); el.scrollIntoView({block: 'start', behavior: 'smooth'}); } });
+}
+function glCloseDetail(){
+  var el = document.getElementById('glDetail'), k = GL_DET.key; GL_DET.key = null;
+  if (el) { el.hidden = true; el.innerHTML = ''; }
+  glMarkCards();
+  var b = document.querySelector('.gl-vc-open[data-gl="' + k + '"]'); if (b) b.focus();
+}
+function glMarkCards(){
+  document.querySelectorAll('#glValGrid .gl-vc-open').forEach(function(b){ var on = b.getAttribute('data-gl') === GL_DET.key; b.setAttribute('aria-expanded', on ? 'true' : 'false'); b.textContent = on ? 'Hide charts ▴' : 'Show charts ▾'; });
+  document.querySelectorAll('#glValGrid .gl-vcard').forEach(function(c){ c.classList.toggle('sel', c.getAttribute('data-gl') === GL_DET.key); });
+}
+function glSetDet(k, v){ GL_DET[k] = v; glRenderDetail(); }
+function glPills(attr, cur, opts, label){
+  return '<div class="gl-pillrow" role="group" aria-label="' + label + '">' + opts.map(function(o){ return '<button type="button" class="gl-pill' + (o[0] === cur ? ' active' : '') + '" aria-pressed="' + (o[0] === cur) + '" onclick="glSetDet(\'' + attr + '\',\'' + o[0] + '\')">' + o[1] + '</button>'; }).join('') + '</div>';
+}
+function glCut(last, y){ var c = new Date(last + 'T00:00:00Z'); c.setUTCFullYear(c.getUTCFullYear() - y); return c.toISOString().slice(0, 10); }
+function glRenderDetail(){
+  var el = document.getElementById('glDetail'), key = GL_DET.key; if (!el || !key) return;
+  var ix = glIx(key), nm = ix ? ix.name : key, isEtf = key === 'csi300';
+  var h = '<div class="gl-det-head"><h3 id="glDetTitle" tabindex="-1">' + miEsc(nm) + (ix ? ' <small>' + miEsc(ix.region) + '</small>' : '') + '</h3><button type="button" class="gl-leg-btn" onclick="glCloseDetail()">Close ✕</button></div>'
+    + '<div class="gl-det-sub">Price' + (isEtf ? ' (510300 ETF that tracks the CSI 300, not the index level)' : '') + '</div>'
+    + '<div class="mc-ctl">' + glPills('rng', GL_DET.rng, [['1Y', '1Y'], ['3Y', '3Y'], ['Max', 'Max']], 'Price chart range') + glPills('mode', GL_DET.mode, [['real', 'Real values'], ['idx', 'Indexed, start = 100']], 'Price chart values') + '</div>'
+    + '<div class="mc-card" style="margin-top:8px"><div id="glPxKey" class="mc-key"></div><svg id="glPx" class="mc-svg" tabindex="0" role="img" aria-label="' + miEsc(nm) + ' daily close. Focus and use arrow keys to read each date."></svg><div id="glPxTip" class="mc-tip"></div></div><div id="glPxCap" class="mc-cap"></div>'
+    + '<div class="gl-det-sub" style="margin-top:16px">Trailing P/E</div><div id="glPeCtl" class="mc-ctl"></div>'
+    + '<div class="mc-card" id="glPeCard" style="margin-top:8px"><div id="glPeKey" class="mc-key"></div><svg id="glPe" class="mc-svg" tabindex="0" role="img" aria-label="' + miEsc(nm) + ' trailing P/E history. Focus and use arrow keys to read each date."></svg><div id="glPeTip" class="mc-tip"></div></div><div id="glPeCap" class="mc-cap"></div>';
+  el.innerHTML = h;
+  glRenderPx(key, ix); glRenderPe(key, nm);
+  mcBind('glPx'); mcBind('glPe');
+}
+function glRenderPx(key, ix){
+  var cap = document.getElementById('glPxCap'), svg = document.getElementById('glPx');
+  var M = GL_PH && GL_PH.manifest ? GL_PH.manifest[key] : null, all = GL_PH && GL_PH.byKey ? GL_PH.byKey[key] : null;
+  var rows = (all || []).filter(function(r){ return r && typeof r[0] === 'string' && miOk(r[1]) && r[1] > 0; });
+  if (!rows.length) { delete MC_CH.glPx; mcEmptySvg(svg, Math.max(300, svg.parentNode.clientWidth - 28), 'Price history unavailable.'); cap.textContent = 'Price history unavailable: data/global_price_history.json did not load or has no rows for this index.'; document.getElementById('glPxKey').innerHTML = ''; return; }
+  var last = rows[rows.length - 1][0], y = {'1Y': 1, '3Y': 3}[GL_DET.rng], cut = y ? glCut(last, y) : '0000';
+  var pts = rows.filter(function(r){ return r[0] >= cut; }), cur = (M && M.cur) || (ix && ix.cur) || '';
+  var col = GL_COLORS[key] || mcC('blue'), base = pts[0][1], idx = GL_DET.mode === 'idx';
+  var S = [{name: idx ? 'Index' : 'Close', col: col, w: 2.2, pts: idx ? pts.map(function(r){ return [r[0], r[1] / base * 100]; }) : pts,
+    fmt: function(v){ return idx ? v.toFixed(1) : mcFmt(v); },
+    tc: idx ? function(j){ return 'Close ' + mcFmt(pts[j][1]) + ' ' + cur; } : null}];
+  mcKey('glPxKey', [{name: (idx ? 'Indexed close (start = 100)' : 'Daily close, ' + cur), col: col}]);
+  mcLine('glPx', S, {base100: idx, baseDate: pts[0][0], dateLabel: 'Close', empty: 'No prices in this range.'});
+  var first = rows[0][0];
+  cap.innerHTML = 'Daily closes in ' + miEsc(cur) + ', local currency, price only. Shown: ' + pts[0][0] + ' (' + mcFmt(pts[0][1]) + ') to <strong>' + last + ' (' + mcFmt(pts[pts.length - 1][1]) + ')</strong>, ' + pts.length + ' trading days. '
+    + 'Source: ' + miEsc(M && M.source ? M.source : 'Yahoo Finance') + (M && M.sym ? ' (' + miEsc(M.sym) + ')' : '') + ', appended each run by scripts/fetch_global.py. History started ' + first + ' and grows daily, so Max and 3Y are close.'
+    + (key === 'csi300' ? ' <strong>This is the price of the 510300 ETF, which tracks the CSI 300; it is not the index level.</strong>' : '');
+}
+// Earnings-basis helpers. bandStats[k]: {all, current?, 10y?, basis?: {breakDate, breaks[], n, minPoints, rankWindow, ...}}.
+function glBasis(BS){ return BS && BS.basis && typeof BS.basis === 'object' ? BS.basis : null; }
+// Fair range = the band the verdict uses (refLo/refHi in global_val.json). One formatter so card, chart and glv panel print the same numbers.
+function glFR1(v){ return miOk(v) ? mcMinus((Math.round(v * 10) / 10).toFixed(1)) : 'unavailable'; }
+function glFR(it){ return it && miOk(it.refLo) && miOk(it.refHi) ? glFR1(it.refLo) + '–' + glFR1(it.refHi) : 'unavailable'; }
+function glWidened(it, st){ return !!(it && st && miOk(st.p25) && miOk(st.p75) && miOk(it.refLo) && miOk(it.refHi) && (Math.abs(it.refLo - Math.round(st.p25 * 10) / 10) > 0.001 || Math.abs(it.refHi - Math.round(st.p75 * 10) / 10) > 0.001)); }
+function glRawQ(st){ return st && miOk(st.p25) && miOk(st.p75) ? miF(st.p25) + '–' + miF(st.p75) : 'unavailable'; }
+function glOutTxt(b){ var o = b && Array.isArray(b.outliersExcluded) ? b.outliersExcluded.filter(function(x){ return typeof x === 'string'; }) : [];
+  if (!o.length) return '';
+  return (o.length === 1 ? 'One point (' + miEsc(o[0]) + ') is' : o.length + ' points (' + o.map(miEsc).join(', ') + ') are') + ' left out of the band and percentile as a one-off data glitch; ' + (o.length === 1 ? 'it stays' : 'they stay') + ' on the chart.'; }
+function glPctOk(BS, st){ var b = glBasis(BS); return !!(st && miOk(st.pctile) && !st.spansBreak && !(b && b.rankWindow === null)); }
+function glBasisWhy(b){
+  var br = b && Array.isArray(b.breaks) ? b.breaks.filter(function(x){ return typeof x === 'string'; }) : [];
+  if (!br.length) return '';
+  return 'An earnings-basis change is a one-time switch in how the source counts the earnings behind the P/E, so the P/E steps up or down on that date while the index price barely moves. '
+    + 'The data source reset its earnings basis for this market on ' + br.map(miEsc).join(', ') + ', so points before ' + miEsc(b.breakDate || br[br.length - 1]) + ' are not compared with today.';
+}
+function glRenderPe(key, nm){
+  var ctl = document.getElementById('glPeCtl'), cap = document.getElementById('glPeCap'), svg = document.getElementById('glPe'), card = document.getElementById('glPeCard');
+  var sk = key === 'nifty' ? 'niftyNSE' : key, ser = GL_PE && GL_PE.byKey ? GL_PE.byKey[sk] : null, BS = GLOBAL_VAL && GLOBAL_VAL.bandStats ? GLOBAL_VAL.bandStats[sk] : null;
+  if (!GL_PE) { card.style.display = 'none'; ctl.innerHTML = ''; cap.textContent = 'P/E history unavailable: data/global_pe_history.json did not load.'; delete MC_CH.glPe; return; }
+  if (!ser || !ser.length) { card.style.display = 'none'; ctl.innerHTML = ''; cap.innerHTML = '<strong>No P/E history</strong> is tracked for ' + miEsc(nm) + '. The page shows its price only.'; delete MC_CH.glPe; return; }
+  var w = key === 'nifty' ? (GL_DET.peRng === 'Max' ? 'all' : '10y') : (BS && BS.current ? 'current' : 'all'), st = BS ? (BS[w] || BS.all) : null;
+  var IT = null; if (GLOBAL_VAL && GLOBAL_VAL.indices) GLOBAL_VAL.indices.forEach(function(x){ if (x && x.key === key) IT = x; });
+  var bs = glBasis(BS), pctOk = glPctOk(BS, st), fixedRef = key === 'nifty';
+  // Dashed lines = the fair range the verdict uses (refLo/refHi), never the raw percentiles; none when there is no verdict or the block mixes two bases.
+  var bandOk = !!(IT && IT.verdict !== 'insufficient' && miOk(IT.refLo) && miOk(IT.refHi) && (fixedRef || (st && !st.spansBreak)));
+  var from = key === 'nifty' ? (st && st.start) : (BS && BS.all && BS.all.start);
+  ctl.innerHTML = key === 'nifty' ? glPills('peRng', GL_DET.peRng, [['10Y', '10 years'], ['Max', 'Since 1999']], 'P/E chart window') : '';
+  var rows = ser.filter(function(r){ return r && typeof r[0] === 'string' && miOk(r[1]); });
+  if (from) rows = rows.filter(function(r){ return r[0] >= from; });
+  if (!rows.length) { card.style.display = 'none'; cap.textContent = 'P/E history unavailable for this window.'; delete MC_CH.glPe; return; }
+  card.style.display = '';
+  var col = GL_COLORS[key] || mcC('blue'), f2 = function(v){ return v.toFixed(2); };
+  var S = [{name: 'P/E', col: col, w: 2.2, pts: rows, fmt: function(v){ return v.toFixed(2); }}];
+  // Fair-range lines only over the points the band was computed from (the current basis when there is one); the fixed Nifty reference spans the window.
+  if (bandOk) {
+    var inB = function(r){ return fixedRef || !st || !st.start || r[0] >= st.start; }, f1 = function(v){ return glFR1(v); };
+    S.push({name: 'Fair range high', col: 'var(--txt3)', w: 1.2, dash: '6 4', pts: rows.map(function(r){ return [r[0], inB(r) ? IT.refHi : null]; }), fmt: f1});
+    S.push({name: 'Fair range low', col: 'var(--txt3)', w: 1.2, dash: '6 4', pts: rows.map(function(r){ return [r[0], inB(r) ? IT.refLo : null]; }), fmt: f1});
+  }
+  var bd = bs && typeof bs.breakDate === 'string' ? bs.breakDate : null, bj = -1;
+  if (bd) for (var q = 0; q < rows.length; q++) { if (rows[q][0] >= bd) { bj = q; break; } }
+  var keyL = [{name: 'Trailing P/E', col: col}];
+  if (bandOk) keyL.push({name: 'fair range ' + glFR(IT) + (fixedRef ? ' (fixed reference)' : (w === 'current' ? ' since ' + st.start + ' (current basis)' : '')), col: 'var(--txt3)', dash: '6 4'});
+  keyL.push({name: '◆ current value', col: 'var(--txt)'});
+  if (bj > 0) keyL.push({name: '┊ earnings basis changed ' + bd, col: 'var(--sub)', dash: '2 3'});
+  mcKey('glPeKey', keyL);
+  mcLine('glPe', S, {dateLabel: 'Date', empty: 'No P/E points in this window.'});
+  var C = MC_CH.glPe, lv = rows[rows.length - 1][1];
+  if (C && bj > 0 && C.pad) {
+    var bx = C.xAt(bj), top = C.pad.t, bot = C.H - C.pad.b, right = bx > C.pad.l + C.iW * 0.55, hb = document.getElementById('glPeH');
+    var lbl = 'earnings basis changed ' + miEsc(bd);
+    if (hb) hb.insertAdjacentHTML('beforebegin', '<g class="gl-break"><line x1="' + bx.toFixed(1) + '" x2="' + bx.toFixed(1) + '" y1="' + top + '" y2="' + bot + '" stroke="var(--sub)" stroke-width="1.2" stroke-dasharray="2 3"/>'
+      + '<text x="' + (bx + (right ? -4 : 4)).toFixed(1) + '" y="' + (top + 10) + '" text-anchor="' + (right ? 'end' : 'start') + '" fill="var(--sub)" font-size="9.5" font-weight="600" stroke="var(--sur)" stroke-width="3" paint-order="stroke">' + lbl + '</text><title>' + lbl + '</title></g>'); }
+  if (C) { var x = C.xAt(C.n - 1), yy = C.yAt(lv), hg = document.getElementById('glPeH');
+    if (hg) hg.insertAdjacentHTML('beforebegin', '<path d="M' + x.toFixed(1) + ' ' + (yy - 7).toFixed(1) + 'L' + (x + 7).toFixed(1) + ' ' + yy.toFixed(1) + 'L' + x.toFixed(1) + ' ' + (yy + 7).toFixed(1) + 'L' + (x - 7).toFixed(1) + ' ' + yy.toFixed(1) + 'Z" fill="var(--txt)" stroke="var(--sur)" stroke-width="1.5"><title>Current P/E ' + lv.toFixed(2) + '</title></path>'); }
+  var M = GL_PE.manifest ? GL_PE.manifest[sk] : null;
+  var win = w === 'current' ? 'the points since the last earnings-basis change' : 'this window';
+  var t = '◆ Current P/E <strong>' + lv.toFixed(2) + '</strong> on ' + rows[rows.length - 1][0]
+    + (pctOk ? ' is at the <strong>' + miPw(st.pctile) + ' percentile</strong> of ' + win + ' (n = ' + st.n.toLocaleString('en-IN') + ' points since ' + st.start + ').'
+      : (st && (st.spansBreak || (bs && bs.rankWindow === null)) ? '. <strong>Percentile not shown: too few points on current basis</strong>' + (bs && miOk(bs.n) && miOk(bs.minPoints) ? ' (' + bs.n + ' of ' + bs.minPoints + ' needed since ' + miEsc(bs.breakDate || 'the change') + ').' : '.') : '. Percentile unavailable.'))
+    + (bandOk ? ' Dashed lines: <strong>fair range ' + glFR(IT) + '</strong>, the band the verdict uses' + (w === 'current' ? ', drawn from ' + st.start + '.' : '.')
+      + (fixedRef ? ' For India it is a fixed long-run reference band, not a percentile band. Raw 25th–75th of ' + (w === '10y' ? 'the last 10 years' : 'the full history') + ': ' + glRawQ(st) + '.'
+        : (glWidened(IT, st) ? ' Fair range = middle half (25th–75th percentile) of this market’s own P/E, widened to at least 3 points. Raw 25th–75th: ' + glRawQ(st) + '.' : ' Fair range = middle half (25th–75th percentile) of this market’s own P/E.'))
+      : (st && st.spansBreak ? ' No band lines: the full history mixes two earnings bases.' : (IT && IT.verdict === 'insufficient' ? ' No band lines: no verdict yet.' : '')));
+  var why = glBasisWhy(bs); if (why) t += ' ' + why;
+  if (glOutTxt(bs)) t += ' ' + glOutTxt(bs);
+  if (key === 'nifty') t += ' Series: NSE Nifty 50 P/E (niftyindices), extended each run. '
+    + (w === '10y' ? 'The 10-year window is the default because NSE’s earnings basis may have changed around 2021; over the full history since 1999 the same P/E ranks ' + (BS && BS.all ? miPw(BS.all.pctile) : 'unavailable') + '.' : 'Full history since 1999; the earnings basis may have changed around 2021, so the 10-year view is the better guide.');
+  else t += ' Series: ' + miEsc(M && M.definition ? M.definition : 'worldperatio country basket') + ', not ' + miEsc(nm) + '’s own P/E. History started 2023-07 and grows daily; early points are archived snapshots with gaps.';
+  cap.innerHTML = t;
+}
+document.addEventListener('pointerdown', function(ev){ if (CURRENT_VIEW === 'global' && !(ev.target.closest && ev.target.closest('.mc-svg'))) { mcHide('glPx'); mcHide('glPe'); } });
+
+// ===================== SIGN-IN GATING + ADMIN =====================
+// Contract: ADMIN_SETUP.md. The Google ID token is kept in memory only (never stored).
+var AUTH_TOKEN = null, IS_ADMIN = false, AUTH_ACCESS = null;
+try { AUTH_ACCESS = JSON.parse(localStorage.getItem('is_access') || 'null'); } catch (e) { AUTH_ACCESS = null; }
+function accessDenied(){ return !!(IS_USER && AUTH_ACCESS && AUTH_ACCESS.allowed === false && AUTH_ACCESS.email === IS_USER.email); }
+function accessApply(){
+  var den = accessDenied();
+  document.querySelectorAll('[onclick*="openAlerts"]').forEach(function(b){ b.style.display = den ? 'none' : ''; });
+  var n = document.getElementById('accessNote');
+  if (den) {
+    if (!n) { n = document.createElement('div'); n.id = 'accessNote'; n.className = 'access-note'; n.setAttribute('role', 'status'); var hd = document.querySelector('.hdr'); if (hd) hd.insertAdjacentElement('afterend', n); }
+    n.textContent = 'This account is not approved for alerts.';
+    try { closeAlerts(); } catch (e) {}
+  } else if (n) n.remove();
+}
+function apiPost(path, body){
+  return fetch(LIVE_PROXY_URL + path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
+    .then(function(r){ return r.ok ? r.json() : null; });
+}
+// After a fresh Google sign-in. Worker unreachable or bad reply: keep the previous behaviour (fail open).
+function accessCheck(tok){
+  AUTH_TOKEN = tok || null; adminRemove();
+  if (!tok || !LIVE_PROXY_URL) return;
+  apiPost('/signin', {token: tok}).then(function(j){
+    if (!j || typeof j.allowed !== 'boolean' || tok !== AUTH_TOKEN) return;
+    AUTH_ACCESS = {email: j.email || (IS_USER && IS_USER.email) || '', allowed: j.allowed};
+    try { localStorage.setItem('is_access', JSON.stringify(AUTH_ACCESS)); } catch (e) {}
+    accessApply();
+    if (j.allowed || j.isAdmin) adminVerify(tok);
+  }).catch(function(){});
+}
+function adminVerify(tok){
+  apiPost('/admin/verify', {token: tok}).then(function(j){
+    if (!j || tok !== AUTH_TOKEN) return;
+    if (j.isAdmin === true) { IS_ADMIN = true; try { localStorage.setItem('is_admin_hint', (IS_USER && IS_USER.email) || ''); } catch (e) {} adminInstall(); }
+    else { try { localStorage.removeItem('is_admin_hint'); } catch (e) {} adminHint(); }
+  }).catch(function(){});
+}
+function accessSignOut(){
+  AUTH_TOKEN = null; AUTH_ACCESS = null;
+  try { localStorage.removeItem('is_access'); localStorage.removeItem('is_admin_hint'); } catch (e) {}
+  adminRemove(); accessApply(); adminHint();
+}
+// After a reload the Google ID token is gone (kept in memory only, by design), so the Admin tab cannot be
+// rebuilt. If this account was confirmed as admin before, say so where the tab would be. Stores only the email.
+function adminHint(){
+  var n = document.getElementById('adminHint'), hint = null;
+  try { hint = localStorage.getItem('is_admin_hint'); } catch (e) {}
+  var show = !IS_ADMIN && !AUTH_TOKEN && IS_USER && hint && hint === IS_USER.email;
+  if (!show) { if (n) n.remove(); return; }
+  if (n) return;
+  var tabs = document.querySelector('.page-tabs'); if (!tabs) return;
+  n = document.createElement('span'); n.id = 'adminHint'; n.className = 'ptab ptab-note'; n.setAttribute('role', 'note');
+  n.textContent = 'Admin: sign out and in again to open';
+  n.title = 'The Google sign-in token is kept in memory only and is not stored, so after a reload the Admin tab needs a fresh sign-in.';
+  tabs.appendChild(n);
+}
+function adminInstall(){
+  if (!IS_ADMIN || document.getElementById('adminTab')) return;
+  var hn = document.getElementById('adminHint'); if (hn) hn.remove();
+  var tabs = document.querySelector('.page-tabs'), help = document.getElementById('view-help');
+  if (!tabs || !help) return;
+  var b = document.createElement('button'); b.className = 'ptab'; b.id = 'adminTab'; b.type = 'button'; b.setAttribute('data-view', 'admin'); b.textContent = 'Admin';
+  b.onclick = function(){ showMainView('admin', b); };
+  tabs.appendChild(b);
+  var v = document.createElement('div'); v.id = 'view-admin'; v.className = 'view';
+  v.innerHTML = '<div class="gl-wrap"><div class="gl-intro">Admin. Visible only to an account the worker confirms as admin, for this sign-in.</div>'
+    + '<div class="gl-section-title">Pipeline health (data/status.json)</div><div id="adStatus" class="mc-card"></div>'
+    + '<div class="gl-section-title">Users</div><div id="adMsg" class="ad-msg" role="status" aria-live="polite"></div><div id="adUsers" class="mc-card"></div>'
+    + '<div class="gl-section-title">Access note</div><div class="mc-card mc-cap" style="margin:0">The data files under /data are public; anyone can read them. Only sign-in features (email alerts and this admin view) are restricted.</div></div>';
+  help.insertAdjacentElement('afterend', v);
+}
+function adminRemove(){
+  IS_ADMIN = false;
+  var b = document.getElementById('adminTab'), v = document.getElementById('view-admin');
+  var was = CURRENT_VIEW === 'admin';
+  if (b) b.remove(); if (v) v.remove();
+  if (was) showMainView('dashboard', document.querySelector('.ptab'));
+}
+var AD_SHAPE = {OK: '✓', LATE: '◐', STALE: '▲', MISSING: '✕'};
+function adState(s){ s = String(s || 'MISSING').toUpperCase(); return '<span class="ad-st ad-' + s.toLowerCase() + '">' + (AD_SHAPE[s] || '?') + ' ' + miEsc(s) + '</span>'; }
+function renderAdmin(){
+  if (!IS_ADMIN) return;
+  var se = document.getElementById('adStatus');
+  se.innerHTML = '<div class="mc-note">◌ Loading status…</div>';
+  fetch('./data/status.json?t=' + Date.now()).then(function(r){ return r.ok ? r.json().then(function(j){ return j === null ? {_bad: 1} : j; }, function(){ return {_bad: 1}; }) : {_miss: r.status}; }).catch(function(){ return null; }).then(function(s){
+    var cap = function(t){ se.innerHTML = '<p class="mc-cap">' + t + '</p>'; };
+    if (!s) return cap('✕ Status file unavailable: data/status.json could not be fetched.');
+    if (s._miss) return cap('✕ Status file missing (HTTP ' + miEsc(s._miss) + '): the workflow has not written data/status.json yet.');
+    if (s._bad || typeof s !== 'object' || Array.isArray(s)) return cap('✕ Status file unreadable: data/status.json is not valid JSON.');
+    var run = s.run || {};
+    if (!s.feeds || typeof s.feeds !== 'object' || !Object.keys(s.feeds).length)
+      return cap('✕ Status feed empty: last run did not write status.' + (s.error ? ' Error: ' + miEsc(String(s.error).slice(0, 300)) + '.' : '') + (run.runId ? ' Run ' + miEsc(run.runId) + '.' : ''));
+    var url = typeof run.runUrl === 'string' && /^https:\/\/github\.com\//.test(run.runUrl) ? run.runUrl : null;
+    var h = (s.error ? '<p class="mc-cap">✕ Status script error: ' + miEsc(String(s.error).slice(0, 300)) + '</p>' : '') + '<p class="mc-cap">Overall: ' + adState(s.overall) + ' · Run ' + (url ? '<a href="' + miEsc(url) + '" target="_blank" rel="noopener">' + miEsc(run.runId || 'link') + '</a>' : miEsc(run.runId || 'unavailable')) + ' · conclusion: <strong>' + miEsc(run.conclusion || 'unavailable') + '</strong></p>';
+    h += '<div class="mc-tblwrap"><table class="mc-tbl"><thead><tr><th>Feed</th><th>State</th><th>Last date</th><th>Age</th><th>Rows</th><th>Source</th></tr></thead><tbody>';
+    Object.keys(s.feeds).forEach(function(k){
+      var f = s.feeds[k] || {}, age;
+      // Show the age in the unit the feed is graded in: weekday hours for the Mac job (buffett), else business days.
+      if (miOk(f.ageWeekdayHours)) { var wh = Math.round(f.ageWeekdayHours * 10) / 10; age = wh + (wh === 1 ? ' weekday hour' : ' weekday hours'); }
+      else if (miOk(f.ageBusinessDays)) age = f.ageBusinessDays + (f.ageBusinessDays === 1 ? ' business day' : ' business days');
+      else age = 'unavailable';
+      h += '<tr><td data-l="Feed">' + miEsc(k) + '</td><td data-l="State">' + adState(f.state) + (f.error ? '<br><small>' + miEsc(String(f.error).slice(0, 200)) + '</small>' : '') + '</td><td data-l="Last date">' + miEsc(f.lastDate || 'unavailable') + '</td><td data-l="Age">' + age + '</td><td data-l="Rows">' + (miOk(f.rows) ? f.rows.toLocaleString('en-IN') : 'unavailable') + '</td><td data-l="Source">' + miEsc(f.source || 'unavailable') + '</td></tr>';
+    });
+    se.innerHTML = h + '</tbody></table></div><p class="mc-note">Shapes: ✓ OK, ◐ LATE, ▲ STALE, ✕ MISSING.</p>';
+  });
+  adLoadUsers();
+}
+function adLoadUsers(){
+  var ue = document.getElementById('adUsers'); if (!ue) return;
+  if (!AUTH_TOKEN) { ue.innerHTML = '<p class="mc-cap">Sign in again to manage users.</p>'; return; }
+  ue.innerHTML = '<div class="mc-note">◌ Loading users…</div>';
+  fetch(LIVE_PROXY_URL + '/admin/users', {headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}}).then(function(r){
+    if (r.status === 401) throw new Error('Your sign-in has expired. Sign in again to manage users.');
+    if (r.status === 403) throw new Error('This account is not an admin.');
+    if (!r.ok) throw new Error('The worker returned an error (' + r.status + ').');
+    return r.json();
+  }).then(function(j){
+    var U = j && Array.isArray(j.users) ? j.users : [];
+    var h = '<p class="mc-cap">Default policy for new accounts: <strong>' + miEsc(j && j.defaultPolicy || 'unavailable') + '</strong> · ' + U.length + ' accounts.</p><div class="mc-tblwrap"><table class="mc-tbl"><thead><tr><th>Email</th><th>Status</th><th>Alerts</th><th>Admin</th><th>Last seen</th><th>Sign-ins</th><th>Action</th></tr></thead><tbody>';
+    U.forEach(function(u, i){
+      var st = u.status === 'allow' || u.status === 'deny' ? u.status : 'none';
+      var adBtn = function(nx){ return nx === 'deny' && u.isAdmin ? 'admin, cannot deny' : '<button type="button" class="gl-leg-btn" data-ad-email="' + miEsc(u.email) + '" data-ad-next="' + nx + '" data-ad-i="' + i + '" onclick="adAsk(this)">' + (nx === 'allow' ? 'Allow' : 'Deny') + '</button>'; };
+      var acts = st === 'allow' ? adBtn('deny') : (st === 'deny' ? adBtn('allow') : adBtn('allow') + ' ' + adBtn('deny'));
+      h += '<tr><td data-l="Email">' + miEsc(u.email) + (u.name ? '<br><small>' + miEsc(u.name) + '</small>' : '') + '</td><td data-l="Status">' + miEsc(u.status || 'none') + '</td><td data-l="Alerts">' + (u.allowed ? '✓ allowed' : '✕ blocked') + '</td><td data-l="Admin">' + (u.isAdmin ? 'yes' : 'no') + '</td><td data-l="Last seen">' + miEsc(u.lastSeen || '—') + '</td><td data-l="Sign-ins">' + (miOk(u.count) ? u.count : '—') + '</td><td data-l="Action" id="adAct' + i + '">'
+        + acts + '</td></tr>';
+    });
+    ue.innerHTML = h + '</tbody></table></div>';
+  }).catch(function(e){ ue.innerHTML = '<p class="mc-cap">Users unavailable: ' + miEsc(e && e.message && /^(Your|This|The)/.test(e.message) ? e.message : 'the worker could not be reached.') + '</p>'; });
+}
+function adAsk(b){
+  var em = b.getAttribute('data-ad-email'), nx = b.getAttribute('data-ad-next'), cell = b.parentNode;
+  cell.innerHTML = 'Set ' + miEsc(em) + ' to <strong>' + nx + '</strong>? <button type="button" class="gl-leg-btn" onclick="adDo(this)" data-ad-email="' + miEsc(em) + '" data-ad-next="' + nx + '">Confirm</button> <button type="button" class="gl-leg-btn" onclick="adLoadUsers()">Cancel</button>';
+  var c = cell.querySelector('button'); if (c) c.focus();
+}
+function adDo(b){
+  var em = b.getAttribute('data-ad-email'), nx = b.getAttribute('data-ad-next'), msg = document.getElementById('adMsg');
+  b.disabled = true;
+  fetch(LIVE_PROXY_URL + '/admin/users', {method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH_TOKEN}, body: JSON.stringify({email: em, status: nx})})
+    .then(function(r){ return r.json().catch(function(){ return null; }).then(function(j){ return {ok: r.ok && j && j.ok, st: r.status, j: j}; }); })
+    .then(function(res){
+      msg.className = 'ad-msg ' + (res.ok ? 'ok' : 'err');
+      msg.textContent = res.ok ? '✓ Saved: ' + em + ' is now ' + nx + '.' : '✕ Not saved (' + res.st + (res.j && (res.j.message || res.j.error || res.j.reason) ? ': ' + String(res.j.message || res.j.error || res.j.reason).slice(0, 200) : '') + ').';
+      adLoadUsers();
+    }).catch(function(){ msg.className = 'ad-msg err'; msg.textContent = '✕ Not saved: the worker could not be reached.'; adLoadUsers(); });
+}
+
+
+MI_TEXT.detpe = function(){ return MI_TEXT.idx(DETAILS_INDEX || 'n50'); };
+setTimeout(function(){ try { accessApply(); } catch (e) {} try { adminHint(); } catch (e) {} try { miDecorate(); } catch (e) {} }, 0);
 
 (function init() {
   initAuth();
@@ -5764,6 +6672,7 @@ function alertsExchangeSession(googleCredential){
 // Accepts either an index key string (pre-select index only) or a pre-fill
 // object {index, metric, direction, threshold}.
 function openAlerts(pre){
+  if (typeof accessDenied === 'function' && accessDenied()) { accessApply(); return; }
   document.getElementById('alerts-modal').classList.add('open');
   renderAlertsBody(typeof pre==='string' ? {index:pre} : pre);
 }
