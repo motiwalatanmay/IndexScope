@@ -5454,7 +5454,10 @@ function mcShow(id, i, announce) {
   tip.innerHTML = r.h; tip.style.display = 'block';
   var px = 14 + (C.kind === 'bars' ? C.bar(i).x + C.bar(i).w / 2 : C.xAt(i)) * C.sc, TW = 216, left = px + 12;
   if (left + TW > C.cardW - 4) left = px - 12 - TW;
-  tip.style.left = Math.max(4, left) + 'px'; tip.style.top = '34px';
+  tip.style.left = Math.max(4, left) + 'px';
+  // Sit below the key/legend, over the plot, so the legend stays readable on a phone.
+  var sv = document.getElementById(id), cardBox = tip.parentElement.getBoundingClientRect(), svTop = sv ? sv.getBoundingClientRect().top - cardBox.top : 0;
+  tip.style.top = (svTop > 0 ? Math.round(svTop) + 4 : 34) + 'px';
   if (announce) { var lv = document.getElementById('mcLive'); if (lv) lv.textContent = r.t; }
   // Shared crosshair: the other weekly charts mark the same week (marker only, no second tooltip).
   if (C.group) MC_GROUP_IDS.forEach(function(o){
