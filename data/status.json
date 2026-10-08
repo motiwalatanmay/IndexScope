@@ -1,0 +1,254 @@
+{
+ "schema": 1,
+ "generatedAt": "2026-10-08T17:11:21Z",
+ "todayIST": "2026-10-08",
+ "overall": "OK",
+ "counts": {
+  "OK": 12,
+  "LATE": 0,
+  "STALE": 0,
+  "MISSING": 0
+ },
+ "run": {
+  "runId": "37814521573",
+  "runAttempt": "1",
+  "runUrl": "https://github.com/motiwalatanmay/IndexScope/actions/runs/37814521573",
+  "workflow": "Update index data",
+  "event": "workflow_dispatch",
+  "sha": "a6d00d77c78b4e79176d5dfc1ae0700d180c0603",
+  "conclusion": "success",
+  "conclusionNote": "computed from step outcomes before the commit step; 'partial' = an optional (continue-on-error) step failed",
+  "steps": {
+   "indices": "success",
+   "global": "success",
+   "global_val": "success",
+   "macro": "success",
+   "fii": "success",
+   "gsec": "success",
+   "alerts": "success"
+  }
+ },
+ "feeds": {
+  "n50": {
+   "key": "n50",
+   "file": "data/n50.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:10:58.483372Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 149,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "nn50": {
+   "key": "nn50",
+   "file": "data/nn50.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:10:58.483372Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 149,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "nmid150": {
+   "key": "nmid150",
+   "file": "data/nmid150.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:10:58.483372Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 149,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "sc250": {
+   "key": "sc250",
+   "file": "data/sc250.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:10:58.483372Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 149,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "n500": {
+   "key": "n500",
+   "file": "data/n500.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:10:58.483372Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 153,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "gsec": {
+   "key": "gsec",
+   "file": "data/gsec.json",
+   "source": "action",
+   "lastDate": "2026-10-07",
+   "fetchedAt": null,
+   "ageHours": 46.7,
+   "ageBusinessDays": 1,
+   "rows": 6909,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "lastDate 00:00 IST"
+  },
+  "global": {
+   "key": "global",
+   "file": "data/global.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:10:59.178728Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 13,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "global_val": {
+   "key": "global_val",
+   "file": "data/global_val.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:11:10.835665Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 9,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "global_pe_history": {
+   "key": "global_pe_history",
+   "file": "data/global_pe_history.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": null,
+   "ageHours": 22.7,
+   "ageBusinessDays": 0,
+   "rows": 6932,
+   "fileStatus": null,
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "lastDate 00:00 IST"
+  },
+  "macro": {
+   "key": "macro",
+   "file": "data/macro.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:11:12Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 573,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "fii": {
+   "key": "fii",
+   "file": "data/fii.json",
+   "source": "action",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T17:11:19Z",
+   "ageHours": 0.0,
+   "ageBusinessDays": 0,
+   "rows": 2982,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "businessDays",
+    "late": 1,
+    "stale": 4
+   },
+   "ageBasis": "fetchedAt"
+  },
+  "buffett": {
+   "key": "buffett",
+   "file": "data/buffett.json",
+   "source": "mac-job",
+   "lastDate": "2026-10-08",
+   "fetchedAt": "2026-10-08T15:45:07.594020Z",
+   "ageHours": 1.4,
+   "ageBusinessDays": 0,
+   "rows": 117,
+   "fileStatus": "ok",
+   "state": "OK",
+   "thresholds": {
+    "unit": "weekdayHours",
+    "late": 12,
+    "stale": 36
+   },
+   "ageBasis": "fetchedAt",
+   "ageWeekdayHours": 1.4
+  }
+ },
+ "notes": [
+  "Business days are Mon-Fri in IST; NSE holidays are not modelled, so a feed can read LATE the day after a market holiday.",
+  "buffett is pushed by a Mac job (Mon-Fri); its LATE/STALE use weekday hours."
+ ]
+}
