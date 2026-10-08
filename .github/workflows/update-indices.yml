@@ -29,25 +29,30 @@ jobs:
       - run: pip install requests yfinance
 
       - name: Fetch NSE /api/allIndices and upsert data/*.json
+        id: indices
         run: python scripts/fetch_indices.py
 
       - name: Fetch global index history (yfinance) -> data/global.json
+        id: global
         # Non-fatal: a Yahoo hiccup must not block the India refresh. The
         # frontend keeps the last committed global.json if this is skipped.
         continue-on-error: true
         run: python scripts/fetch_global.py
 
       - name: Fetch global valuation (trailing P/E + CAPE) -> data/global_val.json
+        id: global_val
         continue-on-error: true
         run: python scripts/fetch_global_val.py
 
       - name: Fetch macro series (USD/INR, Brent futures, Nifty) -> data/macro.json
+        id: macro
         # Non-fatal: fetch_macro.py refuses to write on thin or stale data, so a Yahoo gap
         # leaves the last committed file. The page reads asOf from the file and prints its age.
         continue-on-error: true
         run: python scripts/fetch_macro.py
 
       - name: Fetch FII equity flows (NSDL FPI daily) -> data/fii.json
+        id: fii
         # Tested from a runner on 2026-10-08: NSDL answered and fetch_fii.py parsed 26 rows.
         # Non-fatal: the script exits 1 without writing when it parses 0 rows or only rows
         # older than 7 days, so a block leaves the last committed file. The page and
@@ -62,11 +67,13 @@ jobs:
       # scripts/fetch_buffett.py from a residential IP and pushes buffett.json only.
 
       - name: Refresh India 10Y G-Sec series (EY-BY panel)
+        id: gsec
         # Non-fatal: frontend has an embedded fallback series.
         continue-on-error: true
         run: python scripts/fetch_gsec.py
 
       - name: Evaluate user alerts and email on crossings
+        id: alerts
         # Non-fatal: a worker/Resend hiccup must not block the data refresh.
         # Reads users' alerts from the worker, emails crossings via Resend,
         # and updates data/alert_state.json (committed below).
@@ -77,6 +84,41 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERT_FROM: ${{ secrets.ALERT_FROM }}
         run: python scripts/eval_alerts.py
+
+      - name: Write pipeline status -> data/status.json
+        # Freshness of every feed + this run's step outcomes, for the admin tab.
+        # Never fails the run; the commit step below picks the file up via data/*.json.
+        id: status
+        if: always()
+        continue-on-error: true
+        env:
+          STEP_INDICES: ${{ steps.indices.outcome }}
+          STEP_GLOBAL: ${{ steps.global.outcome }}
+          STEP_GLOBAL_VAL: ${{ steps.global_val.outcome }}
+          STEP_MACRO: ${{ steps.macro.outcome }}
+          STEP_FII: ${{ steps.fii.outcome }}
+          STEP_GSEC: ${{ steps.gsec.outcome }}
+          STEP_ALERTS: ${{ steps.alerts.outcome }}
+        run: python scripts/write_status.py
+
+      - name: Validate global archive (append-only guard)
+        # validate_global.py checks dates, P/E range, unflagged price jumps, stored
+        # minimum lengths, and that no point present at HEAD has gone missing. On
+        # failure the global files are restored to HEAD so the commit below cannot
+        # shrink history, the India refresh still commits, and the last step fails
+        # the run so the problem is visible.
+        id: gval
+        run: |
+          if python scripts/validate_global.py --against-git HEAD --update-floor; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::validate_global.py failed; restoring global archive files from HEAD"
+            for f in data/global.json data/global_val.json data/global_pe_history.json \
+                     data/global_price_history.json data/global_archive_floor.json; do
+              git checkout HEAD -- "$f" 2>/dev/null || rm -f "$f"
+            done
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Commit updated data
         run: |
@@ -90,3 +132,32 @@ jobs:
             # The Mac job may have pushed meanwhile; it only writes buffett.json.
             for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep $((i*5)); done
           fi
+
+      - name: Publish status when the run failed
+        # The commit step is skipped when a required step (fetch_indices) fails, so
+        # status.json would never reach the site. Re-write it and push ONLY that file.
+        if: failure()
+        continue-on-error: true
+        env:
+          STEP_INDICES: ${{ steps.indices.outcome }}
+          STEP_GLOBAL: ${{ steps.global.outcome }}
+          STEP_GLOBAL_VAL: ${{ steps.global_val.outcome }}
+          STEP_MACRO: ${{ steps.macro.outcome }}
+          STEP_FII: ${{ steps.fii.outcome }}
+          STEP_GSEC: ${{ steps.gsec.outcome }}
+          STEP_ALERTS: ${{ steps.alerts.outcome }}
+        run: |
+          python scripts/write_status.py || true
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/status.json
+          if git diff --staged --quiet; then exit 0; fi
+          git commit -m "data: pipeline status after failed run ($(date -u +%Y-%m-%dT%H:%MZ))"
+          for i in 1 2 3; do git pull --rebase --autostash origin main && git push && break; sleep $((i*5)); done
+          exit 0
+
+      - name: Fail the run if the global archive failed validation
+        if: steps.gval.outputs.ok != 'true'
+        run: |
+          echo "::error::Global archive validation failed; global files were not committed. See the validate step."
+          exit 1
