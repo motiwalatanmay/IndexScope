@@ -1166,9 +1166,9 @@ body.light .hp-formula .k{color:#4f46e5}
     <div class="mc-card"><div id="mcIdxFx" class="mc-idx"></div><div id="mcKeyFx" class="mc-key"></div><svg id="mcFx" class="mc-svg" tabindex="0" role="img" aria-label="USD/INR with Nifty in rupees and dollars, indexed to 100 at the start of the range"></svg><div id="mcFxTip" class="mc-tip"></div></div>
     <details class="mc-more"><summary>More detail</summary><div id="mcFxCap" class="mc-cap"></div></details>
 
-    <div class="gl-section-title">2 &middot; Crude: Brent futures vs Nifty <button type="button" class="mi-btn" data-mi="mcbr" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcbr" aria-label="How this is measured: crude panel">i</button></div><div class="mi-panel" id="mi-mcbr" role="region" aria-label="Method" hidden></div>
+    <div class="gl-section-title">2 &middot; Crude: Brent spot vs Nifty <button type="button" class="mi-btn" data-mi="mcbr" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcbr" aria-label="How this is measured: crude panel">i</button></div><div class="mi-panel" id="mi-mcbr" role="region" aria-label="Method" hidden></div>
     <div id="mcPlainBr" class="mc-plain"></div>
-    <div class="mc-card"><div id="mcIdxBr" class="mc-idx"></div><div id="mcKeyBr" class="mc-key"></div><svg id="mcBr" class="mc-svg" tabindex="0" role="img" aria-label="Brent front-month futures and Nifty, indexed to 100 at the start of the range"></svg><div id="mcBrTip" class="mc-tip"></div></div>
+    <div class="mc-card"><div id="mcIdxBr" class="mc-idx"></div><div id="mcKeyBr" class="mc-key"></div><svg id="mcBr" class="mc-svg" tabindex="0" role="img" aria-label="Brent spot and Nifty, indexed to 100 at the start of the range"></svg><div id="mcBrTip" class="mc-tip"></div></div>
     <details class="mc-more"><summary>More detail</summary><div id="mcBrCap" class="mc-cap"></div></details>
 
     <div class="gl-section-title">3 &middot; Foreign investor flows (FII net buying or selling of shares) <button type="button" class="mi-btn" data-mi="mcfii" data-mi-arg="" aria-expanded="false" aria-controls="mi-mcfii" aria-label="How this is measured: foreign investor flows">i</button></div><div class="mi-panel" id="mi-mcfii" role="region" aria-label="Method" hidden></div>
@@ -1202,8 +1202,8 @@ body.light .hp-formula .k{color:#4f46e5}
       <dd>Where today&rsquo;s value sits in its own past. The 80th percentile means about 80 in 100 past values were lower.</dd>
       <dt>HEADWIND, NEUTRAL, TAILWIND</dt>
       <dd>This page&rsquo;s labels. Each series&rsquo; latest 12-month change (for FII, its 5-date total) is ranked against its own past. &#9670; HEADWIND: the quarter of that past in the direction usually seen as bad for Indian shares. &#9679; NEUTRAL: the middle half. &#9650; TAILWIND: the quarter in the other direction. They rank the series itself, not share prices, and are not forecasts.</dd>
-      <dt>Front-month futures</dt>
-      <dd>The oil futures contract that expires soonest. Its price can differ from the cash (spot) price paid today.</dd>
+      <dt>Spot and front-month futures</dt>
+      <dd>Spot is the cash price paid today for a barrel of Brent. The front-month future is the contract that expires soonest. The future can sit well below spot. This page shows spot as the headline and the future as context.</dd>
     </dl></div>
 
     <div class="gl-section-title">Sources, definitions and freshness</div>
@@ -1874,7 +1874,7 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="hp-p">Each reading carries one word and one shape: <strong>◆ HEADWIND</strong>, <strong>● NEUTRAL</strong>, <strong>▲ TAILWIND</strong>. For USD/INR and Brent, the page takes the latest 12-month change and ranks it against every rolling 12-month change in the last 10 years. The top quarter is a headwind (a weaker rupee or dearer oil hurts an economy that imports oil and relies on portfolio inflows). The bottom quarter is a tailwind. For FII, the page ranks the sum of the last 5 reporting dates against all rolling 5-date sums since 2014. The direction flips: heavy selling is the headwind.</div>
       <div class="hp-card info"><div class="hp-p" style="margin-bottom:0">A headwind describes how extreme the move is against history. It is not a forecast. The correlation panel shows why. It measures how weekly Nifty returns and each series moved in the same week. A negative value means they moved in opposite directions; a value between −0.1 and +0.1 is near zero. The caption names the sign and size of each figure, including the one-week-lead figures, and none of them is a forecast.</div></div>
       <div class="hp-sub-h">What to know about each source</div>
-      <div class="hp-p"><strong>Brent</strong> is front-month futures from Yahoo (BZ=F), not spot. The two can differ materially. <strong>FII</strong> comes from NSDL, the depository, and covers equity only. Each NSDL date is the reporting date and carries the <em>previous</em> trading day’s trades. A few rows combine several trading days; the chart marks rows that look that way with †. The NSE same-day figure is provisional and is shown as text, not added to the chart. If a source is more than 4 business days (Mon-Fri, counted to today in India) old, the page says STALE with the age in business days. Exchange holidays still count as business days (there is no holiday calendar), so a run of several holidays can show STALE early. The newest weekly point on the price charts can be a partial week (the last quote, not a weekly close); the charts mark it with a hollow circle and the words “partial week”.</div>
+      <div class="hp-p"><strong>Brent</strong> is the spot price (Europe Brent) from FRED, series DCOILBRENTEU, which lags about 2 business days. The front-month future from Yahoo (BZ=F) is shown beside it as context and feeds no state. The two can differ materially. <strong>FII</strong> comes from NSDL, the depository, and covers equity only. Each NSDL date is the reporting date and carries the <em>previous</em> trading day’s trades. A few rows combine several trading days; the chart marks rows that look that way with †. The NSE same-day figure is provisional and is shown as text, not added to the chart. If a source is more than 4 business days (Mon-Fri, counted to today in India) old, the page says STALE with the age in business days. Exchange holidays still count as business days (there is no holiday calendar), so a run of several holidays can show STALE early. The newest weekly point on the price charts can be a partial week (the last quote, not a weekly close); the charts mark it with a hollow circle and the words “partial week”.</div>
     </div>
 
     <div class="hp-sec" id="h-alerts">
@@ -5171,7 +5171,7 @@ var GL_COLORS = {
 // Equity indices only — gold & DXY are excluded from the leadership ranking.
 var GL_EQUITY = ['nifty','spx','ndx','em','csi300','hsi','nikkei','kospi','taiex','estoxx','ftse'];
 
-// ---------- Macro tab: USD/INR, Brent futures, FII net equity ----------
+// ---------- Macro tab: USD/INR, Brent spot, FII net equity ----------
 var MACRO = null, FII = null, MC_RANGE = '5Y', MC_YEARS = {'1Y':1,'3Y':3,'5Y':5,'10Y':10,'Max':0}, MC_CH = {};
 var MC_SHAPE = {HEADWIND:'◆', NEUTRAL:'●', TAILWIND:'▲', UNKNOWN:'?'};
 var MC_FRESH_DAYS = 4; // business days (Mon-Fri) since the last data date, counted to today in IST; more is flagged STALE in words
@@ -5316,7 +5316,7 @@ function renderMacroChips() {
   if (u) h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>USD/INR</span>' + mcPill(u.state) + '</div>'
       + '<div class="mc-chip-v">₹' + u.last.toFixed(2) + '</div>'
       + '<div class="mc-chip-s">' + mcSigned(u.chg12m, 1, '', '%') + ' over 12M to last quote (' + u.lastDailyBar + ')<br>State uses ' + mcSigned(mcStateChg(u).v, 1, '', '%') + ' ' + mcStateChg(u).words + ', ' + ord(Math.round(u.chg12mPctile)) + ' percentile<br>' + mcAsOf(u.lastDailyBar, 'last quote') + '</div></button>';
-  if (b) h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>Brent futures</span>' + mcPill(b.state) + '</div>'
+  if (b) h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>Brent spot</span>' + mcPill(b.state) + '</div>'
       + '<div class="mc-chip-v">$' + b.last.toFixed(2) + '</div>'
       + '<div class="mc-chip-s">' + mcSigned(b.chg12m, 1, '', '%') + ' over 12M to last quote (' + b.lastDailyBar + ')<br>State uses ' + mcSigned(mcStateChg(b).v, 1, '', '%') + ' ' + mcStateChg(b).words + ', ' + ord(Math.round(b.chg12mPctile)) + ' percentile<br>' + mcAsOf(b.lastDailyBar, 'last quote') + '</div></button>';
   var f = fiiStat();
@@ -5532,7 +5532,7 @@ function mcExplainHTML(k) {
   }
   var s = mcSer(k), nm = MC_NAMES[k];
   if (!s) return '<strong>' + nm + ': ? UNKNOWN.</strong> The series is missing from macro.json or failed validation, so no state is shown.';
-  var why = {usdinr:'A rise in USD/INR means a weaker rupee: imports cost more and a foreign investor’s dollar return shrinks.', brent:'Brent here is front-month futures, not spot. The two can differ materially. India imports most of its crude, so dearer oil raises the import bill and inflation risk.'}[k];
+  var why = {usdinr:'A rise in USD/INR means a weaker rupee: imports cost more and a foreign investor’s dollar return shrinks.', brent:'Brent here is the spot price (Europe Brent, FRED), which lags about 2 business days. The front-month future can sit well below it. India imports most of its crude, so dearer oil raises the import bill and inflation risk.'}[k];
   var nx2 = s.state === 'HEADWIND' ? 'It would read NEUTRAL below the 75th percentile.' : (s.state === 'TAILWIND' ? 'It would read NEUTRAL above the 25th percentile.' : 'It would read HEADWIND at the 75th percentile or higher, TAILWIND at the 25th or lower.');
   return '<strong>' + nm + ': ' + MC_SHAPE[s.state] + ' ' + s.state + '.</strong> 12-month change ' + mcStateChg(s).words + ' <strong>' + mcSigned(mcStateChg(s).v, 1, '', '%') + '</strong>, the ' + ord(Math.round(s.chg12mPctile)) + ' percentile' + (s.basis ? ' (' + s.basis + ')' : '') + '.' + (mcNum(s.chg12mComplete) && mcLCW() ? ' To the last quote (' + s.lastDailyBar + ') the 12-month change is ' + mcSigned(s.chg12m, 1, '', '%') + '; the state waits for the week to close.' : '')
     + '<br>' + rule + ' ' + nx2 + '<br>' + why + tail;
@@ -5596,9 +5596,10 @@ function mcPlain() {
       + mcPlainRank(u.chg12mPctile) + mcPlainState(u.state, 'usdinr')
       : (MACRO ? 'The USD/INR reading is missing from the data file.' : mcPlainMiss('macro.json')));
   mcPlainSet('mcPlainBr',
-    'Brent is the main world price for crude oil, in US dollars per barrel. This page uses the price of the futures contract that expires soonest.',
+    'Brent is the main world price for crude oil, in US dollars per barrel. This page uses the spot price (Europe Brent), which the data source posts about 2 business days late.',
     'India buys most of its oil from abroad. Dearer oil can push up fuel prices, inflation and costs for many companies.',
     b && mcNum(b.last) ? 'Brent costs <strong>$' + b.last.toFixed(2) + '</strong> a barrel (last quote ' + mcDL(b.lastDailyBar) + ').' + mcPlainAge(b.lastDailyBar)
+      + (mcSer('brentfut') && mcNum(mcSer('brentfut').last) ? ' For context, the front-month future was <strong>$' + mcSer('brentfut').last.toFixed(2) + '</strong> (last quote ' + mcDL(mcSer('brentfut').lastDailyBar) + '). It can sit well below spot.' : '')
       + (mcNum(mcStateChg(b).v) ? ' In the 12 months to ' + mcPlainTo(b) + ', it ' + (Math.abs(mcStateChg(b).v) < 0.05 ? 'was flat.' : (mcStateChg(b).v > 0 ? 'rose' : 'fell') + ' <strong>' + Math.abs(mcStateChg(b).v).toFixed(1) + '%</strong>.') : '')
       + mcPlainRank(b.chg12mPctile) + mcPlainState(b.state, 'brent')
       : (MACRO ? 'The Brent reading is missing from the data file.' : mcPlainMiss('macro.json')));
@@ -5689,14 +5690,14 @@ function renderMacro() {
     });
     sect('brent chart', 'mcBrCap', function(){
       var sN = nI || wk('ni', 'Nifty', {col:mcC('amber'), w:2.6}, true, lvI, 'level');
-      var sB = wk('br', 'Brent futures', {col:mcC('violet'), dash:'7 3 1 3', w:2.4}, MC_OVL, function(v){ return '$' + v.toFixed(2); }, 'price');
+      var sB = wk('br', 'Brent spot', {col:mcC('violet'), dash:'7 3 1 3', w:2.4}, MC_OVL, function(v){ return '$' + v.toFixed(2); }, 'price');
       var ser = MC_OVL ? [sN, sB] : [sB];
       mcKey('mcKeyBr', ser); mcIdxLine('mcIdxBr', b0, 'Brent price in $ per barrel, Nifty level');
       mcLine('mcBr', ser, MC_OVL ? {base100:true, baseDate:b0, axisFmt:f0, group:'wk', dateLabel:'Week to', partial:pw} : {axisFmt:function(v){ return '$' + v.toFixed(0); }, group:'wk', dateLabel:'Week to', empty:'Brent has no data in this range.', partial:pw});
-      document.getElementById('mcBr').setAttribute('aria-label', (MC_OVL ? 'Brent front-month futures and Nifty, indexed: every line starts at 100 on ' + b0 : 'Brent front-month futures, US dollars per barrel') + ', ' + MC_RANGE + ' range. Focus and use arrow keys to read values.');
+      document.getElementById('mcBr').setAttribute('aria-label', (MC_OVL ? 'Brent spot and Nifty, indexed: every line starts at 100 on ' + b0 : 'Brent spot, US dollars per barrel') + ', ' + MC_RANGE + ' range. Focus and use arrow keys to read values.');
       var bs = mcSer('brent');
       document.getElementById('mcBrCap').innerHTML = (MC_OVL ? '<strong>Indexed, start = 100 on ' + b0 + ':</strong> the chart numbers are index values, not prices. Hover or tap for the actual price. ' : 'US dollars per barrel from ' + b0 + ' (Nifty overlay off). ')
-        + '<strong>Front-month futures, not spot.</strong> The two can differ materially. India imports most of its crude, so a sharp rise raises the import bill and inflation risk. '
+        + '<strong>Spot (Europe Brent, FRED), not futures.</strong> The front-month future can sit well below it. India imports most of its crude, so a sharp rise raises the import bill and inflation risk. '
         + RG + ': Brent <strong>' + mcPct(sB.rg) + '</strong>, Nifty <strong>' + mcPct(sN.rg) + '</strong>. '
         + (bs ? '12-month change to last quote (' + bs.lastDailyBar + '): <strong>' + mcSigned(bs.chg12m, 1, '', '%') + '</strong>. The state uses ' + mcSigned(mcStateChg(bs).v, 1, '', '%') + ' ' + mcStateChg(bs).words + ', the ' + ord(Math.round(bs.chg12mPctile)) + ' percentile of its own 10-year history.' : '⚠ The Brent reading is missing from macro.json, so its state is unavailable.')
         + (sB.base == null ? ' ⚠ Brent has no data in this range.' : '');
@@ -5839,8 +5840,8 @@ function renderMacroFii() {
 
 function renderMacroSources() {
   var rows = [];
-  if (MACRO) ['usdinr','brent','nifty'].forEach(function(k){
-    var s = MACRO.series[k], nm = {usdinr:'USD/INR', brent:'Brent futures', nifty:'Nifty 50'}[k];
+  if (MACRO) ['usdinr','brent','brentfut','nifty'].forEach(function(k){
+    var s = MACRO.series[k], nm = {usdinr:'USD/INR', brent:'Brent spot', brentfut:'Brent front-month future', nifty:'Nifty 50'}[k];
     if (!s) { rows.push([nm, 'Missing or malformed in macro.json', '—', 'unavailable']); return; }
     rows.push([nm, s.definition || '', (s.source || '') + (s.sym ? ' (' + s.sym + ')' : ''), mcAsOf(s.lastDailyBar, 'last quote')]);
   });
@@ -6317,7 +6318,7 @@ var MI_TEXT = {
       not: 'Long-run value: history is short (n = ' + (insuf && bb && miOk(bb.n) ? bb.n + ' on the current basis' : (st ? st.n : 'unavailable')) + ').', asof: v.asOf});
   },
   mcfx: function(){ return mcMI('usdinr', 'Rupees per US dollar, with Nifty in rupees and in dollars.'); },
-  mcbr: function(){ return mcMI('brent', 'Brent front-month futures price, with Nifty.'); },
+  mcbr: function(){ return mcMI('brent', 'Brent spot price, with Nifty.'); },
   mcfii: function(){
     var f = fiiStat();
     return miDoc({what: 'Net equity buying or selling by foreign portfolio investors.',
