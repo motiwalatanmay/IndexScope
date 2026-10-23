@@ -53,7 +53,7 @@ INDICES = [
     ("taiex",  "TAIEX",           "Taiwan",      "^TWII",     "TWD", False),
     ("estoxx", "Euro Stoxx 50",   "Europe",      "^STOXX50E", "EUR", False),
     ("ftse",   "FTSE 100",        "UK",          "^FTSE",     "GBP", False),
-    ("gold",   "Gold (spot)",     "Commodity",   "GC=F",      "USD", False),
+    ("gold",   "Gold (futures)",  "Commodity",   "GC=F",      "USD", False),
     ("dxy",    "US Dollar (DXY)", "FX",          "DX-Y.NYB",  "USD", False),
 ]
 
