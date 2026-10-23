@@ -3,9 +3,10 @@
 
 Series (weekly, Friday-anchored, ~11y; the in-progress week is dated today IST):
   usdinr  INR=X   rupees per US dollar (a RISE means a weaker rupee)
-  brent   BZ=F    Brent in USD/bbl. Front-month futures (BZ=F), not spot. Can
-                  differ materially from spot; in Sept-Oct 2026 futures traded
-                  10-25% below the FRED spot series.
+  brent   FRED DCOILBRENTEU  Brent SPOT (Europe Brent, EIA via FRED) in USD/bbl.
+                  This is the headline Brent. FRED lags about 2 business days.
+  brentfut BZ=F   Brent front-month futures, kept as context only. In Sept-Oct 2026
+                  it traded 3-25% below the spot series; it feeds no state.
   nifty   ^NSEI   Nifty 50 price index in INR
 
 Partial week: when the newest weekly row is the in-progress week (its Friday has
@@ -38,9 +39,12 @@ Idempotent: rebuilds from a fresh `max` pull.
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 import math
 import sys
+import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -54,15 +58,30 @@ ROLL_KEEP = 10 * 52      # rolling-correlation points kept: 10 years of weekly w
 
 SERIES = {
     "usdinr": ("INR=X", "Rupees per US dollar (rise = weaker rupee)", "yfinance INR=X"),
-    "brent": ("BZ=F", "Brent, USD per barrel. Front-month futures (BZ=F), not spot. Can differ materially from spot; "
-                      "in Sept-Oct 2026 futures traded 10-25% below the FRED spot series.", "yfinance BZ=F"),
+    "brent": ("DCOILBRENTEU", "Brent spot (Europe Brent), USD per barrel. Daily, lags about 2 business days.",
+              "FRED, from EIA"),
+    "brentfut": ("BZ=F", "Brent front-month futures (BZ=F), USD per barrel. Context only: it can sit well below spot.",
+                 "yfinance BZ=F"),
     "nifty": ("^NSEI", "Nifty 50 price index, INR", "yfinance ^NSEI"),
 }
 
 
+def fred_daily(sid: str):
+    """Daily FRED series as a pandas Series (missing '.' rows dropped)."""
+    import pandas as pd
+    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}&cosd=2012-01-01"
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    txt = urllib.request.urlopen(req, timeout=30).read().decode()
+    rows = [(r[0], float(r[1])) for r in list(csv.reader(io.StringIO(txt)))[1:] if len(r) == 2 and r[1] not in ("", ".")]
+    return pd.Series([v for _, v in rows], index=pd.to_datetime([d for d, _ in rows]))
+
+
 def pull(sym: str):
-    h = yf.Ticker(sym).history(period="max", interval="1d", auto_adjust=False)
-    s = h["Close"].dropna()
+    if sym == "DCOILBRENTEU":
+        s = fred_daily(sym)
+    else:
+        h = yf.Ticker(sym).history(period="max", interval="1d", auto_adjust=False)
+        s = h["Close"].dropna()
     if s.empty:
         return None, None
     days = [d.strftime("%Y-%m-%d") for d in s.index]
@@ -149,7 +168,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL {key}: newest bar {last_days[key][-1]} is {age} days old", file=sys.stderr)
             return 1
 
-    common = sorted(set(raw["usdinr"]) & set(raw["brent"]) & set(raw["nifty"]))
+    common = sorted(set(raw["usdinr"]) & set(raw["brent"]) & set(raw["nifty"]) & set(raw["brentfut"]))
     # A partial (in-progress) newest week is kept for display but excluded from every statistic.
     # The window holds 572 COMPLETE weeks either way, so n / basis counts do not wobble mid-week.
     partial = bool(common) and week_is_partial(common[-1], now.date())
@@ -162,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
     fx = [raw["usdinr"][d] for d in dates]
     br = [raw["brent"][d] for d in dates]
     nf = [raw["nifty"][d] for d in dates]
+    bf = [raw["brentfut"][d] for d in dates]
     dc = dates[:nc]
     fxc, brc, nfc = fx[:nc], br[:nc], nf[:nc]
 
@@ -190,6 +210,11 @@ def main(argv: list[str] | None = None) -> int:
             "basis": f"percentile of the 12M change at the last complete week ({last_complete}) "
                      f"vs {len(hist)} rolling 52-week changes (complete weeks only)",
         }
+    series_meta["brentfut"] = {
+        "sym": SERIES["brentfut"][0], "definition": SERIES["brentfut"][1], "source": SERIES["brentfut"][2],
+        "last": round(bf[-1], 4), "lastDate": dates[-1], "lastDailyBar": last_bar_on_or_before(last_days["brentfut"], dates[-1]),
+        "chg12m": round((bf[-1] / bf[-53] - 1) * 100, 2),
+    }
     series_meta["nifty"] = {
         "sym": SERIES["nifty"][0], "definition": SERIES["nifty"][1], "source": SERIES["nifty"][2],
         "last": round(nf[-1], 2), "lastDate": dates[-1], "lastDailyBar": last_bar_on_or_before(last_days["nifty"], dates[-1]),
@@ -229,8 +254,8 @@ def main(argv: list[str] | None = None) -> int:
         "rule": "HEADWIND if the 12M change is in the top quarter of its own 10y history, TAILWIND if in the bottom quarter, else NEUTRAL.",
         "series": series_meta,
         "correlation": corr_block,
-        "weekly": {"cols": ["date", "usdinr", "brent", "nifty"],
-                   "rows": [[d, round(a, 4), round(b, 4), round(c, 2)] for d, a, b, c in zip(dates, fx, br, nf)]},
+        "weekly": {"cols": ["date", "usdinr", "brent", "nifty", "brentfut"],
+                   "rows": [[d, round(a, 4), round(b, 4), round(c, 2), round(e, 4)] for d, a, b, c, e in zip(dates, fx, br, nf, bf)]},
     }
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(out, separators=(",", ":")))
