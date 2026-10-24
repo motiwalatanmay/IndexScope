@@ -4822,10 +4822,12 @@ function fetchLiveFor(key) {
     .then(function(resp){
       if (resp.status==='ok' && resp.data && resp.data.length) {
         var hist = HISTORIES[key];
-        var lastEmbedded = hist[hist.length-1][0];
+        var pos = {};
+        hist.forEach(function(r, i){ pos[r[0]] = i; });
         var added = 0;
         resp.data.forEach(function(row){
-          if (row[0] > lastEmbedded) { hist.push(row); added++; }
+          if (pos[row[0]] !== undefined) { hist[pos[row[0]]] = row; }
+          else { hist.push(row); added++; }
         });
         if (added) hist.sort(function(a,b){return a[0]<b[0]?-1:1;});
         LIVE_OK[key] = true;
