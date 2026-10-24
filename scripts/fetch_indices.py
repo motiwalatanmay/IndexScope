@@ -106,6 +106,20 @@ def extract(payload: dict, nse_name: str) -> dict | None:
     return None
 
 
+def trading_date(payload: dict, now_utc: datetime) -> str:
+    """NSE's own timestamp is the trading date. Fall back to the IST date, rolled back off a weekend."""
+    ts = str(payload.get("timestamp") or "")
+    for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y"):
+        try:
+            return datetime.strptime(ts.strip(), fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    d = now_utc.astimezone(IST).date()
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d.strftime("%Y-%m-%d")
+
+
 def to_row(snap: dict, date_ist: str) -> list:
     def f(k):
         v = snap.get(k)
@@ -145,7 +159,7 @@ def main() -> int:
     payload = fetch_all_indices()
     now_utc = datetime.now(timezone.utc)
     fetched_at = now_utc.isoformat().replace("+00:00", "Z")
-    date_ist = now_utc.astimezone(IST).strftime("%Y-%m-%d")
+    date_ist = trading_date(payload, now_utc)
 
     failures: list[str] = []
     for key, nse_name in INDICES.items():

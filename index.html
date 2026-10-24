@@ -280,6 +280,19 @@ body.light .median-table tr.ref-row td{color:#4f46e5}
 .legend-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.5rem;color:var(--ghost);text-transform:none;letter-spacing:.3px;font-weight:500}
 .legend-dot{width:10px;height:3px;border-radius:2px}
 .sparkline-svg{width:100%;height:140px;overflow:visible}
+.idxc-grp{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.idxc-grp button{font-family:var(--mono);font-size:.62rem;font-weight:700;letter-spacing:.4px;padding:5px 10px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg3);color:var(--sub);cursor:pointer;text-transform:none}
+.idxc-grp button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.idxc-grp button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+#idxcPer{margin-left:0}
+.idxc-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.idxc-pill{font-family:var(--mono);font-size:.62rem;font-weight:700;color:var(--txt);background:var(--bg3);border:1px solid var(--bdr);border-radius:14px;padding:4px 10px;margin-left:auto}
+.idxc-wrap{position:relative}
+#idxc .sparkline-svg{height:260px;touch-action:pan-y;cursor:crosshair;user-select:none}
+.idxc-tip{position:absolute;pointer-events:none;display:none;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:5px 9px;font-family:var(--mono);font-size:.66rem;color:var(--txt);white-space:nowrap;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.idxc-read{min-height:1.3em;margin-top:6px;font-family:var(--mono);font-size:.7rem;font-weight:700;color:var(--txt)}
+.idxc-foot{margin:6px 0 0;font-size:.64rem;color:var(--txt3);line-height:1.4}
+@media(max-width:600px){#idxc .sparkline-svg{height:200px}.idxc-pill{margin-left:0}}
 
 /* ═══════════════════════ MEDIANS PAGE ═══════════════════════ */
 .medians-controls{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
@@ -1346,16 +1359,21 @@ body.light .hp-formula .k{color:#4f46e5}
       <div class="eps-grid" id="epsGrid"></div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-section" id="idxc">
       <div class="chart-title">
-        <svg class="ico"><use href="#i-activity"/></svg>PE Ratio &mdash; 3-Year History
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>PE</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div>3yr Median</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;border-top:2px dashed #f59e0b;height:0"></div>Weighted Ref</div>
-        </div>
+        <svg class="ico"><use href="#i-activity"/></svg><span id="idxcTitle">Daily price</span>
+        <div class="idxc-grp" id="idxcMet" role="group" aria-label="Chart measure"></div>
       </div>
-      <svg id="sparklineSvg" class="sparkline-svg"></svg>
+      <div class="idxc-bar">
+        <div class="idxc-grp" id="idxcPer" role="group" aria-label="Chart period"></div>
+        <span class="idxc-pill" id="idxcPill"></span>
+      </div>
+      <div class="idxc-wrap">
+        <svg id="sparklineSvg" class="sparkline-svg"></svg>
+        <div class="idxc-tip" id="idxcTip" role="status"></div>
+      </div>
+      <div class="idxc-read" id="idxcRead" aria-live="polite"></div>
+      <p class="idxc-foot" id="idxcFoot"></p>
     </div>
   </div>
 
@@ -3999,67 +4017,151 @@ function epsGrid(tiles) {
 // ============================================================
 // SPARKLINE CHART
 // ============================================================
+var IDXC = {m: 'price', p: '3Y', band: null, stats: null};
+var IDXC_MET = [
+  ['price', 'Price', 1, 'pts'], ['pe', 'P/E', 2, 'x'], ['pb', 'P/B', 3, 'x'], ['dy', 'Div yield', 4, '%']
+];
+var IDXC_PER = [['3M', 0.25], ['6M', 0.5], ['1Y', 1], ['3Y', 3], ['Max', 0]];
+var IDXC_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function idxcDate(d) { return parseInt(d.slice(8,10),10) + ' ' + IDXC_MON[parseInt(d.slice(5,7),10)-1] + ' ' + d.slice(0,4); }
+function idxcFmt(m, v) {
+  if (m === 'price') return v.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  if (m === 'dy') return v.toFixed(2) + '%';
+  return v.toFixed(2) + 'x';
+}
+function idxcDays(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 86400000); }
+
 function renderSparkline(stats) {
+  if (stats) IDXC.stats = stats;
+  stats = IDXC.stats;
   var svg = document.getElementById('sparklineSvg');
-  var cutoff = dateAddYears(stats.curDate, -3);
-  var rows = HISTORY.filter(function(r){return r[0]>=cutoff && r[2]>0;});
-  if (!rows.length) return;
+  if (!svg || !stats) return;
+  var met = IDXC_MET.filter(function(m){return m[0]==='price' || HISTORY.filter(function(r){return r[m[2]]>0;}).length >= 10;});
+  if (!met.some(function(m){return m[0]===IDXC.m;})) IDXC.m = 'price';
+  var M = met.filter(function(m){return m[0]===IDXC.m;})[0];
+  var col = M[2];
+  var last = HISTORY[HISTORY.length-1][0];
+  var per = IDXC_PER.filter(function(p){return p[0]===IDXC.p;})[0];
+  var cutoff = per[1] ? (per[1] < 1 ? (function(){var d=new Date(Date.parse(last)); d.setMonth(d.getMonth()-Math.round(per[1]*12)); return d.toISOString().slice(0,10);})() : dateAddYears(last, -per[1])) : '0000';
+  var rows = HISTORY.filter(function(r){return r[0]>=cutoff && r[col]>0 && r[1]>0;});
 
-  var W=svg.clientWidth||700, H=140, pad={t:10,r:20,b:30,l:40};
-  var iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  // controls
+  var mEl = document.getElementById('idxcMet'), pEl = document.getElementById('idxcPer');
+  mEl.innerHTML = met.map(function(m){return '<button type="button" data-m="'+m[0]+'" aria-pressed="'+(m[0]===IDXC.m)+'">'+m[1]+'</button>';}).join('');
+  pEl.innerHTML = IDXC_PER.map(function(p){return '<button type="button" data-p="'+p[0]+'" aria-pressed="'+(p[0]===IDXC.p)+'">'+p[0]+'</button>';}).join('');
+  mEl.onclick = function(e){var b=e.target.closest('button'); if(b){IDXC.m=b.getAttribute('data-m'); IDXC.band=null; renderSparkline();}};
+  pEl.onclick = function(e){var b=e.target.closest('button'); if(b){IDXC.p=b.getAttribute('data-p'); IDXC.band=null; renderSparkline();}};
+  document.getElementById('idxcTitle').textContent = 'Daily ' + M[1] + (M[0]==='dy' ? ' · %' : '') + ' · ' + (INDICES[ACTIVE_INDEX] ? INDICES[ACTIVE_INDEX].name : '');
+  var readEl = document.getElementById('idxcRead'), tip = document.getElementById('idxcTip');
+  tip.style.display = 'none';
+  if (rows.length < 2) { svg.innerHTML = ''; readEl.textContent = ''; document.getElementById('idxcPill').textContent = ''; document.getElementById('idxcFoot').textContent = 'Not enough history for this measure and period.'; return; }
 
-  // Winsorise PE values for chart display to handle COVID spike
-  var pes = rows.map(function(r){return r[2];});
-  var pesW = winsorise(pes, 1, 99);
-  var peMin=Math.min.apply(null,pesW), peMax=Math.max.apply(null,pesW);
-  var yRange = peMax-peMin; if(yRange<1)yRange=1;
-  var peMedian3yr = stats.pe3m || 0;
-  var peRef = stats.peRef || 0;
+  var lr = rows[rows.length-1];
+  document.getElementById('idxcPill').textContent = 'Latest ' + M[1] + ' ' + idxcFmt(M[0], lr[col]) + ' · ' + idxcDate(lr[0]) + ' · NSE';
+  readEl.textContent = 'Click and drag across the chart to measure the change between two dates.';
 
-  function xp(i){return pad.l + (i/(rows.length-1))*iW;}
-  function yp(v){
-    var vClamped = Math.max(peMin, Math.min(peMax, v));
-    return pad.t + iH - ((vClamped-peMin)/yRange)*iH;
-  }
-
-  var pePoints = rows.map(function(r,i){return xp(i)+','+yp(r[2]);}).join(' ');
-
-  // Y axis labels
-  var yLabels = '';
-  var ticks = 4;
-  for(var i=0;i<=ticks;i++){
-    var v = peMin + (yRange*i/ticks);
-    var y = yp(v);
-    yLabels += '<text x="'+(pad.l-6)+'" y="'+y+'" text-anchor="end" fill="var(--txt3)" font-size="10">'+v.toFixed(1)+'</text>';
-    yLabels += '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
-  }
-
-  // X axis labels (years) — skip any that would overlap (min 42px apart)
-  var xLabels = '';
-  var years = {};
-  rows.forEach(function(r,i){
-    var yr = r[0].slice(0,4);
-    if(!years[yr]){years[yr]=i;}
+  var W = svg.clientWidth || 700, H = W < 520 ? 200 : 260, pad = {t:12, r:64, b:26, l:8};
+  var iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
+  var vals = rows.map(function(r){return r[col];});
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  var showRef = M[0]==='pe' && stats.pe3m, refs = [];
+  if (showRef) { refs.push(['3yr median', stats.pe3m, '#a78bfa', '']); if (stats.peRef) refs.push(['Weighted ref', stats.peRef, '#f59e0b', '6,3']); refs.forEach(function(r){lo=Math.min(lo,r[1]); hi=Math.max(hi,r[1]);}); }
+  var span = (hi-lo) || 1; lo -= span*0.06; hi += span*0.06; span = hi-lo;
+  var t0 = Date.parse(rows[0][0]), t1 = Date.parse(lr[0]), tSpan = (t1-t0) || 1;
+  function xp(r){return pad.l + (Date.parse(r[0])-t0)/tSpan*iW;}
+  function yp(v){return pad.t + iH - (v-lo)/span*iH;}
+  var pts = rows.map(function(r){return [xp(r), yp(r[col])];});
+  var base = pad.t+iH, segs = [[]], hasGap = false;
+  pts.forEach(function(p, i){
+    if (i && idxcDays(rows[i-1][0], rows[i][0]) > 10) { segs.push([]); hasGap = true; }
+    segs[segs.length-1].push(p);
   });
-  var lastX = Infinity, MIN_X_GAP = 42;
-  Object.keys(years).sort().reverse().forEach(function(yr){
-    var i=years[yr], x=xp(i);
-    if (lastX - x >= MIN_X_GAP) {
-      xLabels='<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--sub)" font-size="11">'+yr+'</text>'+xLabels;
-      lastX = x;
+  function sp(seg){return seg.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');}
+  var lines = segs.map(function(seg){
+    var a = '<polygon points="'+sp(seg)+' '+seg[seg.length-1][0].toFixed(1)+','+base+' '+seg[0][0].toFixed(1)+','+base+'" fill="url(#idxcFill)"/>';
+    return a + '<polyline points="'+sp(seg)+'" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linejoin="round"/>';
+  }).join('');
+
+  var g = '';
+  for (var i=0;i<=4;i++){
+    var v = lo + span*i/4, y = yp(v);
+    g += '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
+    g += '<text x="'+(W-pad.r+6)+'" y="'+(y+3)+'" fill="var(--txt3)" font-size="10">'+(M[0]==='price' ? Math.round(v).toLocaleString('en-IN') : M[0]==='dy' ? v.toFixed(2) : v.toFixed(1))+'</text>';
+  }
+  // x labels: month for short periods, year for long ones
+  var long = (t1-t0) > 2.2*365*86400000, lastX = -999;
+  if (long) {
+    for (var yr = parseInt(rows[0][0].slice(0,4),10)+1; yr <= parseInt(lr[0].slice(0,4),10); yr++) {
+      var xx = pad.l + (Date.parse(yr+'-01-01')-t0)/tSpan*iW;
+      if (xx - lastX < 44 || xx > pad.l+iW-20) continue; lastX = xx;
+      g += '<text x="'+xx+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+yr+'</text>';
     }
+  } else {
+    var seen = {};
+    rows.forEach(function(r){
+      var key = r[0].slice(0,7); if (seen[key]) return; seen[key] = 1;
+      var x = xp(r); if (x - lastX < 44 || x > pad.l+iW-20 || x < pad.l+14) return; lastX = x;
+      g += '<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--txt3)" font-size="10">'+IDXC_MON[parseInt(r[0].slice(5,7),10)-1]+' '+r[0].slice(2,4)+'</text>';
+    });
+  }
+  refs.forEach(function(r, ri){
+    var y = yp(r[1]);
+    g += '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="'+r[2]+'" stroke-width="1.3"'+(r[3]?' stroke-dasharray="'+r[3]+'"':'')+' opacity=".85"/>'
+       + '<text x="'+(ri ? pad.l+iW-4 : pad.l+4)+'" y="'+(ri ? y+12 : y-4)+'" text-anchor="'+(ri ? 'end' : 'start')+'" fill="'+r[2]+'" font-size="10" font-weight="700">'+r[0]+' '+r[1].toFixed(2)+'x</text>';
   });
-
-  // Ref lines
-  var medY = yp(peMedian3yr), refY = yp(peRef);
-  var clampY = function(y){return Math.max(pad.t, Math.min(pad.t+iH, y));};
-
+  var ep = pts[pts.length-1], elab = idxcFmt(M[0], lr[col]);
+  g = '<defs><linearGradient id="idxcFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#60a5fa" stop-opacity=".22"/><stop offset="1" stop-color="#60a5fa" stop-opacity=".02"/></linearGradient></defs>' + g
+    + lines
+    + '<circle cx="'+ep[0]+'" cy="'+ep[1]+'" r="3.5" fill="#60a5fa"/>'
+    + '<rect x="'+(W-pad.r+2)+'" y="'+(ep[1]-8)+'" width="'+(pad.r-2)+'" height="16" rx="4" fill="#60a5fa"/>'
+    + '<text x="'+(W-pad.r+2+(pad.r-2)/2)+'" y="'+(ep[1]+3.5)+'" text-anchor="middle" fill="#0b1220" font-size="10" font-weight="700">'+elab.replace('x','').replace('%','')+'</text>'
+    + '<g id="idxcBand"></g><g id="idxcHover"></g>';
   svg.setAttribute('viewBox','0 0 '+W+' '+H);
-  svg.innerHTML = yLabels + xLabels
-    + '<line x1="'+pad.l+'" x2="'+pad.l+'" y1="'+pad.t+'" y2="'+(pad.t+iH)+'" stroke="var(--brd)" stroke-width="1"/>'
-    + '<polyline points="'+pePoints+'" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linejoin="round"/>'
-    + (peMedian3yr ? '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+clampY(medY)+'" y2="'+clampY(medY)+'" stroke="#a78bfa" stroke-width="1.5" opacity=".8"/>' : '')
-    + (peRef ? '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+clampY(refY)+'" y2="'+clampY(refY)+'" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3" opacity=".8"/>' : '');
+  svg.innerHTML = g;
+
+  var foot = M[0]==='price' ? 'Daily close of the index, from NSE.' : M[1]+' on each trading day, from NSE index data.';
+  if (M[0]==='dy') foot += ' StockScans does not publish dividend yield for indices, so this line has no second source.';
+ 
+  if (hasGap) foot += ' A break in the line means no data for more than 10 days.';
+  if (showRef) foot += ' Purple line: 3-year median. Dashed amber line: weighted reference.';
+  document.getElementById('idxcFoot').textContent = foot;
+
+  var bandG = svg.querySelector('#idxcBand'), hovG = svg.querySelector('#idxcHover');
+  function idxAt(clientX){
+    var rc = svg.getBoundingClientRect(), x = (clientX-rc.left)*(W/rc.width), best = 0, bd = 1e9;
+    for (var i=0;i<pts.length;i++){var d=Math.abs(pts[i][0]-x); if(d<bd){bd=d;best=i;}}
+    return best;
+  }
+  function showBand(i0, i1){
+    var a = Math.min(i0,i1), b = Math.max(i0,i1);
+    if (a===b){ bandG.innerHTML=''; return; }
+    var ra = rows[a], rb = rows[b], va = ra[col], vb = rb[col], up = vb >= va;
+    bandG.innerHTML = '<rect x="'+pts[a][0]+'" y="'+pad.t+'" width="'+(pts[b][0]-pts[a][0])+'" height="'+iH+'" fill="#60a5fa" opacity=".16"/>'
+      + '<line x1="'+pts[a][0]+'" x2="'+pts[a][0]+'" y1="'+pad.t+'" y2="'+base+'" stroke="#60a5fa" stroke-width="1"/>'
+      + '<line x1="'+pts[b][0]+'" x2="'+pts[b][0]+'" y1="'+pad.t+'" y2="'+base+'" stroke="#60a5fa" stroke-width="1"/>';
+    var chg = M[0]==='dy' ? Math.abs(vb-va).toFixed(2)+' pts' : Math.abs((vb/va-1)*100).toFixed(1)+'%';
+    readEl.textContent = (up ? '▲ Up ' : '▼ Down ') + chg + ' · ' + idxcFmt(M[0], va) + ' to ' + idxcFmt(M[0], vb) + ' · ' + idxcDate(ra[0]) + ' to ' + idxcDate(rb[0]) + ' · ' + idxcDays(ra[0], rb[0]) + ' days';
+  }
+  function hover(i){
+    var p = pts[i], r = rows[i];
+    hovG.innerHTML = '<line x1="'+p[0]+'" x2="'+p[0]+'" y1="'+pad.t+'" y2="'+base+'" stroke="var(--txt3)" stroke-width="1" stroke-dasharray="3,3"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="#60a5fa" stroke="var(--bg2)" stroke-width="2"/>';
+    tip.textContent = idxcDate(r[0]) + ' · ' + idxcFmt(M[0], r[col]);
+    tip.style.display = 'block';
+    var rc = svg.getBoundingClientRect(), px = p[0]*(rc.width/W), py = p[1]*(rc.height/H);
+    tip.style.left = Math.max(0, Math.min(rc.width-tip.offsetWidth, px - tip.offsetWidth/2)) + 'px';
+    tip.style.top = Math.max(0, py - 38) + 'px';
+  }
+  var drag = null, moved = false;
+  svg.onpointerdown = function(e){drag = idxAt(e.clientX); moved = false; try{svg.setPointerCapture(e.pointerId);}catch(x){} };
+  svg.onpointermove = function(e){
+    var i = idxAt(e.clientX); hover(i);
+    if (drag !== null){ if (i !== drag) moved = true; if (moved) showBand(drag, i); }
+  };
+  svg.onpointerup = function(e){
+    if (drag !== null && !moved){ bandG.innerHTML=''; readEl.textContent = 'Click and drag across the chart to measure the change between two dates.'; }
+    drag = null;
+  };
+  svg.onpointerleave = function(){ hovG.innerHTML=''; tip.style.display='none'; };
 }
 
 // ============================================================
