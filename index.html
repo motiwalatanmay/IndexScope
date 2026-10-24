@@ -4120,7 +4120,7 @@ function renderSparkline(stats) {
   svg.innerHTML = g;
 
   var foot = M[0]==='price' ? 'Daily close of the index, from NSE.' : M[1]+' on each trading day, from NSE index data.';
-  if (M[0]==='dy') foot += ' StockScans does not publish dividend yield for indices, so this line has no second source.';
+  if (M[0]==='dy') foot += ' Dividend yield is as published by StockScans.';
  
   if (hasGap) foot += ' A break in the line means no data for more than 10 days.';
   if (showRef) foot += ' Purple line: 3-year median. Dashed amber line: weighted reference.';
