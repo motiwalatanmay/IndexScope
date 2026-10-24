@@ -154,6 +154,28 @@ def upsert(path: Path, new_row: list, fetched_at: str) -> tuple[str, int]:
     return action, len(rows)
 
 
+MAX_MOVE = 0.15       # one-day close move above this is treated as bad data
+
+
+def implausible(path: Path, row: list) -> str | None:
+    """Return a reason when the new row looks like bad data, else None.
+
+    Guards the history against a wrong worker/NSE payload (a bad close would
+    draw a spike in every chart). A failed run is visible; a bad row is not.
+    """
+    if not path.exists():
+        return None
+    rows = [r for r in json.loads(path.read_text()).get("data", []) if r[0] < row[0]]
+    if not rows or not rows[-1][1]:
+        return None
+    move = abs(row[1] / rows[-1][1] - 1)
+    if move > MAX_MOVE:
+        return f"close {row[1]} is {move:.0%} from {rows[-1][1]} on {rows[-1][0]}"
+    if row[2] is not None and not (3 < row[2] < 150):
+        return f"P/E {row[2]} outside 3-150"
+    return None
+
+
 def main() -> int:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     payload = fetch_all_indices()
@@ -170,6 +192,10 @@ def main() -> int:
         row = to_row(snap, date_ist)
         if row[1] is None:
             failures.append(f"{key} ({nse_name}): missing 'last' value")
+            continue
+        bad = implausible(DATA_DIR / f"{key}.json", row)
+        if bad:
+            failures.append(f"{key} ({nse_name}): {bad}; row not written")
             continue
         action, n = upsert(DATA_DIR / f"{key}.json", row, fetched_at)
         print(f"{key:>8}  {action}  date={row[0]}  last={row[1]}  pe={row[2]}  pb={row[3]}  dy={row[4]}  rows={n}")

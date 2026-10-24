@@ -130,7 +130,9 @@ jobs:
           else
             git commit -m "data: refresh NSE indices ($(date -u +%Y-%m-%dT%H:%MZ))"
             # The Mac job may have pushed meanwhile; it only writes buffett.json.
-            for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep $((i*5)); done
+            pushed=0
+            for i in 1 2 3; do git pull --rebase origin main && git push && pushed=1 && break; sleep $((i*5)); done
+            if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts; data not published"; exit 1; fi
           fi
 
       - name: Publish status when the run failed
