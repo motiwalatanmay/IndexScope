@@ -4019,7 +4019,7 @@ function epsGrid(tiles) {
 // ============================================================
 var IDXC = {m: 'price', p: '3Y', band: null, stats: null};
 var IDXC_MET = [
-  ['price', 'Price', 1, 'pts'], ['pe', 'P/E', 2, 'x'], ['pb', 'P/B', 3, 'x'], ['dy', 'Div yield', 4, '%']
+  ['price', 'Price', 1, 'pts'], ['pe', 'P/E', 2, 'x'], ['pb', 'P/B', 3, 'x'], ['dy', 'Div yield', 4, '%'], ['eps', 'EPS', 5, '']
 ];
 var IDXC_PER = [['3M', 0.25], ['6M', 0.5], ['1Y', 1], ['3Y', 3], ['Max', 0]];
 var IDXC_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -4027,6 +4027,7 @@ function idxcDate(d) { return parseInt(d.slice(8,10),10) + ' ' + IDXC_MON[parseI
 function idxcFmt(m, v) {
   if (m === 'price') return v.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   if (m === 'dy') return v.toFixed(2) + '%';
+  if (m === 'eps') return v.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   return v.toFixed(2) + 'x';
 }
 function idxcDays(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 86400000); }
@@ -4036,14 +4037,15 @@ function renderSparkline(stats) {
   stats = IDXC.stats;
   var svg = document.getElementById('sparklineSvg');
   if (!svg || !stats) return;
-  var met = IDXC_MET.filter(function(m){return m[0]==='price' || HISTORY.filter(function(r){return r[m[2]]>0;}).length >= 10;});
+  var SRC = HISTORY.map(function(r){var e = r[2]>0 && r[1]>0 ? r[1]/r[2] : null; return [r[0], r[1], r[2], r[3], r[4], e];});
+  var met = IDXC_MET.filter(function(m){return m[0]==='price' || SRC.filter(function(r){return r[m[2]]>0;}).length >= 10;});
   if (!met.some(function(m){return m[0]===IDXC.m;})) IDXC.m = 'price';
   var M = met.filter(function(m){return m[0]===IDXC.m;})[0];
   var col = M[2];
   var last = HISTORY[HISTORY.length-1][0];
   var per = IDXC_PER.filter(function(p){return p[0]===IDXC.p;})[0];
   var cutoff = per[1] ? (per[1] < 1 ? (function(){var d=new Date(Date.parse(last)); d.setMonth(d.getMonth()-Math.round(per[1]*12)); return d.toISOString().slice(0,10);})() : dateAddYears(last, -per[1])) : '0000';
-  var rows = HISTORY.filter(function(r){return r[0]>=cutoff && r[col]>0 && r[1]>0;});
+  var rows = SRC.filter(function(r){return r[0]>=cutoff && r[col]>0 && r[1]>0;});
 
   // controls
   var mEl = document.getElementById('idxcMet'), pEl = document.getElementById('idxcPer');
@@ -4086,7 +4088,7 @@ function renderSparkline(stats) {
   for (var i=0;i<=4;i++){
     var v = lo + span*i/4, y = yp(v);
     g += '<line x1="'+pad.l+'" x2="'+(pad.l+iW)+'" y1="'+y+'" y2="'+y+'" stroke="var(--brd)" stroke-width="0.5"/>';
-    g += '<text x="'+(W-pad.r+6)+'" y="'+(y+3)+'" fill="var(--txt3)" font-size="10">'+(M[0]==='price' ? Math.round(v).toLocaleString('en-IN') : M[0]==='dy' ? v.toFixed(2) : v.toFixed(1))+'</text>';
+    g += '<text x="'+(W-pad.r+6)+'" y="'+(y+3)+'" fill="var(--txt3)" font-size="10">'+((M[0]==='price' || M[0]==='eps') ? Math.round(v).toLocaleString('en-IN') : M[0]==='dy' ? v.toFixed(2) : v.toFixed(1))+'</text>';
   }
   // x labels: month for short periods, year for long ones
   var long = (t1-t0) > 2.2*365*86400000, lastX = -999;
@@ -4119,7 +4121,7 @@ function renderSparkline(stats) {
   svg.setAttribute('viewBox','0 0 '+W+' '+H);
   svg.innerHTML = g;
 
-  var foot = M[0]==='price' ? 'Daily close of the index, from NSE.' : M[1]+' on each trading day, from NSE index data.';
+  var foot = M[0]==='price' ? 'Daily close of the index, from NSE.' : M[0]==='eps' ? 'Implied EPS = index close ÷ P/E, on each trading day. It is derived, not published.' : M[1]+' on each trading day, from NSE index data.';
   if (M[0]==='dy') foot += ' Dividend yield is as published by StockScans.';
  
   if (hasGap) foot += ' A break in the line means no data for more than 10 days.';
