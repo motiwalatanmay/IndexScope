@@ -288,11 +288,11 @@ body.light .median-table tr.ref-row td{color:#4f46e5}
 .idxc-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
 .idxc-pill{font-family:var(--mono);font-size:.62rem;font-weight:700;color:var(--txt);background:var(--bg3);border:1px solid var(--bdr);border-radius:14px;padding:4px 10px;margin-left:auto}
 .idxc-wrap{position:relative}
-#idxc .sparkline-svg{height:260px;touch-action:pan-y;cursor:crosshair;user-select:none}
+#idxc .sparkline-svg{height:430px;touch-action:pan-y;cursor:crosshair;user-select:none}
 .idxc-tip{position:absolute;pointer-events:none;display:none;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:5px 9px;font-family:var(--mono);font-size:.66rem;color:var(--txt);white-space:nowrap;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .idxc-read{min-height:1.3em;margin-top:6px;font-family:var(--mono);font-size:.7rem;font-weight:700;color:var(--txt)}
 .idxc-foot{margin:6px 0 0;font-size:.64rem;color:var(--txt3);line-height:1.4}
-@media(max-width:600px){#idxc .sparkline-svg{height:200px}.idxc-pill{margin-left:0}}
+@media(max-width:600px){#idxc .sparkline-svg{height:280px}.idxc-pill{margin-left:0}}
 
 /* ═══════════════════════ MEDIANS PAGE ═══════════════════════ */
 .medians-controls{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
@@ -4060,7 +4060,7 @@ function renderSparkline(stats) {
   document.getElementById('idxcPill').textContent = 'Latest ' + M[1] + ' ' + idxcFmt(M[0], lr[col]) + ' · ' + idxcDate(lr[0]) + ' · NSE';
   readEl.textContent = 'Click and drag across the chart to measure the change between two dates.';
 
-  var W = svg.clientWidth || 700, H = W < 520 ? 200 : 260, pad = {t:12, r:64, b:26, l:8};
+  var W = svg.clientWidth || 700, H = W < 520 ? 280 : 430, pad = {t:12, r:64, b:26, l:8};
   var iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
   var vals = rows.map(function(r){return r[col];});
   var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
