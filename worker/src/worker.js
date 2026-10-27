@@ -103,6 +103,7 @@ export default {
       else if (path === "/alerts/all" && request.method === "GET") resp = await alertsAllHandler(request, env);
       else if (path === "/admin/export" && request.method === "GET") resp = await adminExportHandler(request, env);
       else if (path === "/signin" && request.method === "POST")  resp = await signinHandler(request, env);
+      else if (path === "/beacon" && request.method === "POST") resp = await beaconHandler(request, env);
       else if (path === "/admin/verify" && request.method === "POST") resp = await adminVerifyHandler(request, env);
       else if (path === "/admin/users" && (request.method === "GET" || request.method === "PUT"))
         resp = await adminUsersHandler(request, env);
@@ -475,6 +476,20 @@ async function tokenFromRequest(request) {
 
 // Any Google account: verify, record the sign-in, and say whether it may use
 // signed-in features. Writes are rate-limited per email (KV write quota).
+// Page-view beacon for the admin hub: one row per browser per day (the page sends it once a day).
+async function beaconHandler(request, env) {
+  if (!originAllowed(request.headers.get("Origin"))) return json({ status: "ignored" });
+  if (rateLimited(request, env)) return tooMany();
+  if (!env.HUB_DB) return json({ status: "off" });
+  let body = {};
+  try { body = await request.json(); } catch (_e) { /* an empty body is fine */ }
+  const path = String(body.path || "/").slice(0, 120);
+  const day = new Date().toISOString().slice(0, 10);
+  await env.HUB_DB.prepare("INSERT OR IGNORE INTO hits (uid, tool, day, email, path, country) VALUES (?, 'indexscope', ?, 'anonymous', ?, ?)")
+    .bind(crypto.randomUUID(), day, path, request.headers.get("CF-IPCountry") || null).run();
+  return json({ status: "ok" });
+}
+
 async function signinHandler(request, env) {
   const v = await verifyGoogleIdToken(await tokenFromRequest(request), env);
   if (!v.ok) return json({ error: "invalid Google token", reason: v.reason }, 401);
