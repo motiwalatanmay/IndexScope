@@ -26,6 +26,12 @@ STATUS_URL = "https://indexscope.in/data/status.json"
 binding = "ALERTS"
 id = "a7164ba65a9e417c9cdbc5352ff3554c"
 
+# Admin hub page-view log (D1 shared with tools-admin-hub); the /beacon route writes one row per browser per day.
+[[d1_databases]]
+binding = "HUB_DB"
+database_name = "tools-hub-db"
+database_id = "8e424e97-ea2e-4d52-b222-703cc12d8855"
+
 # Secrets (NOT stored here — set once via wrangler):
 #   wrangler secret put JWT_SECRET     # any long random string, signs session tokens
 #   wrangler secret put ADMIN_KEY      # long random string, guards /admin/export
