@@ -62,7 +62,7 @@ FALLBACK_MAX_DAYS = 21   # a FRED failure may reuse the last committed Brent spo
 SERIES = {
     "usdinr": ("INR=X", "Rupees per US dollar (rise = weaker rupee)", "yfinance INR=X"),
     "brent": ("DCOILBRENTEU", "Brent spot (Europe Brent), USD per barrel. Daily, but EIA publishes weekly, so the newest bar is often 3 to 5 business days old.",
-              "FRED, from EIA"),
+              "FRED, else EIA directly"),
     "brentfut": ("BZ=F", "Brent front-month futures (BZ=F), USD per barrel. Context only: it can sit well below spot.",
                  "yfinance BZ=F"),
     "nifty": ("^NSEI", "Nifty 50 price index, INR", "yfinance ^NSEI"),
@@ -105,9 +105,35 @@ def prior_brent(path: Path):
     return (wk, bar) if wk and age <= FALLBACK_MAX_DAYS else (None, None)
 
 
+def eia_brent_daily():
+    """Same Brent spot series straight from EIA (FRED's upstream), as a pandas Series.
+
+    Second source for the Actions runner, where fred.stlouisfed.org times out. Uses EIA_API_KEY when set,
+    else the public DEMO_KEY (rate limited, enough for three runs a day).
+    """
+    import os
+    import pandas as pd
+    key = os.environ.get("EIA_API_KEY") or "DEMO_KEY"
+    url = ("https://api.eia.gov/v2/petroleum/pri/spt/data/?frequency=daily&data%5B0%5D=value"
+           "&facets%5Bseries%5D%5B%5D=RBRTE&start=2012-01-01&length=5000"
+           "&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc&api_key=" + key)
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    rows = json.loads(urllib.request.urlopen(req, timeout=45).read().decode())["response"]["data"]
+    rows = [(r["period"], float(r["value"])) for r in rows if r.get("value") not in (None, "")]
+    return pd.Series([v for _, v in rows], index=pd.to_datetime([d for d, _ in rows]))
+
+
+def brent_spot():
+    try:
+        return fred_daily("DCOILBRENTEU")
+    except Exception as e:  # noqa: BLE001
+        print(f"WARN FRED failed ({e}); trying EIA", file=sys.stderr)
+        return eia_brent_daily()
+
+
 def pull(sym: str):
     if sym == "DCOILBRENTEU":
-        s = fred_daily(sym)
+        s = brent_spot()
     else:
         h = yf.Ticker(sym).history(period="max", interval="1d", auto_adjust=False)
         s = h["Close"].dropna()
