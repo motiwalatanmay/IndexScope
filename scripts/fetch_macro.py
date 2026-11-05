@@ -3,10 +3,11 @@
 
 Series (weekly, Friday-anchored, ~11y; the in-progress week is dated today IST):
   usdinr  INR=X   rupees per US dollar (a RISE means a weaker rupee)
-  brent   FRED DCOILBRENTEU  Brent SPOT (Europe Brent, EIA via FRED) in USD/bbl.
-                  This is the headline Brent. EIA and FRED post it daily with a lag, so the newest bar is usually 1 to 3 business days old.
-  brentfut BZ=F   Brent front-month futures, kept as context only. In Sept-Oct 2026
-                  it traded 3-25% below the spot series; it feeds no state.
+  brent   BZ=F      Brent front-month futures in USD/bbl. This is the headline Brent (since 2026-11-05):
+                  it has a quote for today. It drives the 12M change and the state.
+  brentspot FRED DCOILBRENTEU  Brent SPOT (Europe Brent, EIA via FRED), context only. EIA and FRED post it
+                  with a lag, so the newest bar is usually 1 to 3 business days old. It feeds no state.
+                  If FRED and EIA both fail, the spot column is null and the run still succeeds.
   nifty   ^NSEI   Nifty 50 price index in INR
 
 Partial week: when the newest weekly row is the in-progress week (its Friday has
@@ -57,14 +58,13 @@ MIN_WEEKS = 450          # ~8.6y; below this the percentile and correlation are 
 MAX_STALE_DAYS = 8       # newest daily bar older than this = Yahoo gap, refuse to write
 ROLL_KEEP = 10 * 52      # rolling-correlation points kept: 10 years of weekly windows
 FRED_TRIES = 3
-FALLBACK_MAX_DAYS = 21   # a FRED failure may reuse the last committed Brent spot for at most this many days
 
 SERIES = {
     "usdinr": ("INR=X", "Rupees per US dollar (rise = weaker rupee)", "yfinance INR=X"),
-    "brent": ("DCOILBRENTEU", "Brent spot (Europe Brent), USD per barrel. Daily, but EIA and FRED post it with a lag, so the newest bar is usually 1 to 3 business days old.",
-              "FRED, else EIA directly"),
-    "brentfut": ("BZ=F", "Brent front-month futures (BZ=F), USD per barrel. Context only: it can sit well below spot.",
-                 "yfinance BZ=F"),
+    "brent": ("BZ=F", "Brent front-month futures (BZ=F), USD per barrel. Quoted daily. The contract rolls to the next month, so it can sit below or above Europe Brent spot.",
+              "yfinance BZ=F"),
+    "brentspot": ("DCOILBRENTEU", "Brent spot (Europe Brent), USD per barrel. Context only: EIA and FRED post it with a lag, so the newest bar is usually 1 to 3 business days old.",
+                  "FRED, else EIA directly"),
     "nifty": ("^NSEI", "Nifty 50 price index, INR", "yfinance ^NSEI"),
 }
 
@@ -85,24 +85,6 @@ def fred_daily(sid: str):
             time.sleep(5 * attempt)
     rows = [(r[0], float(r[1])) for r in list(csv.reader(io.StringIO(txt)))[1:] if len(r) == 2 and r[1] not in ("", ".")]
     return pd.Series([v for _, v in rows], index=pd.to_datetime([d for d, _ in rows]))
-
-
-def prior_brent(path: Path):
-    """Last committed Brent spot weekly values and its last daily bar, or (None, None).
-
-    Used only when the FRED fetch fails: USD/INR, futures and Nifty still refresh, and the Brent chip
-    keeps its own old `lastDailyBar`, so the page says STALE in words instead of freezing every chip.
-    """
-    try:
-        d = json.loads(path.read_text())
-        cols = d["weekly"]["cols"]
-        i, j = cols.index("date"), cols.index("brent")
-        wk = {r[i]: float(r[j]) for r in d["weekly"]["rows"]}
-        bar = d["series"]["brent"]["lastDailyBar"]
-        age = (datetime.now(timezone.utc).date() - datetime.strptime(bar, "%Y-%m-%d").date()).days
-    except Exception:  # noqa: BLE001
-        return None, None
-    return (wk, bar) if wk and age <= FALLBACK_MAX_DAYS else (None, None)
 
 
 def eia_brent_daily():
@@ -208,18 +190,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=DATA, help="file to write (default data/macro.json)")
     out_path = ap.parse_args(argv).out
     now = datetime.now(timezone.utc)
-    raw, last_days, fallback = {}, {}, set()
+    raw, last_days = {}, {}
     for key, (sym, _d, _s) in SERIES.items():
         try:
             raw[key], last_days[key] = pull(sym)
         except Exception as e:  # noqa: BLE001
-            wk, bar = prior_brent(out_path) if key == "brent" else (None, None)
-            if wk is None:
-                print(f"FAIL {key} {sym}: {e}", file=sys.stderr)
-                return 1
-            print(f"WARN {key} {sym}: {e}; reusing the last committed values (last bar {bar})", file=sys.stderr)
-            raw[key], last_days[key] = dict(wk), [bar]
-            fallback.add(key)
+            if key == "brentspot":   # context only: a source failure must not stop the headline series
+                print(f"WARN {key} {sym}: {e}; spot column will be null", file=sys.stderr)
+                raw[key], last_days[key] = None, None
+                continue
+            print(f"FAIL {key} {sym}: {e}", file=sys.stderr)
+            return 1
+        if key == "brentspot":       # lag is expected, so no staleness or thin-series gate
             continue
         if not raw[key] or len(raw[key]) < MIN_WEEKS:
             print(f"FAIL {key}: thin series ({len(raw[key] or {})} weeks)", file=sys.stderr)
@@ -229,15 +211,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL {key}: newest bar {last_days[key][-1]} is {age} days old", file=sys.stderr)
             return 1
 
-    if raw["brent"]:
-        # EIA posts Brent spot with a lag, so FRED always trails the other series. Carry its last value into the
-        # weeks it has not reached; without this the whole file (USD/INR, Nifty) stops at the last Brent week.
-        # The Brent chip keeps its own `lastDailyBar`, so the page still says STALE in words.
-        last_wk = max(raw["brent"])
-        for d in sorted(set(raw["usdinr"]) & set(raw["nifty"]) & set(raw["brentfut"])):
-            if d > last_wk:
-                raw["brent"][d] = raw["brent"][last_wk]
-    common = sorted(set(raw["usdinr"]) & set(raw["brent"]) & set(raw["nifty"]) & set(raw["brentfut"]))
+    common = sorted(set(raw["usdinr"]) & set(raw["brent"]) & set(raw["nifty"]))
     # A partial (in-progress) newest week is kept for display but excluded from every statistic.
     # The window holds 572 COMPLETE weeks either way, so n / basis counts do not wobble mid-week.
     partial = bool(common) and week_is_partial(common[-1], now.date())
@@ -250,7 +224,13 @@ def main(argv: list[str] | None = None) -> int:
     fx = [raw["usdinr"][d] for d in dates]
     br = [raw["brent"][d] for d in dates]
     nf = [raw["nifty"][d] for d in dates]
-    bf = [raw["brentfut"][d] for d in dates]
+    if raw["brentspot"]:
+        # Spot trails the other series by 1 to 3 business days. Carry its last value into the weeks it has not
+        # reached; the spot entry keeps its own `lastDailyBar`, so the page still shows its real age.
+        sp_last = max(raw["brentspot"])
+        sp = [raw["brentspot"].get(d, raw["brentspot"][sp_last] if d > sp_last else None) for d in dates]
+    else:
+        sp = [None] * len(dates)
     dc = dates[:nc]
     fxc, brc, nfc = fx[:nc], br[:nc], nf[:nc]
 
@@ -276,15 +256,15 @@ def main(argv: list[str] | None = None) -> int:
             "chg12mComplete": round(chg[nc - 1] * 100, 2),
             "chg12mPctile": pct,
             "state": state_for(pct),
-            **({"fallback": "FRED fetch failed; Brent spot is the last committed value"} if key in fallback else {}),
             "basis": f"percentile of the 12M change at the last complete week ({last_complete}) "
                      f"vs {len(hist)} rolling 52-week changes (complete weeks only)",
         }
-    series_meta["brentfut"] = {
-        "sym": SERIES["brentfut"][0], "definition": SERIES["brentfut"][1], "source": SERIES["brentfut"][2],
-        "last": round(bf[-1], 4), "lastDate": dates[-1], "lastDailyBar": last_bar_on_or_before(last_days["brentfut"], dates[-1]),
-        "chg12m": round((bf[-1] / bf[-53] - 1) * 100, 2),
-    }
+    if raw["brentspot"] and sp[-1] is not None and sp[-53] is not None:
+        series_meta["brentspot"] = {
+            "sym": SERIES["brentspot"][0], "definition": SERIES["brentspot"][1], "source": SERIES["brentspot"][2],
+            "last": round(sp[-1], 4), "lastDate": dates[-1], "lastDailyBar": last_bar_on_or_before(last_days["brentspot"], dates[-1]),
+            "chg12m": round((sp[-1] / sp[-53] - 1) * 100, 2),
+        }
     series_meta["nifty"] = {
         "sym": SERIES["nifty"][0], "definition": SERIES["nifty"][1], "source": SERIES["nifty"][2],
         "last": round(nf[-1], 2), "lastDate": dates[-1], "lastDailyBar": last_bar_on_or_before(last_days["nifty"], dates[-1]),
@@ -324,8 +304,8 @@ def main(argv: list[str] | None = None) -> int:
         "rule": "HEADWIND if the 12M change is in the top quarter of its own 10y history, TAILWIND if in the bottom quarter, else NEUTRAL.",
         "series": series_meta,
         "correlation": corr_block,
-        "weekly": {"cols": ["date", "usdinr", "brent", "nifty", "brentfut"],
-                   "rows": [[d, round(a, 4), round(b, 4), round(c, 2), round(e, 4)] for d, a, b, c, e in zip(dates, fx, br, nf, bf)]},
+        "weekly": {"cols": ["date", "usdinr", "brent", "nifty", "brentspot"],
+                   "rows": [[d, round(a, 4), round(b, 4), round(c, 2), None if e is None else round(e, 4)] for d, a, b, c, e in zip(dates, fx, br, nf, sp)]},
     }
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(out, separators=(",", ":")))
