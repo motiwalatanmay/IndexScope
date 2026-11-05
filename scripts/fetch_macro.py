@@ -4,7 +4,7 @@
 Series (weekly, Friday-anchored, ~11y; the in-progress week is dated today IST):
   usdinr  INR=X   rupees per US dollar (a RISE means a weaker rupee)
   brent   FRED DCOILBRENTEU  Brent SPOT (Europe Brent, EIA via FRED) in USD/bbl.
-                  This is the headline Brent. EIA publishes it weekly, so the newest bar is often 3 to 5 business days old.
+                  This is the headline Brent. EIA and FRED post it daily with a lag, so the newest bar is usually 1 to 3 business days old.
   brentfut BZ=F   Brent front-month futures, kept as context only. In Sept-Oct 2026
                   it traded 3-25% below the spot series; it feeds no state.
   nifty   ^NSEI   Nifty 50 price index in INR
@@ -61,7 +61,7 @@ FALLBACK_MAX_DAYS = 21   # a FRED failure may reuse the last committed Brent spo
 
 SERIES = {
     "usdinr": ("INR=X", "Rupees per US dollar (rise = weaker rupee)", "yfinance INR=X"),
-    "brent": ("DCOILBRENTEU", "Brent spot (Europe Brent), USD per barrel. Daily, but EIA publishes weekly, so the newest bar is often 3 to 5 business days old.",
+    "brent": ("DCOILBRENTEU", "Brent spot (Europe Brent), USD per barrel. Daily, but EIA and FRED post it with a lag, so the newest bar is usually 1 to 3 business days old.",
               "FRED, else EIA directly"),
     "brentfut": ("BZ=F", "Brent front-month futures (BZ=F), USD per barrel. Context only: it can sit well below spot.",
                  "yfinance BZ=F"),
@@ -230,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     if raw["brent"]:
-        # EIA publishes Brent spot weekly, so FRED always trails the other series. Carry its last value into the
+        # EIA posts Brent spot with a lag, so FRED always trails the other series. Carry its last value into the
         # weeks it has not reached; without this the whole file (USD/INR, Nifty) stops at the last Brent week.
         # The Brent chip keeps its own `lastDailyBar`, so the page still says STALE in words.
         last_wk = max(raw["brent"])
