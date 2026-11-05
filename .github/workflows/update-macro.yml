@@ -1,0 +1,47 @@
+name: Update macro data
+
+on:
+  schedule:
+    # Two daytime refreshes of USD/INR, Brent futures and Nifty (data/macro.json only).
+    # 10:00 AM IST = 04:30 UTC, 3:00 PM IST = 09:30 UTC. GitHub may start a run late.
+    - cron: "30 4 * * *"
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-indices
+  cancel-in-progress: false
+
+jobs:
+  macro:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests yfinance pandas
+
+      # fetch_macro.py refuses to write on thin or stale data, so a Yahoo gap
+      # leaves the last committed file.
+      - name: Fetch macro series -> data/macro.json
+        run: python scripts/fetch_macro.py
+
+      - name: Commit macro.json only
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/macro.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "data: refresh macro (USD/INR, Brent) ($(date -u +%Y-%m-%dT%H:%MZ))"
+            pushed=0
+            for i in 1 2 3; do git pull --rebase origin main && git push && pushed=1 && break; sleep $((i*5)); done
+            if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
+          fi
