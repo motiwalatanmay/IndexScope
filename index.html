@@ -5449,8 +5449,52 @@ function fetchMacro() {
     if (res[1] && !FII) console.warn('fii.json failed validation; ignoring it');
     try { renderMacroChips(); } catch (e) { console.warn('macro chips', e); }
     if (CURRENT_VIEW === 'macro') { try { renderMacro(); } catch (e) { console.warn('macro', e); } }
+    fetchMacroLive();
   });
 }
+// Live USD/INR and Brent quotes from the worker (/macro-live, Yahoo, 60s edge cache).
+// Only `last` and the 12M change to it move. State, percentile and charts stay on
+// the last complete week. Any failure leaves the macro.json values as they are.
+function mcApplyLive(resp) {
+  if (!MACRO || !resp || resp.status !== 'ok' || !resp.quotes) return false;
+  var today = new Date().toLocaleString('en-CA', {timeZone:'Asia/Kolkata'}).slice(0,10), changed = false;
+  ['usdinr','brent'].forEach(function(k){
+    var s = mcSer(k), q = resp.quotes[k];
+    if (!s || !q || !mcNum(q.last) || q.last <= 0) return;
+    var t = new Date(q.time); if (isNaN(t.getTime())) return;
+    if (s._baseLast == null) s._baseLast = s.last / (1 + s.chg12m / 100); // price 12M ago, fixed
+    s.last = q.last;
+    s.chg12m = (q.last / s._baseLast - 1) * 100;
+    s.lastDailyBar = t.toLocaleString('en-CA', {timeZone:'Asia/Kolkata'}).slice(0,10);
+    changed = true;
+  });
+  return changed;
+}
+function fetchMacroLive() {
+  if (!LIVE_PROXY_URL || !MACRO) return Promise.resolve(false);
+  var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var timer = setTimeout(function(){ if (ctrl) ctrl.abort(); }, 8000);
+  return fetch(LIVE_PROXY_URL + '/macro-live?t=' + Date.now(), ctrl ? {signal: ctrl.signal} : {})
+    .then(function(r){ clearTimeout(timer); return r.json(); })
+    .then(function(resp){
+      if (!mcApplyLive(resp)) return false;
+      try { renderMacroChips(); } catch (e) {}
+      if (CURRENT_VIEW === 'macro') { try { renderMacro(); } catch (e) {} }
+      return true;
+    })
+    .catch(function(){ clearTimeout(timer); return false; });
+}
+var MACRO_LIVE_BUSY = false;
+function macroLiveTick() {
+  if (MACRO_LIVE_BUSY || document.hidden || !MACRO) return;
+  if (CURRENT_VIEW !== 'dashboard' && CURRENT_VIEW !== 'macro') return;
+  var d = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'})).getDay();
+  if (d === 0 || d === 6) return; // FX and futures are shut at the weekend
+  MACRO_LIVE_BUSY = true;
+  fetchMacroLive().then(function(){ MACRO_LIVE_BUSY = false; });
+}
+setInterval(macroLiveTick, 60000);
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) macroLiveTick(); });
 // Toggle-button groups: active class plus aria-pressed, so the state is announced, not only shown.
 function mcPills(rowId, attr, val) {
   document.querySelectorAll('#' + rowId + ' .gl-pill').forEach(function(b){ var on = b.getAttribute(attr) === val; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });

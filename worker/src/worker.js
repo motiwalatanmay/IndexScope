@@ -90,7 +90,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
-    const isPublic = path === "/" || path === "/live";
+    const isPublic = path === "/" || path === "/live" || path === "/macro-live";
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: isPublic ? CORS : corsFor(request) });
@@ -108,6 +108,7 @@ export default {
       else if (path === "/admin/users" && (request.method === "GET" || request.method === "PUT"))
         resp = await adminUsersHandler(request, env);
       else if (path === "/admin/health" && request.method === "GET") resp = await adminHealthHandler(request, env);
+      else if (path === "/macro-live") return macroLiveHandler(request);
       else if (isPublic) return liveHandler(request);
       else resp = json({ status: "error", message: "not found" }, 404);
     } catch (e) {
@@ -178,6 +179,55 @@ async function fetchLive() {
     }
   }
   return out;
+}
+
+/* ───────────────────── macro live quotes (USD/INR, Brent) ───────────────────── */
+
+// Public, read-only. Yahoo chart meta gives the latest quote; edge-cached 60s like /live.
+// Each symbol fails alone: the page keeps the macro.json value for a missing one.
+const MACRO_LIVE_SYMBOLS = {
+  usdinr: { sym: "INR=X", min: 50,  max: 150 },
+  brent:  { sym: "BZ=F",  min: 10,  max: 300 },
+};
+
+async function macroLiveHandler(request) {
+  const cache = caches.default;
+  const cacheKey = new Request("https://indexscope-cache/macro-live", request);
+  const cached = await cache.match(cacheKey);
+  if (cached) {
+    const hit = new Response(cached.body, cached);
+    hit.headers.set("X-Cache", "HIT");
+    return hit;
+  }
+  const quotes = {};
+  await Promise.all(Object.entries(MACRO_LIVE_SYMBOLS).map(async ([key, cfg]) => {
+    const q = await fetchYahooQuote(cfg);
+    if (q) quotes[key] = q;
+  }));
+  if (!Object.keys(quotes).length) {
+    // Do not cache a total failure: the next request retries at once.
+    return json({ status: "error", message: "no quotes" }, 502, { "Cache-Control": "no-store" });
+  }
+  const resp = json({ status: "ok", fetchedAt: new Date().toISOString(), quotes },
+    200, { "Cache-Control": `public, max-age=${CACHE_TTL_SECONDS}`, "X-Cache": "MISS" });
+  await cache.put(cacheKey, resp.clone());
+  return resp;
+}
+
+async function fetchYahooQuote(cfg) {
+  for (const host of ["query1", "query2"]) {
+    try {
+      const r = await fetch(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(cfg.sym)}?interval=1m&range=1d`,
+        { headers: { "User-Agent": UA, "Accept": "application/json" } });
+      if (!r.ok) continue;
+      const m = (await r.json())?.chart?.result?.[0]?.meta;
+      const last = Number(m?.regularMarketPrice), t = Number(m?.regularMarketTime);
+      if (Number.isFinite(last) && last >= cfg.min && last <= cfg.max && Number.isFinite(t) && t > 0) {
+        return { last, time: new Date(t * 1000).toISOString() };
+      }
+    } catch (e) { /* try the next host */ }
+  }
+  return null;
 }
 
 /* ───────────────────────── session / auth ───────────────────────── */
