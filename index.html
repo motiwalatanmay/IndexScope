@@ -1955,7 +1955,7 @@ body.diwali .hdr-logo{background:linear-gradient(135deg,#ff9f1c,#ffd166);color:#
       <div class="hp-p">The Macro tab shows three outside forces next to the valuation work: the <strong>rupee</strong> (USD/INR), <strong>Brent crude</strong> and <strong>foreign investor flows</strong> (FII net equity). It is context only. <strong>No macro number feeds any valuation band, card or alert.</strong></div>
       <div class="hp-sub-h">The state words</div>
       <div class="hp-p">Each reading carries one word and one shape: <strong>◆ HEADWIND</strong>, <strong>● NEUTRAL</strong>, <strong>▲ TAILWIND</strong>. For USD/INR and Brent, the page takes the latest 12-month change and ranks it against every rolling 12-month change in the last 10 years. The top quarter is a headwind (a weaker rupee or dearer oil hurts an economy that imports oil and relies on portfolio inflows). The bottom quarter is a tailwind. For FII, the page ranks the sum of the last 5 reporting dates against all rolling 5-date sums since 2014. The direction flips: heavy selling is the headwind.</div>
-      <div class="hp-card info"><div class="hp-p" style="margin-bottom:0">A headwind describes how extreme the move is against history. It is not a forecast. The correlation panel shows why. It measures how weekly Nifty returns and each series moved in the same week. A negative value means they moved in opposite directions; a value between −0.1 and +0.1 is near zero. The caption names the sign and size of each figure, including the one-week-lead figures, and none of them is a forecast.</div></div>
+      <div class="hp-card info"><div class="hp-p" style="margin-bottom:0">Each chip also shows the 3-month change to the last quote. It is context only and feeds no state, so a sharp recent reversal shows beside the 12-month state. A headwind describes how extreme the move is against history. It is not a forecast. The correlation panel shows why. It measures how weekly Nifty returns and each series moved in the same week. A negative value means they moved in opposite directions; a value between −0.1 and +0.1 is near zero. The caption names the sign and size of each figure, including the one-week-lead figures, and none of them is a forecast.</div></div>
       <div class="hp-sub-h">What to know about each source</div>
       <div class="hp-p"><strong>Brent</strong> is the front-month future from Yahoo (BZ=F). It has a quote for the current day and it feeds the state. Spot (Europe Brent, FRED series DCOILBRENTEU) is shown beside it as context and feeds no state. EIA posts spot with a lag, so its newest bar is usually 1 to 3 business days old. The two can differ materially, and the future rolls to the next contract each month. <strong>FII</strong> comes from NSDL, the depository, and covers equity only. Each NSDL date is the reporting date and carries the <em>previous</em> trading day’s trades. A few rows combine several trading days; the chart marks rows that look that way with †. The NSE same-day figure is provisional and is shown as text, not added to the chart. If a source is more than 4 business days (Mon-Fri, counted to today in India) old, the page says STALE with the age in business days. Exchange holidays still count as business days (there is no holiday calendar), so a run of several holidays can show STALE early. The newest weekly point on the price charts can be a partial week (the last quote, not a weekly close); the charts mark it with a hollow circle and the words “partial week”.</div>
     </div>
@@ -5531,6 +5531,16 @@ function mcPartial(d){
   return isFinite(t) && e - t < 7 * 864e5 && (w !== 5 || e === t);
 }
 function mcSigned(v, dp, pre, suf){ return (v < 0 ? '−' : '+') + (pre || '') + Math.abs(v).toLocaleString('en-IN', {minimumFractionDigits:dp, maximumFractionDigits:dp}) + (suf || ''); }
+// 3-month change to the last quote: last vs the weekly row 13 weeks before the newest row.
+// Context only. It feeds no state. null when the history is too short or a value is missing.
+function mc3m(k) {
+  var s = mcSer(k); if (!s || !MACRO.weekly || !Array.isArray(MACRO.weekly.rows)) return null;
+  var ci = (MACRO.weekly.cols || []).indexOf(k), rows = MACRO.weekly.rows, n = rows.length;
+  if (ci < 0 || n < 15) return null;
+  var base = rows[n - 14][ci];
+  return (mcNum(base) && base > 0 && mcNum(s.last)) ? (s.last / base - 1) * 100 : null;
+}
+function mc3mLine(k) { var v = mc3m(k); return v == null ? '' : '<br>' + mcSigned(v, 1, '', '%') + ' over 3M to last quote (context, not in the state)'; }
 function mcPct(v){ return mcNum(v) ? mcSigned(v, 1, '', '%') : 'n/a'; }
 function mcPill(st){ return '<span class="mc-pill mc-' + st.toLowerCase() + '">' + MC_SHAPE[st] + ' ' + st + '</span>'; }
 function mcT(d){ return Date.parse(d + 'T00:00:00Z'); }
@@ -5563,10 +5573,10 @@ function renderMacroChips() {
   var h = '', u = mcSer('usdinr'), b = mcSer('brent');
   if (u) h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>USD/INR</span>' + mcPill(u.state) + '</div>'
       + '<div class="mc-chip-v">₹' + u.last.toFixed(2) + '</div>'
-      + '<div class="mc-chip-s">' + mcSigned(u.chg12m, 1, '', '%') + ' over 12M to last quote (' + u.lastDailyBar + ')<br>State uses ' + mcSigned(mcStateChg(u).v, 1, '', '%') + ' ' + mcStateChg(u).words + ', ' + ord(Math.round(u.chg12mPctile)) + ' percentile<br>' + mcAsOf(u.lastDailyBar, 'last quote') + '</div></button>';
+      + '<div class="mc-chip-s">' + mcSigned(u.chg12m, 1, '', '%') + ' over 12M to last quote (' + u.lastDailyBar + ')' + mc3mLine('usdinr') + '<br>State uses ' + mcSigned(mcStateChg(u).v, 1, '', '%') + ' ' + mcStateChg(u).words + ', ' + ord(Math.round(u.chg12mPctile)) + ' percentile<br>' + mcAsOf(u.lastDailyBar, 'last quote') + '</div></button>';
   if (b) h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>Brent future</span>' + mcPill(b.state) + '</div>'
       + '<div class="mc-chip-v">$' + b.last.toFixed(2) + '</div>'
-      + '<div class="mc-chip-s">' + mcSigned(b.chg12m, 1, '', '%') + ' over 12M to last quote (' + b.lastDailyBar + ')<br>State uses ' + mcSigned(mcStateChg(b).v, 1, '', '%') + ' ' + mcStateChg(b).words + ', ' + ord(Math.round(b.chg12mPctile)) + ' percentile<br>' + mcAsOf(b.lastDailyBar, 'last quote') + '</div></button>';
+      + '<div class="mc-chip-s">' + mcSigned(b.chg12m, 1, '', '%') + ' over 12M to last quote (' + b.lastDailyBar + ')' + mc3mLine('brent') + '<br>State uses ' + mcSigned(mcStateChg(b).v, 1, '', '%') + ' ' + mcStateChg(b).words + ', ' + ord(Math.round(b.chg12mPctile)) + ' percentile<br>' + mcAsOf(b.lastDailyBar, 'last quote') + '</div></button>';
   var f = fiiStat();
   if (f) {
     h += '<button class="mc-chip" onclick="openMacro()"><div class="mc-chip-t"><span>FII net, 5 report dates</span>' + mcPill(f.state) + '</div>'
