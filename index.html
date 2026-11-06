@@ -5065,6 +5065,23 @@ function refreshCurrent() {
   }
 }
 
+// Auto-refresh live prices every 60s (matches the worker's 60s edge cache).
+// Dashboard view only, tab visible, market hours only. Uses the light proxy
+// overlay, not fetchAllLive(), so it adds no Apps Script calls.
+var AUTO_REFRESH_MS = 60000;
+var AUTO_REFRESH_BUSY = false;
+function autoRefreshTick() {
+  if (AUTO_REFRESH_BUSY || document.hidden) return;
+  if (CURRENT_VIEW !== 'dashboard' || !isMarketHoursIST()) return;
+  AUTO_REFRESH_BUSY = true;
+  fetchLiveOverlay()
+    .then(function(resp){ if (resp && CURRENT_VIEW === 'dashboard') renderCards(); })
+    .catch(function(){})
+    .then(function(){ AUTO_REFRESH_BUSY = false; });
+}
+setInterval(autoRefreshTick, AUTO_REFRESH_MS);
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) autoRefreshTick(); });
+
 function toggleTheme() {
   var isLight = document.body.classList.toggle('light');
   var btn = document.getElementById('themeBtn');
